@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #FEFAF5; /* Match aether-bg */
+  color: #4B433E; /* Match aether-text */
+}
