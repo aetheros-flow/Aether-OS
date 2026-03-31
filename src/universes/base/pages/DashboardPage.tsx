@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { 
+  Heart, 
+  Users, 
+  Home, 
+  Smile, 
+  BookOpen, 
+  Briefcase, 
+  DollarSign, 
+  Coffee,
+  Sparkles
+} from 'lucide-react';
 import { useAetherStore } from '../../../core/store';
 
 // Función matemática para dibujar los gajos polares
@@ -13,7 +23,6 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
 }
 
 export default function DashboardPage() {
-  // Ahora usamos el Estado Global y el Router
   const { universes, updateScore } = useAetherStore();
   const navigate = useNavigate();
   
@@ -38,6 +47,8 @@ export default function DashboardPage() {
       className="min-h-screen transition-colors duration-700 ease-in-out pb-24 flex flex-col items-center font-sans"
       style={{ backgroundColor: appBgColor, color: appTextColor }}
     >
+      
+      {/* HEADER PREMIUM */}
       <header className="w-full max-w-5xl flex justify-between items-center p-6 md:p-8 transition-colors duration-700">
         <div>
           <h1 className="text-3xl font-serif tracking-tight transition-colors duration-700">Aether OS</h1>
@@ -59,13 +70,16 @@ export default function DashboardPage() {
         
         {/* LA RUEDA VIVA */}
         <div className="relative w-full max-w-[750px] aspect-square flex items-center justify-center">
+          
           <div className="w-full h-full relative z-10">
             <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
               
+              {/* Grilla sutil de fondo */}
               {[2, 4, 6, 8, 10].map((step) => (
                 <circle 
                   key={step} 
-                  cx={center} cy={center} 
+                  cx={center} 
+                  cy={center} 
                   r={(step / 10) * maxRadius} 
                   fill="none" 
                   stroke={isHovering ? 'rgba(255,255,255,0.1)' : '#E8E6E1'} 
@@ -74,6 +88,7 @@ export default function DashboardPage() {
                 />
               ))}
 
+              {/* Dibujo de Gajos y Etiquetas */}
               {universes.map((item, i) => {
                 const startAngle = i * anglePerSlice;
                 const endAngle = (i + 1) * anglePerSlice;
@@ -101,14 +116,17 @@ export default function DashboardPage() {
                     key={item.id}
                     onMouseEnter={() => setHoveredUniverse(item.id)}
                     onMouseLeave={() => setHoveredUniverse(null)}
-                    onClick={() => navigate(`/${item.id}`)} // NAVEGACIÓN AGREGADA AQUÍ
+                    onClick={() => navigate(`/${item.id}`)} // Mantiene el clic si tocás el color
                     className="cursor-pointer group outline-none"
                   >
+                    {/* El Gajo Sólido */}
                     <path 
                       d={d} 
                       fill={item.color} 
                       className={`transition-all duration-500 ease-out origin-center ${isThisHovered ? 'opacity-100 scale-105 drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]' : isAnotherHovered ? 'opacity-30 scale-95' : 'opacity-90 scale-100'}`}
                     />
+                    
+                    {/* Líneas divisorias */}
                     <line 
                       x1={center} y1={center} 
                       x2={polarToCartesian(center, center, maxRadius, startAngle).x} 
@@ -117,36 +135,60 @@ export default function DashboardPage() {
                       strokeWidth="6"
                       className="transition-colors duration-700"
                     />
-                    <foreignObject x={labelPos.x - 170} y={labelPos.y - 80} width="340" height="160" className="overflow-visible pointer-events-none">
+
+                    {/* DISEÑO ORBITAL (Ahora con soporte de clic sólido en ícono y texto) */}
+                    <foreignObject 
+                      x={labelPos.x - 170} 
+                      y={labelPos.y - 80} 
+                      width="340" 
+                      height="160"
+                      className="overflow-visible pointer-events-none"
+                    >
                       <div className={`flex flex-col items-center justify-center h-full transition-all duration-500 ${isAnotherHovered ? 'opacity-50' : 'opacity-100'}`}>
+                        {/* ESTE DIV AHORA ATRAPA LOS CLICS EXACTAMENTE EN EL TEXTO E ÍCONO */}
                         <div 
-                          className="p-5 rounded-full transition-all duration-500 shadow-md"
-                          style={{ 
-                            backgroundColor: isThisHovered ? item.color : panelBgColor,
-                            color: isThisHovered ? '#FFF' : item.color,
-                            border: `2px solid ${isThisHovered ? item.color : panelBorderColor}`
+                          onClick={(e) => {
+                            e.stopPropagation(); // Evita clics duplicados
+                            navigate(`/${item.id}`);
                           }}
+                          className="flex flex-col items-center pointer-events-auto cursor-pointer"
                         >
-                          <Icon size={48} strokeWidth={isThisHovered ? 2.5 : 2} />
+                          <div 
+                            className="p-5 rounded-full transition-all duration-500 shadow-md"
+                            style={{ 
+                              backgroundColor: isThisHovered ? item.color : panelBgColor,
+                              color: isThisHovered ? '#FFF' : item.color,
+                              border: `2px solid ${isThisHovered ? item.color : panelBorderColor}`
+                            }}
+                          >
+                            <Icon size={48} strokeWidth={isThisHovered ? 2.5 : 2} />
+                          </div>
+                          <span 
+                            className="text-[32px] uppercase tracking-[0.15em] mt-5 font-bold text-center leading-tight transition-colors duration-500"
+                            style={{ color: isThisHovered ? '#FFF' : appTextColor }}
+                          >
+                            {item.label}
+                          </span>
                         </div>
-                        <span 
-                          className="text-[32px] uppercase tracking-[0.15em] mt-5 font-bold text-center leading-tight transition-colors duration-500"
-                          style={{ color: isThisHovered ? '#FFF' : appTextColor }}
-                        >
-                          {item.label}
-                        </span>
                       </div>
                     </foreignObject>
                   </g>
                 );
               })}
               
-              <circle cx={center} cy={center} r="14" fill={isHovering ? '#FFFFFF' : '#FAF9F6'} stroke={isHovering ? 'rgba(255,255,255,0.2)' : '#2D2A26'} strokeWidth="4" className="z-20 transition-all duration-700" />
+              {/* Núcleo Central */}
+              <circle 
+                cx={center} cy={center} r="14" 
+                fill={isHovering ? '#FFFFFF' : '#FAF9F6'} 
+                stroke={isHovering ? 'rgba(255,255,255,0.2)' : '#2D2A26'} 
+                strokeWidth="4" 
+                className="z-20 transition-all duration-700" 
+              />
             </svg>
           </div>
         </div>
 
-        {/* PANEL DE CONTROL */}
+        {/* PANEL DE CONTROL (Sliders) */}
         <div 
           className="w-full lg:w-[400px] flex flex-col gap-6 p-6 md:p-8 rounded-3xl backdrop-blur-xl transition-all duration-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mx-4 md:mx-0"
           style={{ backgroundColor: panelBgColor, border: `1px solid ${panelBorderColor}` }}
