@@ -9,11 +9,9 @@ import {
   Plus,
   Flame,
   ArrowLeft,
-  CreditCard,
   Building2,
   TrendingUp,
   Activity,
-  TrendingDown,
   Loader2,
   X
 } from 'lucide-react';

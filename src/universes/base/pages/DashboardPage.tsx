@@ -1,16 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Heart, 
-  Users, 
-  Home, 
-  Smile, 
-  BookOpen, 
-  Briefcase, 
-  DollarSign, 
-  Coffee,
-  Sparkles
-} from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useAetherStore } from '../../../core/store';
 
 // Función matemática para dibujar los gajos polares
