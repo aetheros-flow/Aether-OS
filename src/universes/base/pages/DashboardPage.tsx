@@ -48,11 +48,10 @@ const SEGMENT_COLORS: Record<string, string> = {
 
 const getLevelStrokePath = (index: number, level: number) => {
   const anglePerSegment = (2 * Math.PI) / TOTAL_SEGMENTS;
-  const gap = 0.03; // Espacio entre universos
+  const gap = 0.03; 
   const startAngle = index * anglePerSegment - Math.PI / 2 + gap;
   const endAngle = (index + 1) * anglePerSegment - Math.PI / 2 - gap;
   
-  // 10 Niveles concéntricos
   const step = (RADIUS - INNER_RADIUS) / 10;
   const ringRadius = INNER_RADIUS + (level - 0.5) * step; 
   
@@ -93,8 +92,6 @@ const WheelSegment = ({ segment, index, color, isHovered, onSelect, onMouseEnter
     Z
   `;
 
-  // step size = 23, width 14 deja un espacio (gap) de ~9px. Limpio y nítido.
-  // Utilidad para separar palabras largas en distintas líneas (tspan)
   const renderWrappedText = (text: string, x: number) => {
     if (text === 'Situación Económica') return <><tspan x={x} dy="-0.6em">SITUACIÓN</tspan><tspan x={x} dy="1.2em">ECONÓMICA</tspan></>;
     if (text === 'Desarrollo Personal') return <><tspan x={x} dy="-0.6em">DESARROLLO</tspan><tspan x={x} dy="1.2em">PERSONAL</tspan></>;
@@ -155,22 +152,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userWheel, setUserWheel] = useState<Segment[]>(initialSegments);
   const [hoveredSegment, setHoveredSegment] = useState<Segment | null>(null);
-  const [dbRecordId, setDbRecordId] = useState<string | null>(null);
 
-  // Fondo default off-white (Light Theme)
   const defaultBg = '#FAF9F6'; 
-  const targetBgColor = defaultBg; // Mantendremos el fondo blanco siempre para mantener el diseño limpio de la captura 1.
+  const targetBgColor = defaultBg; 
 
   const fetchWheelData = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate('/login'); return; }
+      // @ts-ignore
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData?.user) { navigate('/login'); return; }
 
       const { data, error } = await supabase
         .from('UserWheel')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', authData.user.id)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -178,22 +174,14 @@ export default function DashboardPage() {
       
       if (data && data.length > 0) {
         const lastWheel = data[0];
-        setDbRecordId(lastWheel.id);
         const updatedWheel = initialSegments.map(seg => {
           const rawNum = lastWheel[seg.id] || 0;
           return { ...seg, value: rawNum, level: getLevelFromNumber(rawNum) };
         });
         setUserWheel(updatedWheel);
       } else {
-         // Create a new record if none exists
-         const { data: newRecord, error: insertError } = await supabase
-           .from('UserWheel')
-           .insert([{ user_id: user.id }])
-           .select()
-           .single();
-           
-         if (insertError) throw insertError;
-         setDbRecordId(newRecord.id);
+         // Si no existe, lo creamos
+         await supabase.from('UserWheel').insert([{ user_id: authData.user.id }]);
       }
     } catch (error) { 
       console.error(error); 
@@ -203,19 +191,24 @@ export default function DashboardPage() {
 
   useEffect(() => { fetchWheelData(); }, [navigate]);
 
-  const handleSliderChange = async (segmentId: string, newValue: number) => {
-    // Actualización optimista de la UI
+  // Handler 1: Cambia la UI al instante mientras arrastrás
+  const handleLocalChange = (segmentId: string, newValue: number) => {
     setUserWheel(prev => prev.map(s => 
       s.id === segmentId ? { ...s, value: newValue, level: getLevelFromNumber(newValue) } : s
     ));
+  };
 
-    if (!dbRecordId) return;
-
+  // Handler 2: Guarda en la base de datos SOLAMENTE cuando soltás el clic
+  const handleSaveToDB = async (segmentId: string, newValue: number) => {
     try {
+      // @ts-ignore
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData?.user) return;
+
       const { error } = await supabase
         .from('UserWheel')
         .update({ [segmentId]: newValue })
-        .eq('id', dbRecordId);
+        .eq('user_id', authData.user.id);
         
       if (error) throw error;
     } catch (error) {
@@ -232,7 +225,6 @@ export default function DashboardPage() {
       className="min-h-screen font-sans text-[#2D2A26] relative transition-colors duration-500 ease-in-out flex flex-col md:flex-row selection:bg-purple-900 selection:text-white"
       style={{ backgroundColor: targetBgColor }}
     >
-      {/* Área Central (La Rueda) */}
       <div className="flex-1 flex flex-col items-center p-6 md:p-10">
           <header className="flex justify-between items-center w-full max-w-4xl mb-10 bg-[#FAF9F6] py-3 px-6 rounded-full shadow-lg border border-gray-100 z-50">
             <h1 className="aether-title text-[#2D2A26]">Aether OS</h1>
@@ -250,7 +242,6 @@ export default function DashboardPage() {
             
             <div className="relative w-full flex-1 flex items-center justify-center transition-transform duration-500 mx-auto">
               <svg viewBox="0 0 1100 1100" className="w-[140%] sm:w-[90%] md:h-[75vh] max-h-[85vh] h-auto drop-shadow-[0_15px_30px_rgba(0,0,0,0.10)] overflow-visible">
-                {/* Gajos dinámicos con efecto premium */}
                 {userWheel.map((segment, index) => (
                   <WheelSegment 
                     key={segment.id} 
@@ -264,7 +255,6 @@ export default function DashboardPage() {
                   />
                 ))}
                 
-                {/* Centro blanco elegante */}
                 <circle cx={CENTER_X} cy={CENTER_Y} r={INNER_RADIUS - 15} fill="#FAF9F6" opacity={0.05} />
                 <circle cx={CENTER_X} cy={CENTER_Y} r={12} fill="#FAF9F6" />
               </svg>
@@ -272,7 +262,6 @@ export default function DashboardPage() {
           </main>
       </div>
 
-      {/* Panel Lateral Derecho (Ajuste de Frecuencias) */}
       <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-black/5 p-6 md:p-8 flex flex-col gap-6 bg-white/60 backdrop-blur-xl">
          <div className="mb-4">
             <h2 className="font-serif text-xl mb-1 text-[#2D2A26] font-bold">Ajuste de Frecuencias</h2>
@@ -301,8 +290,10 @@ export default function DashboardPage() {
                         min="0" 
                         max="10" 
                         value={seg.value}
-                        onChange={(e) => handleSliderChange(seg.id, Number(e.target.value))}
-                        className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                        onChange={(e) => handleLocalChange(seg.id, Number(e.target.value))}
+                        onMouseUp={(e) => handleSaveToDB(seg.id, Number((e.target as HTMLInputElement).value))}
+                        onTouchEnd={(e) => handleSaveToDB(seg.id, Number((e.target as HTMLInputElement).value))}
+                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                         style={{ accentColor: SEGMENT_COLORS[seg.id] }}
                     />
                 </div>

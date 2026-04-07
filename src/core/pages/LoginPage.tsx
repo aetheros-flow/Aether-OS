@@ -15,17 +15,18 @@ export default function LoginPage() {
   // Dentro de LoginPage.tsx, simplificamos el handleLogin:
 
 const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setSystemMessage(null);
+    e.preventDefault();
+    setLoading(true);
+    setSystemMessage(null);
 
-  try {
-    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // @ts-ignore
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (signInError) throw signInError;
+      if (signInError) throw signInError;
 
     // Ya no verificamos is_approved, el RLS de la base de datos 
     // se encargará de que solo vea SUS propios datos.

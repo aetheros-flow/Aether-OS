@@ -32,6 +32,19 @@ interface DineroModalsProps {
   newCategory?: { name: string; icon: string };
   setNewCategory?: (val: any) => void;
   handleCreateCategory?: (e: React.FormEvent) => void;
+  // --- Props de Budget ---
+  isBudgetModalOpen?: boolean;
+  setIsBudgetModalOpen?: (val: boolean) => void;
+  newBudget?: { category_name: string; limit_amount: string };
+  setNewBudget?: (val: any) => void;
+  handleSetBudget?: (e: React.FormEvent) => void;
+  categories?: any[]; // Para el selector de categorías
+  // --- Props de Suscripciones ---
+  isSubscriptionModalOpen?: boolean;
+  setIsSubscriptionModalOpen?: (val: boolean) => void;
+  newSubscription?: { name: string; amount: string; frequency: string; next_billing_date: string };
+  setNewSubscription?: (val: any) => void;
+  handleCreateSubscription?: (e: React.FormEvent) => void;
   
   newCrypto: any;
   setNewCrypto: (val: any) => void;
@@ -69,10 +82,14 @@ export function DineroModals({
   isEditModalOpen, setIsEditModalOpen,
   isTransactionModalOpen, setIsTransactionModalOpen,
   isCategoryModalOpen, setIsCategoryModalOpen,
+  isBudgetModalOpen, setIsBudgetModalOpen,
+  isSubscriptionModalOpen, setIsSubscriptionModalOpen,
   newCrypto, setNewCrypto,
   newAccount, setNewAccount,
   newTransaction, setNewTransaction,
   newCategory, setNewCategory,
+  newBudget, setNewBudget,
+  newSubscription, setNewSubscription,
   editTransaction, setEditTransaction,
   importAccountId, setImportAccountId,
   csvFile, setCsvFile,
@@ -86,7 +103,10 @@ export function DineroModals({
   handleUpdateTransaction,
   handleDeleteTransaction,
   handleCreateCategory,
-  handleCreateTransaction
+  handleCreateTransaction,
+  handleSetBudget,
+  handleCreateSubscription,
+  categories = [],
 }: DineroModalsProps) {
 
   return (
@@ -404,6 +424,130 @@ export function DineroModals({
               <div className="pt-2">
                 <button type="submit" disabled={isSubmitting} className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-extrabold shadow-sm transition-colors flex items-center justify-center">
                   {isSubmitting ? 'Saving...' : 'Save Category'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ========================================== */}
+      {/* MODAL DE PRESUPUESTOS (BUDGETS) */}
+      {/* ========================================== */}
+      {isBudgetModalOpen && setIsBudgetModalOpen && newBudget && setNewBudget && handleSetBudget && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-sans" style={{ fontFamily: "'Nunito', sans-serif" }}>
+          <div className="bg-white rounded-[20px] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="font-extrabold text-gray-900">Set Category Budget</h3>
+              <button onClick={() => setIsBudgetModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={20}/></button>
+            </div>
+            
+            <form onSubmit={handleSetBudget} className="p-6 flex flex-col gap-5">
+              
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Category</label>
+                <select 
+                  required 
+                  value={newBudget.category_name} 
+                  onChange={e => setNewBudget({...newBudget, category_name: e.target.value})} 
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>Select a category...</option>
+                  <option value="General">General</option>
+                  <option value="Housing & Utilities">Housing & Utilities</option>
+                  <option value="Groceries & Supermarket">Groceries & Supermarket</option>
+                  <option value="Dining out">Dining out</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Health & Fitness">Health & Fitness</option>
+                  <option value="Work & IT">Work & IT</option>
+                  <option value="Entertainment & Subscriptions">Entertainment & Subscriptions</option>
+                  <option value="Education">Education</option>
+                  <option value="Investments & Savings">Investments & Savings</option>
+                  {/* Agregamos también las categorías personalizadas de la BD */}
+                  {categories.map((c: any) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Monthly Limit (USD)</label>
+                <input 
+                  type="number" step="0.01" required placeholder="0.00" 
+                  value={newBudget.limit_amount} 
+                  onChange={e => setNewBudget({...newBudget, limit_amount: e.target.value})} 
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-2xl font-bold text-gray-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" 
+                />
+              </div>
+
+              <div className="pt-2 border-t border-gray-50 mt-2">
+                <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-extrabold shadow-sm transition-colors flex items-center justify-center">
+                  {isSubmitting ? 'Saving...' : 'Set Budget Limit'}
+                </button>
+              </div>
+              
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ========================================== */}
+      {/* MODAL DE SUSCRIPCIONES (RECURRING) */}
+      {/* ========================================== */}
+      {isSubscriptionModalOpen && setIsSubscriptionModalOpen && newSubscription && setNewSubscription && handleCreateSubscription && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-sans" style={{ fontFamily: "'Nunito', sans-serif" }}>
+          <div className="bg-white rounded-[20px] shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="font-extrabold text-gray-900">Add Subscription</h3>
+              <button onClick={() => setIsSubscriptionModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={20}/></button>
+            </div>
+            
+            <form onSubmit={handleCreateSubscription} className="p-6 flex flex-col gap-5">
+              
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Service Name</label>
+                <input 
+                  type="text" required placeholder="Netflix, Gym, Rent..." 
+                  value={newSubscription.name} 
+                  onChange={e => setNewSubscription({...newSubscription, name: e.target.value})} 
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" 
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col gap-2 flex-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Amount</label>
+                  <input 
+                    type="number" step="0.01" required placeholder="0.00" 
+                    value={newSubscription.amount} 
+                    onChange={e => setNewSubscription({...newSubscription, amount: e.target.value})} 
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" 
+                  />
+                </div>
+                <div className="flex flex-col gap-2 flex-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Billing</label>
+                  <select 
+                    value={newSubscription.frequency} 
+                    onChange={e => setNewSubscription({...newSubscription, frequency: e.target.value})} 
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all appearance-none"
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Next Billing Date</label>
+                <input 
+                  type="date" required 
+                  value={newSubscription.next_billing_date} 
+                  onChange={e => setNewSubscription({...newSubscription, next_billing_date: e.target.value})} 
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all" 
+                />
+              </div>
+
+              <div className="pt-2 border-t border-gray-50 mt-2">
+                <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-sm font-extrabold shadow-sm transition-colors flex items-center justify-center">
+                  {isSubmitting ? 'Saving...' : 'Save Subscription'}
                 </button>
               </div>
             </form>
