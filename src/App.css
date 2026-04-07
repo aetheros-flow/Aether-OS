@@ -1,3 +1,7 @@
+* {
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif !important;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

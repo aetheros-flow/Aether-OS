@@ -1,85 +1,73 @@
 import { useState, useEffect } from 'react';
 import { 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Wallet, 
-  LineChart, 
-  FolderKanban, 
-  LayoutDashboard,
-  Plus,
-  Flame,
-  ArrowLeft,
-  Building2,
-  TrendingUp,
-  Activity,
-  Loader2,
-  X
+  Wallet, ArrowLeft, Loader2, X, Menu, Upload, Target, Zap, Sparkles, Trophy, Plus, TrendingUp, Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
+import { parseFile, exportRecords } from '../lib/dinero-io';
 
-// Tipos para la base de datos
-type TabType = 'dashboard' | 'billeteras' | 'inversiones' | 'proyectos';
+import { DineroOverview } from '../components/views/DineroOverview';
+import { DineroTransactions } from '../components/views/DineroTransactions';
+import { DineroCategories } from '../components/views/DineroCategories';
+import { DineroRadar } from '../components/views/DineroRadar';
+import { DineroModals } from '../components/modals/DineroModals'; 
 
-interface Account {
-  id: string;
-  name: string;
-  type: string;
-  currency: string;
-  balance: number;
-  is_debt: boolean;
-}
+export type TabType = 'dashboard' | 'transactions' | 'categories' | 'calendar' | 'budget' | 'reports' | 'radar';
 
-interface Investment {
-  id: string;
-  asset_name: string;
-  symbol: string;
-  holdings: number;
-  avg_buy_price: number;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  status: string;
-  allocated_budget: number;
-  monthly_burn: number;
-  tech_stack: string;
-}
+interface Account { id: string; name: string; type: string; currency: string; balance: number; is_debt: boolean; }
+interface Investment { id: string; asset_name: string; symbol: string; holdings: number; avg_buy_price: number; }
+interface Project { id: string; name: string; status: string; allocated_budget: number; monthly_burn: number; tech_stack: string; }
+interface CryptoRadarTrade { id: string; user_id: string; pair: string; direction: string; entry_price: number; exit_price: number | null; position_size: number; leverage: number; stop_loss: number | null; take_profit: number | null; commissions: number; notes: string; status: string; pnl_neto: number | null; trade_date: string; }
 
 export default function DineroDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState<number>(0);
+  const [isManageDropdownOpen, setIsManageDropdownOpen] = useState(false);
   
-  // Estados para los datos reales
+  // ==========================================
+  // DATA STATES
+  // ==========================================
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [_investments, setInvestments] = useState<Investment[]>([]);
+  const [_projects, setProjects] = useState<Project[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [cryptoTrades, setCryptoTrades] = useState<CryptoRadarTrade[]>([]);
+  const [categories, setCategories] = useState<any[]>([]); // <--- NUEVO ESTADO DE CATEGORÍAS
 
-  // Estados para el Modal de Nueva Cuenta
+  // ==========================================
+  // MODALES & FORMULARIOS
+  // ==========================================
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isCryptoModalOpen, setIsCryptoModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); // <--- NUEVO MODAL
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newAccount, setNewAccount] = useState({
-    name: '',
-    type: 'Banco',
-    currency: 'NZD',
-    balance: ''
+
+  const [newAccount, setNewAccount] = useState({ name: '', type: 'Checking', currency: 'USD', balance: '' });
+  const [newTransaction, setNewTransaction] = useState({ account_id: '', amount: '', type: 'expense', category: 'General', description: '' });
+  const [newCategory, setNewCategory] = useState({ name: '', icon: '📌' }); // <--- NUEVO FORMULARIO
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [editTransaction, setEditTransaction] = useState<any>(null);
+  
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [importAccountId, setImportAccountId] = useState<string>('');
+  
+  const [newCrypto, setNewCrypto] = useState({ 
+    pair: '', date: new Date().toISOString().split('T')[0], time: '12:00', direction: 'Long', 
+    entry_price: '', exit_price: '', position_size: '', leverage: '1', stop_loss: '', take_profit: '', commissions: '', notes: '', status: 'Open', pnl_neto: ''
   });
 
-  // Paleta del Universo (Verde Bosque / Salvia)
   const theme = {
-    bg: '#0F1D10',
-    surface: '#162918',
-    border: 'rgba(72, 125, 75, 0.2)',
-    accent: '#487D4B',
-    accentHover: '#5C9A60',
-    textMain: '#FFFFFF',
-    textMuted: 'rgba(255, 255, 255, 0.5)'
+    bg: '#E5E7EB', surface: '#FFFFFF', textMain: '#111827', textMuted: '#6B7280', accent: '#05DF72', 
+    danger: '#E02424', graphBg: '#FFFFFF', textDark: '#111827', sidebarBg: '#032C1E', sidebarText: '#FFFFFF', sidebarActive: '#021f15'   
   };
 
-  // Función de carga de datos (separada para poder recargar la pantalla)
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -87,18 +75,30 @@ export default function DineroDashboard() {
         { data: accs }, 
         { data: invs }, 
         { data: projs },
-        { data: trans }
+        { data: trans },
+        { data: trades },
+        { data: cats } // <--- TRAEMOS CATEGORÍAS
       ] = await Promise.all([
         supabase.from('Finanzas_accounts').select('*'),
         supabase.from('Finanzas_investments').select('*'),
         supabase.from('Finanzas_projects').select('*'),
-        supabase.from('Finanzas_transactions').select('*').order('date', { ascending: false }).limit(5)
+        supabase.from('Finanzas_transactions').select('*, Finanzas_accounts(name)').order('date', { ascending: false }),
+        supabase.from('Finanzas_crypto_radar').select('*').order('trade_date', { ascending: false }),
+        supabase.from('Finanzas_categories').select('*') // <--- CONSULTA A LA BD
       ]);
 
-      if (accs) setAccounts(accs);
+      if (accs) {
+        setAccounts(accs);
+        if (accs.length > 0 && newTransaction.account_id === '') {
+          setNewTransaction(prev => ({ ...prev, account_id: accs[0].id }));
+        }
+      }
       if (invs) setInvestments(invs);
       if (projs) setProjects(projs);
       if (trans) setTransactions(trans);
+      if (trades) setCryptoTrades(trades);
+      if (cats) setCategories(cats); // <--- GUARDAMOS LAS CATEGORÍAS
+
     } catch (error) {
       console.error("Error cargando finanzas:", error);
     } finally {
@@ -106,429 +106,283 @@ export default function DineroDashboard() {
     }
   };
 
-  // FETCH INICIAL DE DATOS
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  // Función para guardar la cuenta en Supabase
+  useEffect(() => {
+    if (!loading && accounts.length === 0 && onboardingStep === 0) setOnboardingStep(1);
+  }, [loading, accounts.length, onboardingStep]);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'auto';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, [isMobileMenuOpen]);
+
+  const checkUser = async () => {
+    // @ts-ignore
+    const user = supabase.auth.user();
+    if (!user) { alert("You must be logged in to record data."); return null; }
+    return user;
+  };
+
+  // ==========================================
+  // HANDLERS DE CREACIÓN
+  // ==========================================
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const user = await checkUser();
+      if (!user) return;
+      const { error } = await supabase.from('Finanzas_categories').insert([{ user_id: user.id, name: newCategory.name, icon: newCategory.icon }]);
+      if (error) throw error;
+      setNewCategory({ name: '', icon: '📌' });
+      setIsCategoryModalOpen(false);
+      await fetchData();
+    } catch (error: any) { alert("Error: " + error.message); } 
+    finally { setIsSubmitting(false); }
+  };
+
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      // 1. Verificar si el usuario está logueado
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        alert("¡Atención! Por la seguridad RLS, necesitas estar logueado para crear datos. Como aún no tenemos pantalla de Login, crea un usuario en el panel de Supabase e inicia sesión.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 2. Determinar si es deuda según el tipo elegido
-      const isDebt = newAccount.type === 'Tarjeta de Crédito';
-
-      // 3. Insertar en la base de datos
-      const { error } = await supabase
-        .from('Finanzas_accounts')
-        .insert([
-          {
-            user_id: user.id,
-            name: newAccount.name,
-            type: newAccount.type,
-            currency: newAccount.currency,
-            balance: Number(newAccount.balance) || 0,
-            is_debt: isDebt
-          }
-        ]);
-
+      const user = await checkUser();
+      if (!user) return;
+      const isDebt = newAccount.type === 'Credit Card';
+      const { error } = await supabase.from('Finanzas_accounts').insert([{
+        user_id: user.id, name: newAccount.name, type: newAccount.type, currency: newAccount.currency, balance: Number(newAccount.balance) || 0, is_debt: isDebt
+      }]);
       if (error) throw error;
-
-      // 4. Limpiar formulario, cerrar modal y recargar los datos
-      setNewAccount({ name: '', type: 'Banco', currency: 'NZD', balance: '' });
+      setNewAccount({ name: '', type: 'Checking', currency: 'USD', balance: '' });
       setIsAccountModalOpen(false);
+      if (onboardingStep === 1) setOnboardingStep(2);
       await fetchData();
-
-    } catch (error: any) {
-      console.error("Error al crear la cuenta:", error.message);
-      alert("Hubo un error al guardar la cuenta: " + error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (error: any) { alert("Error: " + error.message); } 
+    finally { setIsSubmitting(false); }
   };
 
-  // Cálculos dinámicos
-  const netWorth = accounts.reduce((acc, curr) => acc + Number(curr.balance), 0);
-  const totalInvested = investments.reduce((acc, curr) => acc + (Number(curr.holdings) * Number(curr.avg_buy_price)), 0);
+  const handleCreateTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const user = await checkUser();
+      if (!user) return;
+      const numericAmount = Number(newTransaction.amount);
+      const finalCategory = newTransaction.category === 'custom_select' ? customCategoryInput : newTransaction.category;
+      const { error } = await supabase.from('Finanzas_transactions').insert([{
+        user_id: user.id, account_id: newTransaction.account_id, amount: numericAmount, type: newTransaction.type, category: finalCategory, description: newTransaction.description, date: new Date().toISOString()
+      }]);
+      if (error) throw error;
+      const account = accounts.find(a => a.id === newTransaction.account_id);
+      if (account) {
+        const newBalance = newTransaction.type === 'income' ? account.balance + numericAmount : account.balance - numericAmount;
+        await supabase.from('Finanzas_accounts').update({ balance: newBalance }).eq('id', account.id);
+      }
+      setNewTransaction({ ...newTransaction, amount: '', description: '', category: 'General' });
+      setCustomCategoryInput('');
+      setIsTransactionModalOpen(false);
+      await fetchData();
+    } catch (error: any) { alert("Error: " + error.message); } 
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleUpdateTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTransaction) return;
+    setIsSubmitting(true);
+    try {
+      const numericAmount = Number(editTransaction.amount);
+      const { error } = await supabase.from('Finanzas_transactions').update({ category: editTransaction.category, description: editTransaction.description, amount: numericAmount, type: editTransaction.type }).eq('id', editTransaction.id);
+      if (error) throw error;
+      setIsEditModalOpen(false);
+      setEditTransaction(null);
+      await fetchData();
+    } catch (error: any) { alert("Update error: " + error.message); } 
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    if(!window.confirm("Are you sure you want to delete this transaction? This action cannot be undone.")) return;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('Finanzas_transactions').delete().eq('id', id);
+      if (error) throw error;
+      setEditTransaction(null);
+      setIsEditModalOpen(false);
+      await fetchData();
+    } catch(e: any) { alert("Error deleting: " + e.message); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleCsvImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!csvFile || !importAccountId) { alert("Please select a valid destination account and file."); return; }
+    setIsSubmitting(true);
+    try {
+      const user = await checkUser();
+      if (!user) return;
+      const parsedRecords = await parseFile(csvFile);
+      if (parsedRecords.length === 0) throw new Error("No readable transactions found in file.");
+      const recordsToInsert = parsedRecords.map(r => ({ user_id: user.id, account_id: importAccountId, amount: r.amount, type: r.type, date: r.date, description: r.description, category: r.category }));
+      const { error } = await supabase.from('Finanzas_transactions').insert(recordsToInsert);
+      if (error) throw error;
+      alert(`Successfully imported ${recordsToInsert.length} transactions.`);
+      setCsvFile(null);
+      setIsCsvModalOpen(false);
+      await fetchData();
+    } catch (error: any) { alert("Import error: " + error.message); } 
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleExport = (format: 'csv' | 'xlsx' | 'json' | 'pdf') => {
+      exportRecords(transactions as any, format);
+      setIsExportModalOpen(false);
+  };
+
+  const handleCreateCryptoTrade = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const user = await checkUser();
+      if (!user) return;
+      const tradeDate = `${newCrypto.date}T${newCrypto.time || '00:00'}:00Z`;
+      const { error } = await supabase.from('Finanzas_crypto_radar').insert([{
+        user_id: user.id, pair: newCrypto.pair.toUpperCase().replace('/', ''), direction: newCrypto.direction,
+        entry_price: Number(newCrypto.entry_price) || 0, exit_price: newCrypto.exit_price ? Number(newCrypto.exit_price) : null,
+        position_size: Number(newCrypto.position_size) || 0, leverage: Number(newCrypto.leverage) || 1,
+        stop_loss: newCrypto.stop_loss ? Number(newCrypto.stop_loss) : null, take_profit: newCrypto.take_profit ? Number(newCrypto.take_profit) : null,
+        commissions: Number(newCrypto.commissions) || 0, notes: newCrypto.notes, status: newCrypto.status,
+        pnl_neto: newCrypto.pnl_neto ? Number(newCrypto.pnl_neto) : 0, trade_date: tradeDate
+      }]);
+      if (error) throw error;
+      setNewCrypto({ pair: '', date: new Date().toISOString().split('T')[0], time: '12:00', direction: 'Long', entry_price: '', exit_price: '', position_size: '', leverage: '1', stop_loss: '', take_profit: '', commissions: '', notes: '', status: 'Open', pnl_neto: '' });
+      setIsCryptoModalOpen(false);
+      await fetchData();
+    } catch (error: any) { alert("Error: " + error.message); } 
+    finally { setIsSubmitting(false); }
+  };
+
+  const netWorthCalculated = accounts.reduce((acc, curr) => acc + Number(curr.balance), 0);
+  const expensesByCategoryMap: Record<string, number> = transactions.filter(t => t.type === 'expense').reduce((acc: Record<string, number>, curr) => {
+      const cat = curr.category || 'General';
+      acc[cat] = (acc[cat] || 0) + Number(curr.amount);
+      return acc;
+  }, {});
+  const totalExpensesCalculated = Object.values(expensesByCategoryMap).reduce((a, b) => a + b, 0);
+  const sortedCategoriesMap = Object.entries(expensesByCategoryMap).sort((a, b) => b[1] - a[1]);
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false);
+  };
 
   if (loading && accounts.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.bg }}>
-        <Loader2 className="w-12 h-12 animate-spin" style={{ color: theme.accent }} />
+        <Loader2 className="w-12 h-12 animate-spin text-gray-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans selection:bg-[#487D4B] selection:text-white relative" style={{ backgroundColor: theme.bg, color: theme.textMain }}>
+    <div className="min-h-screen flex flex-col font-sans relative" style={{ backgroundColor: theme.bg, color: theme.textMain, fontFamily: "'Nunito', sans-serif" }}>
       
-      {/* SIDEBAR */}
-      <nav 
-        className="w-full md:w-64 flex flex-row md:flex-col justify-between md:justify-start border-b md:border-b-0 md:border-r p-4 md:p-6 z-20 shrink-0 overflow-x-auto hide-scrollbar"
-        style={{ backgroundColor: theme.surface, borderColor: theme.border }}
-      >
-        <div className="flex items-center gap-4 mb-0 md:mb-12 shrink-0">
-          <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-white/5 transition-colors">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-xl font-serif tracking-tight">Finanzas</h1>
-            <p className="text-[10px] uppercase tracking-widest" style={{ color: theme.accent }}>Liquidez & Capital</p>
-          </div>
+      {/* HEADER PRINCIPAL */}
+      <nav className="w-full shrink-0 transition-all duration-300 flex flex-col z-30 shadow-md" style={{ backgroundColor: theme.sidebarBg }}>
+        <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
+            <div className="flex items-center gap-8">
+                <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center gap-2">
+                    <span className="text-white font-extrabold text-lg tracking-tight flex items-center gap-1.5"><Zap size={20} className="text-emerald-400" /> Financial Hub</span>
+                </button>
+                <div className="hidden md:flex items-center gap-2 pt-1 overflow-x-auto whitespace-nowrap">
+                    <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'dashboard' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Dashboard</button>
+                    <button onClick={() => setActiveTab('transactions')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'transactions' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Transactions</button>
+                    <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'categories' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Categories</button>
+                    <button onClick={() => setActiveTab('radar')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'radar' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Radar Crypto</button>
+                    <button onClick={() => setActiveTab('calendar')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'calendar' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Calendar</button>
+                    <button onClick={() => setActiveTab('budget')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'budget' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Budget</button>
+                    <button onClick={() => setActiveTab('reports')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'reports' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Reports</button>
+                </div>
+            </div>
+            
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden p-2 text-white/80 rounded-xl hover:bg-white/10 transition-colors"><Menu size={24} /></button>
         </div>
 
-        <div className="flex flex-row md:flex-col gap-2 md:gap-4 ml-8 md:ml-0 shrink-0">
-          <NavItem icon={LayoutDashboard} label="Resumen" isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} theme={theme} />
-          <NavItem icon={Wallet} label="Cuentas" isActive={activeTab === 'billeteras'} onClick={() => setActiveTab('billeteras')} theme={theme} />
-          <NavItem icon={LineChart} label="Radar Cripto" isActive={activeTab === 'inversiones'} onClick={() => setActiveTab('inversiones')} theme={theme} />
-          <NavItem icon={FolderKanban} label="Proyectos" isActive={activeTab === 'proyectos'} onClick={() => setActiveTab('proyectos')} theme={theme} />
+        <div className="flex flex-col md:flex-row items-center justify-between px-6 py-5 gap-4 md:gap-0" style={{ backgroundColor: theme.sidebarActive }}>
+            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                <h1 className="text-[22px] font-extrabold text-white tracking-tight w-full text-center md:text-left">
+                    {activeTab === 'dashboard' ? 'Overview' : activeTab === 'transactions' ? 'Transactions' : activeTab === 'categories' ? 'Categories' : activeTab === 'radar' ? 'Radar Crypto' : activeTab === 'budget' ? 'Budgets' : activeTab === 'reports' ? 'Reports' : 'Calendar'}
+                </h1>
+            </div>
+            
+            <div className="flex items-center w-full md:w-auto justify-center md:justify-end gap-3">
+              {activeTab === 'radar' && (<button onClick={() => setIsCryptoModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-[12px] font-bold text-sm bg-white text-gray-900 shadow-sm"><Plus size={16} /> Log Trade</button>)}
+              {(activeTab === 'dashboard' || activeTab === 'transactions') && (<button onClick={() => setIsCsvModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-[12px] font-bold text-sm bg-transparent text-white border border-white/20 shadow-sm"><Upload size={16} /> Quick Import</button>)}
+            </div>
         </div>
       </nav>
 
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pb-32 md:pb-10">
+      {/* MENÚ MÓVIL */}
+      {isMobileMenuOpen && (<div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity md:hidden" onClick={() => setIsMobileMenuOpen(false)} />)}
+      <div className={`fixed top-0 left-0 h-full w-4/5 max-w-sm bg-white z-50 transform transition-transform duration-300 ease-out md:hidden shadow-2xl flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <span className="text-gray-900 font-extrabold text-xl tracking-tight flex items-center gap-2"><Zap size={24} className="text-emerald-500" /> Financial Hub</span>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"><X size={20} /></button>
+        </div>
         
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] mb-2 font-medium" style={{ color: theme.textMuted }}>
-              {activeTab === 'dashboard' ? 'Patrimonio Neto Total' : 
-               activeTab === 'billeteras' ? 'Liquidez Disponible' : 
-               activeTab === 'inversiones' ? 'Capital Invertido' : 'Presupuesto Asignado'}
-            </p>
-            <div className="flex items-baseline gap-3">
-              <span className="text-5xl md:text-6xl font-light font-mono tracking-tighter">
-                {activeTab === 'dashboard' ? netWorth.toLocaleString() : 
-                 activeTab === 'billeteras' ? netWorth.toLocaleString() : 
-                 activeTab === 'inversiones' ? totalInvested.toLocaleString() : '1,200'}
-              </span>
-              <span className="text-xl font-mono" style={{ color: theme.accent }}>
-                {activeTab === 'inversiones' ? '.00 USD' : '.00 NZD'}
-              </span>
-            </div>
-          </div>
-          
-          <button 
-            onClick={() => {
-              if (activeTab === 'billeteras') setIsAccountModalOpen(true);
-              // Próximamente abriremos los otros modales
-            }}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-transform hover:scale-105 active:scale-95 text-sm" 
-            style={{ backgroundColor: theme.accent, color: '#FFF' }}
-          >
-            <Plus size={18} />
-            <span>
-              {activeTab === 'proyectos' ? 'Nuevo Proyecto' : 
-               activeTab === 'inversiones' ? 'Registrar Compra' : 
-               activeTab === 'billeteras' ? 'Agregar Cuenta' : 'Registrar Movimiento'}
-            </span>
-          </button>
-        </header>
+        <div className="flex flex-col flex-1 overflow-y-auto py-2">
+          {[ { id: 'dashboard', label: 'Dashboard', icon: <Target size={18} /> }, { id: 'transactions', label: 'Transactions', icon: <Wallet size={18} /> }, { id: 'categories', label: 'Categories', icon: <Sparkles size={18} /> }, { id: 'radar', label: 'Radar Crypto', icon: <TrendingUp size={18} /> }, { id: 'calendar', label: 'Calendar', icon: <Clock size={18} /> }, { id: 'budget', label: 'Budget', icon: <Target size={18} /> }, { id: 'reports', label: 'Reports', icon: <Trophy size={18} /> } ].map((item) => (
+            <button key={item.id} onClick={() => handleTabChange(item.id as TabType)} className={`flex items-center gap-3 px-6 py-4 text-sm font-extrabold transition-colors ${activeTab === item.id ? 'bg-emerald-50 text-emerald-700 border-r-4 border-emerald-500' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>{item.icon} {item.label}</button>
+          ))}
+        </div>
+      </div>
 
-        {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 rounded-2xl border flex flex-col gap-4" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-                  <div className="flex items-center gap-2" style={{ color: theme.textMuted }}>
-                    <ArrowDownRight size={16} className="text-emerald-400" />
-                    <span className="text-xs uppercase tracking-wider">Ingresos (30d)</span>
-                  </div>
-                  <span className="text-2xl font-mono text-emerald-400">+ $7,200.00</span>
-                </div>
-                <div className="p-6 rounded-2xl border flex flex-col gap-4" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-                  <div className="flex items-center gap-2" style={{ color: theme.textMuted }}>
-                    <ArrowUpRight size={16} className="text-rose-400" />
-                    <span className="text-xs uppercase tracking-wider">Gastos (30d)</span>
-                  </div>
-                  <span className="text-2xl font-mono text-rose-400">- $3,140.50</span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-                <div className="p-5 border-b flex justify-between items-center" style={{ borderColor: theme.border }}>
-                  <h3 className="text-sm font-medium tracking-wide">Últimos Movimientos</h3>
-                </div>
-                <div className="w-full overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b" style={{ borderColor: theme.border, color: theme.textMuted }}>
-                        <th className="p-4 font-normal text-xs uppercase tracking-widest">Concepto</th>
-                        <th className="p-4 font-normal text-xs uppercase tracking-widest text-right">Monto</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.length > 0 ? transactions.map(t => (
-                        <TransactionRow key={t.id} date={new Date(t.date).toLocaleDateString()} title={t.description} type={t.type === 'income' ? 'in' : 'out'} amount={t.amount} theme={theme} />
-                      )) : (
-                        <tr><td colSpan={2} className="p-10 text-center text-xs" style={{ color: theme.textMuted }}>Sin movimientos registrados</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <div className="p-6 rounded-2xl border relative overflow-hidden group" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-                <div className="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all"></div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Flame size={18} className="text-rose-400" />
-                  <h3 className="text-sm font-medium tracking-wide">Burn Rate Actual</h3>
-                </div>
-                <p className="text-3xl font-mono tracking-tight mb-2">$104.68 <span className="text-sm font-sans" style={{ color: theme.textMuted }}>/ día</span></p>
-              </div>
-
-              <div className="p-6 rounded-2xl border flex flex-col gap-5" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-                <h3 className="text-sm font-medium tracking-wide flex items-center gap-2">
-                  <FolderKanban size={16} style={{ color: theme.accent }} />
-                  Runway de Proyectos
-                </h3>
-                {projects.map(p => (
-                   <ProjectItem key={p.id} name={p.name} cost={p.monthly_burn} runway={p.monthly_burn > 0 ? `${(p.allocated_budget / p.monthly_burn).toFixed(0)} meses` : 'Infinito'} theme={theme} />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'billeteras' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {accounts.map(acc => (
-              <AccountCard key={acc.id} title={acc.name} type={acc.type} amount={acc.balance} currency={acc.currency} icon={Building2} isDebt={acc.is_debt} theme={theme} />
-            ))}
-            {accounts.length === 0 && <p className="col-span-full text-center p-20" style={{ color: theme.textMuted }}>No has agregado cuentas todavía. Haz clic en "Agregar Cuenta".</p>}
-          </div>
-        )}
-
-        {activeTab === 'inversiones' && (
-          <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="rounded-2xl border overflow-hidden" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-              <div className="w-full overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b" style={{ borderColor: theme.border, color: theme.textMuted }}>
-                      <th className="p-4 font-normal text-xs uppercase tracking-widest">Activo</th>
-                      <th className="p-4 font-normal text-xs uppercase tracking-widest text-right">Tenencia</th>
-                      <th className="p-4 font-normal text-xs uppercase tracking-widest text-right">Valor Promedio</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {investments.map(inv => (
-                      <AssetRow key={inv.id} name={inv.asset_name} symbol={inv.symbol} amount={inv.holdings} value={inv.avg_buy_price} change="+0.0%" isPositive theme={theme} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'proyectos' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {projects.map(p => (
-              <ProjectDetailCard key={p.id} name={p.name} status={p.status} allocated={`${p.allocated_budget} NZD`} monthlyBurn={`${p.monthly_burn} NZD`} runway={p.monthly_burn > 0 ? `${(p.allocated_budget / p.monthly_burn).toFixed(0)} meses` : 'Infinito'} techStack={p.tech_stack} theme={theme} />
-            ))}
-          </div>
-        )}
+      {/* ÁREA CENTRAL */}
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar pb-32 md:pb-10 w-full flex justify-center">
+        {activeTab === 'dashboard' && <DineroOverview accounts={accounts} transactions={transactions} cryptoTrades={cryptoTrades} netWorthCalculated={netWorthCalculated} setActiveTab={setActiveTab} theme={theme} />}
+        {activeTab === 'transactions' && <DineroTransactions accounts={accounts} transactions={transactions} theme={theme} setEditTransaction={setEditTransaction} setIsEditModalOpen={setIsEditModalOpen} setIsTransactionModalOpen={setIsTransactionModalOpen} onImportClick={() => setIsCsvModalOpen(true)} onExportClick={() => setIsExportModalOpen(true)} />}
+        
+        {/* VISTA DE CATEGORÍAS */}
+        {activeTab === 'categories' && <DineroCategories theme={theme} transactions={transactions} categories={categories} setIsCategoryModalOpen={setIsCategoryModalOpen} />}
+        
+        {activeTab === 'radar' && <DineroRadar cryptoTrades={cryptoTrades} />}
+        {activeTab === 'calendar' && (<div className="flex flex-col gap-6 w-full max-w-7xl"><div className="bg-white rounded-[20px] shadow-sm flex flex-col justify-center items-center py-20 border border-gray-200/80"><h3 className="text-xl font-extrabold text-gray-900 mb-2">Calendar</h3><p className="text-sm text-gray-500 max-w-md text-center font-medium">Your financial calendar events will be here.</p></div></div>)}
+        {activeTab === 'budget' && (<div className="flex flex-col gap-6 w-full max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500"><div className="bg-white rounded-[20px] shadow-sm flex flex-col justify-center items-center py-10 border border-gray-200/80"><Target size={40} className="text-emerald-500 mb-4" /><h3 className="text-xl font-extrabold text-gray-900 mb-2">Smart Budgets</h3></div></div>)}
+        {activeTab === 'reports' && (<div className="flex flex-col gap-6 w-full max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500"><div className="bg-white rounded-[20px] shadow-sm flex flex-col justify-center items-center py-10 border border-gray-200/80"><Trophy size={40} className="text-yellow-400 mb-4" /><h3 className="text-xl font-extrabold text-gray-900 mb-2">Reports</h3></div></div>)}
       </main>
 
-      {/* MODAL DE NUEVA CUENTA */}
-      {isAccountModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div 
-            className="w-full max-w-md p-6 rounded-3xl border shadow-2xl animate-in zoom-in-95 duration-200"
-            style={{ backgroundColor: theme.surface, borderColor: theme.border }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-serif">Agregar Cuenta</h2>
-              <button 
-                onClick={() => setIsAccountModalOpen(false)}
-                className="p-2 rounded-full hover:bg-white/5 transition-colors"
-                style={{ color: theme.textMuted }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+      {/* MODALES EXTERNALIZADOS */}
+      <DineroModals 
+        isCryptoModalOpen={isCryptoModalOpen} setIsCryptoModalOpen={setIsCryptoModalOpen}
+        isAccountModalOpen={isAccountModalOpen} setIsAccountModalOpen={setIsAccountModalOpen}
+        isCsvModalOpen={isCsvModalOpen} setIsCsvModalOpen={setIsCsvModalOpen}
+        isExportModalOpen={isExportModalOpen} setIsExportModalOpen={setIsExportModalOpen}
+        isEditModalOpen={isEditModalOpen} setIsEditModalOpen={setIsEditModalOpen}
+        isTransactionModalOpen={isTransactionModalOpen} setIsTransactionModalOpen={setIsTransactionModalOpen}
+        
+        /* PASAMOS LOS NUEVOS ESTADOS DE CATEGORÍA AL MODAL */
+        isCategoryModalOpen={isCategoryModalOpen} setIsCategoryModalOpen={setIsCategoryModalOpen}
+        newCategory={newCategory} setNewCategory={setNewCategory}
+        handleCreateCategory={handleCreateCategory}
 
-            <form onSubmit={handleCreateAccount} className="flex flex-col gap-5">
-              
-              <div className="flex flex-col gap-2">
-                <label className="text-xs uppercase tracking-widest font-medium" style={{ color: theme.textMuted }}>Nombre de la cuenta</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="Ej: Banco Santander, Binance"
-                  value={newAccount.name}
-                  onChange={(e) => setNewAccount({...newAccount, name: e.target.value})}
-                  className="w-full px-4 py-3 rounded-xl bg-transparent border outline-none focus:border-[#487D4B] transition-colors"
-                  style={{ borderColor: theme.border, color: theme.textMain }}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-widest font-medium" style={{ color: theme.textMuted }}>Tipo</label>
-                  <select 
-                    value={newAccount.type}
-                    onChange={(e) => setNewAccount({...newAccount, type: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl bg-transparent border outline-none appearance-none"
-                    style={{ borderColor: theme.border, color: theme.textMain }}
-                  >
-                    <option value="Banco" className="bg-[#162918]">Banco</option>
-                    <option value="Efectivo" className="bg-[#162918]">Efectivo</option>
-                    <option value="Exchange Cripto" className="bg-[#162918]">Exchange Cripto</option>
-                    <option value="Tarjeta de Crédito" className="bg-[#162918]">Tarjeta de Crédito</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-widest font-medium" style={{ color: theme.textMuted }}>Moneda</label>
-                  <select 
-                    value={newAccount.currency}
-                    onChange={(e) => setNewAccount({...newAccount, currency: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl bg-transparent border outline-none appearance-none"
-                    style={{ borderColor: theme.border, color: theme.textMain }}
-                  >
-                    <option value="NZD" className="bg-[#162918]">NZD</option>
-                    <option value="USD" className="bg-[#162918]">USD</option>
-                    <option value="ARS" className="bg-[#162918]">ARS</option>
-                    <option value="EUR" className="bg-[#162918]">EUR</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-xs uppercase tracking-widest font-medium" style={{ color: theme.textMuted }}>Saldo Actual</label>
-                <input 
-                  type="number" 
-                  step="0.01"
-                  required
-                  placeholder="0.00"
-                  value={newAccount.balance}
-                  onChange={(e) => setNewAccount({...newAccount, balance: e.target.value})}
-                  className="w-full px-4 py-3 rounded-xl bg-transparent border outline-none focus:border-[#487D4B] transition-colors font-mono"
-                  style={{ borderColor: theme.border, color: theme.textMain }}
-                />
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full py-4 mt-2 rounded-xl font-medium transition-transform hover:scale-[1.02] active:scale-[0.98] flex justify-center items-center gap-2"
-                style={{ backgroundColor: theme.accent, color: '#FFF', opacity: isSubmitting ? 0.7 : 1 }}
-              >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar Cuenta'}
-              </button>
-
-            </form>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-}
-
-// COMPONENTES AUXILIARES INTACTOS
-function NavItem({ icon: Icon, label, isActive, onClick, theme }: any) {
-  return (
-    <button onClick={onClick} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`} style={{ color: isActive ? '#FFF' : theme.textMuted }}>
-      <Icon size={18} strokeWidth={isActive ? 2.5 : 1.5} style={{ color: isActive ? theme.accent : 'inherit' }} />
-      <span className="text-sm font-medium tracking-wide">{label}</span>
-    </button>
-  );
-}
-
-function TransactionRow({ date, title, type, amount, theme }: any) {
-  const isIncome = type === 'in';
-  return (
-    <tr className="border-b transition-colors hover:bg-white/5" style={{ borderColor: 'rgba(255,255,255,0.03)' }}>
-      <td className="p-4 text-xs font-mono" style={{ color: theme.textMuted }}>{date}</td>
-      <td className="p-4 text-sm">{title}</td>
-      <td className={`p-4 text-right font-mono text-sm ${isIncome ? 'text-emerald-400' : ''}`}>
-        {isIncome ? '+' : '-'} {amount}
-      </td>
-    </tr>
-  );
-}
-
-function ProjectItem({ name, cost, runway, theme }: any) {
-  return (
-    <div className="flex flex-col gap-1 pb-4 border-b last:border-0 last:pb-0" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-medium">{name}</span>
-        <span className="text-xs font-mono" style={{ color: theme.textMuted }}>${cost}/mo</span>
-      </div>
-      <span className="text-[10px] uppercase tracking-wider text-emerald-500">Runway: {runway}</span>
-    </div>
-  );
-}
-
-function AccountCard({ title, type, amount, currency, icon: Icon, isDebt, theme }: any) {
-  return (
-    <div className="p-6 rounded-2xl border flex flex-col justify-between h-40 transition-transform hover:-translate-y-1" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-sm font-medium mb-1">{title}</h3>
-          <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{type}</p>
-        </div>
-        <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: theme.accent }}>
-          <Icon size={20} />
-        </div>
-      </div>
-      <div className={`text-3xl font-mono ${isDebt ? 'text-rose-400' : ''}`}>
-        <span className="text-sm mr-1">{currency}</span>
-        ${amount.toLocaleString()}
-      </div>
-    </div>
-  );
-}
-
-function AssetRow({ name, symbol, amount, value, change, isPositive, theme }: any) {
-  return (
-    <tr className="border-b transition-colors hover:bg-white/5" style={{ borderColor: 'rgba(255,255,255,0.03)' }}>
-      <td className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 border" style={{ borderColor: theme.border }}>
-            <Activity size={14} style={{ color: theme.accent }} />
-          </div>
-          <div><p className="text-sm font-medium">{name}</p><p className="text-xs font-mono mt-0.5" style={{ color: theme.textMuted }}>{symbol}</p></div>
-        </div>
-      </td>
-      <td className="p-4 text-right font-mono text-sm">{amount}</td>
-      <td className="p-4 text-right font-mono text-sm">${value}</td>
-      <td className={`p-4 text-right font-mono text-sm flex items-center justify-end gap-1 ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-        <TrendingUp size={14} /> {change}
-      </td>
-    </tr>
-  );
-}
-
-function ProjectDetailCard({ name, status, allocated, monthlyBurn, runway, techStack, theme }: any) {
-  return (
-    <div className="p-6 rounded-2xl border flex flex-col gap-6" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
-      <div className="flex justify-between items-start border-b pb-4" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <div><h3 className="text-lg font-medium">{name}</h3><p className="text-xs mt-1" style={{ color: theme.textMuted }}>Stack: {techStack}</p></div>
-        <span className="px-3 py-1 text-[10px] uppercase tracking-widest rounded-full border" style={{ borderColor: theme.accent, color: theme.accent, backgroundColor: 'rgba(72, 125, 75, 0.1)' }}>{status}</span>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div><p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: theme.textMuted }}>Fondo Asignado</p><p className="text-lg font-mono">{allocated}</p></div>
-        <div><p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: theme.textMuted }}>Burn Mensual</p><p className="text-lg font-mono text-rose-300">{monthlyBurn}</p></div>
-      </div>
-      <div className="pt-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: theme.textMuted }}>Runway Proyectado</p>
-        <div className="flex items-center justify-between"><span className="text-xl font-mono text-emerald-400">{runway}</span></div>
-      </div>
+        newCrypto={newCrypto} setNewCrypto={setNewCrypto}
+        newAccount={newAccount} setNewAccount={setNewAccount}
+        newTransaction={newTransaction} setNewTransaction={setNewTransaction}
+        editTransaction={editTransaction} setEditTransaction={setEditTransaction}
+        importAccountId={importAccountId} setImportAccountId={setImportAccountId}
+        csvFile={csvFile} setCsvFile={setCsvFile}
+        customCategoryInput={customCategoryInput} setCustomCategoryInput={setCustomCategoryInput}
+        isSubmitting={isSubmitting}
+        accounts={accounts}
+        handleCreateCryptoTrade={handleCreateCryptoTrade}
+        handleCreateAccount={handleCreateAccount}
+        handleCsvImport={handleCsvImport}
+        handleExport={handleExport}
+        handleUpdateTransaction={handleUpdateTransaction}
+        handleDeleteTransaction={handleDeleteTransaction}
+        handleCreateTransaction={handleCreateTransaction}
+      />
     </div>
   );
 }
