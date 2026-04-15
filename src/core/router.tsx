@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import AetherDiagnostics from '../universes/base/pages/AetherDiagnostics'; // <-- Agregá esto arriba
 import DashboardPage from '../universes/base/pages/DashboardPage';
 import DineroDashboard from '../universes/dinero/pages/DineroDashboard';
 import SaludDashboard from '../universes/salud/pages/SaludDashboard';
@@ -22,5 +23,7 @@ export const router = createBrowserRouter([
   { path: '/desarrolloprofesional', element: <DesarrolloProfesionalDashboard /> },
   { path: '/social', element: <SocialDashboard /> },
   { path: '/familia', element: <FamiliaDashboard /> },
-  { path: '/ocio', element: <OcioDashboard /> }
+  { path: '/ocio', element: <OcioDashboard /> },
+  // ... tus otras rutas
+  { path: '/diagnostics', element: <AetherDiagnostics /> },
 ]);
