@@ -163,13 +163,16 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userWheel, setUserWheel] = useState<Segment[]>(initialSegments);
   const [hoveredSegment, setHoveredSegment] = useState<Segment | null>(null);
+  const [userName, setUserName] = useState<string>('');
 
   const fetchWheelData = async () => {
     setLoading(true);
     try {
-      // @ts-ignore
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData?.user) { navigate('/login'); return; }
+
+      const fullName: string = authData.user.user_metadata?.full_name ?? '';
+      setUserName(fullName.split(' ')[0]);
 
       const { data, error } = await supabase
         .from('UserWheel')
@@ -206,7 +209,6 @@ export default function DashboardPage() {
 
   const handleSaveToDB = async (segmentId: string, newValue: number) => {
     try {
-      // @ts-ignore
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData?.user) return;
 
@@ -257,9 +259,11 @@ export default function DashboardPage() {
             >
               <BrainCircuit size={16} /> <span className="hidden sm:inline">AI Diagnostics</span><span className="sm:hidden">AI Diag</span>
             </button>
-            <button className="px-5 py-2.5 rounded-full font-extrabold text-[10px] transition-transform active:scale-95 bg-black/5 text-[#2D2A26] uppercase tracking-widest hidden sm:block">
-              GOOD MORNING, LUCAS
-            </button>
+            {userName && (
+              <button className="px-5 py-2.5 rounded-full font-extrabold text-[10px] transition-transform active:scale-95 bg-black/5 text-[#2D2A26] uppercase tracking-widest hidden sm:block">
+                GOOD MORNING, {userName.toUpperCase()}
+              </button>
+            )}
           </div>
         </header>
       </div>

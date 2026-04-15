@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
+import type { GoTrueClient } from '@supabase/auth-js';
 
-// Reemplaza esto con tus datos reales de Supabase
-const supabaseUrl = 'https://qiflwadqldquiwgcjxtl.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpZmx3YWRxbGRxdWl3Z2NqeHRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjY4OTQsImV4cCI6MjA5MDQ0Mjg5NH0.dsVKRMrogd21ESOlhvpj9-FHbaxSA7yVW6P--1unm-M';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Check your .env.local file.');
+}
+
+// SupabaseAuthClient extends GoTrueClient via a `declare const` alias, which the
+// TypeScript language server can't resolve through. We cast auth here once so all
+// call sites (signInWithPassword, getUser, getSession, etc.) are properly typed.
+const _client = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = _client as Omit<typeof _client, 'auth'> & { auth: GoTrueClient };

@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import AetherDiagnostics from '../universes/base/pages/AetherDiagnostics'; // <-- Agregá esto arriba
+import AetherDiagnostics from '../universes/base/pages/AetherDiagnostics';
 import DashboardPage from '../universes/base/pages/DashboardPage';
 import DineroDashboard from '../universes/dinero/pages/DineroDashboard';
 import SaludDashboard from '../universes/salud/pages/SaludDashboard';
@@ -11,19 +11,21 @@ import FamiliaDashboard from '../universes/familia/pages/FamiliaDashboard';
 import OcioDashboard from '../universes/ocio/pages/OcioDashboard';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
+const protect = (element: React.ReactNode) => <ProtectedRoute>{element}</ProtectedRoute>;
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/registro', element: <RegisterPage /> },
-  { path: '/', element: <DashboardPage /> },
-  { path: '/dinero', element: <DineroDashboard /> },
-  { path: '/salud', element: <SaludDashboard /> },
-  { path: '/amor', element: <AmorDashboard /> },
-  { path: '/desarrollopersonal', element: <DesarrolloPersonalDashboard /> },
-  { path: '/desarrolloprofesional', element: <DesarrolloProfesionalDashboard /> },
-  { path: '/social', element: <SocialDashboard /> },
-  { path: '/familia', element: <FamiliaDashboard /> },
-  { path: '/ocio', element: <OcioDashboard /> },
-  // ... tus otras rutas
-  { path: '/diagnostics', element: <AetherDiagnostics /> },
+  { path: '/', element: protect(<DashboardPage />) },
+  { path: '/dinero', element: protect(<DineroDashboard />) },
+  { path: '/salud', element: protect(<SaludDashboard />) },
+  { path: '/amor', element: protect(<AmorDashboard />) },
+  { path: '/desarrollopersonal', element: protect(<DesarrolloPersonalDashboard />) },
+  { path: '/desarrolloprofesional', element: protect(<DesarrolloProfesionalDashboard />) },
+  { path: '/social', element: protect(<SocialDashboard />) },
+  { path: '/familia', element: protect(<FamiliaDashboard />) },
+  { path: '/ocio', element: protect(<OcioDashboard />) },
+  { path: '/diagnostics', element: protect(<AetherDiagnostics />) },
 ]);

@@ -137,15 +137,14 @@ export default function DineroDashboard() {
 
   const checkUser = async () => {
     try {
-      // @ts-ignore
       const { data, error } = await supabase.auth.getUser();
       if (error || !data?.user) {
-        alert("You must be logged in to record data.");
+        navigate('/login');
         return null;
       }
       return data.user;
-    } catch (err) {
-      alert("Auth error. Please log in again.");
+    } catch {
+      navigate('/login');
       return null;
     }
   };

@@ -112,4 +112,18 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+
+  /* ==========================================
+     MODAL SYSTEM — Aether Premium
+     ========================================== */
+
+  /* Backdrop: oscuro con blur, centrado, mobile-first (sube desde abajo en móvil) */
+  .aether-modal-backdrop {
+    @apply fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6 bg-black/40 backdrop-blur-sm;
+  }
+
+  /* Panel: tarjeta blanca redondeada premium */
+  .aether-modal-panel {
+    @apply bg-white w-full rounded-t-[32px] md:rounded-[32px] p-8 md:p-10 shadow-2xl;
+  }
 }

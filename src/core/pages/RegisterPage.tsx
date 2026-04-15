@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Loader2, Fingerprint, Mail, KeyRound, Sparkles, User, ArrowLeft } from 'lucide-react';
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,11 +12,18 @@ export default function RegisterPage() {
   const [systemMessage, setSystemMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<'neutral' | 'error' | 'success'>('neutral');
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setLoading(true);
     setSystemMessage(null);
     setMessageType('neutral');
+
+    if (password.length < 8) {
+      setMessageType('error');
+      setSystemMessage("Access Key must be at least 8 characters.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({

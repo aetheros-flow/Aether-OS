@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find c:\\\\\\\\Users\\\\\\\\g4t0sky\\\\\\\\aether-os\\\\\\\\src\\\\\\\\core -type f -name \"*.tsx\")",
+      "Bash(del \"c:\\\\Users\\\\g4t0sky\\\\aether-os\\\\src\\\\core\\\\store.ts\")",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
