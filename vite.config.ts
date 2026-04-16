@@ -3,12 +3,13 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true, // <-- LA LLAVE MÁGICA PARA PROBAR LA DESCARGA EN LOCALHOST
+        enabled: true,
         type: 'module'
       },
       includeAssets: ['icon-192x192.png', 'icon-512x512.png'],
@@ -31,6 +32,10 @@ export default defineConfig({
             type: 'image/png'
           }
         ]
+      },
+      // ---> ESTA ES LA MAGIA QUE ARREGLA EL ERROR EN NETLIFY <---
+      workbox: {
+        maximumFileSizeToCacheInBytes: 4000000 // Aumentamos el límite a 4 MB
       }
     })
   ],
