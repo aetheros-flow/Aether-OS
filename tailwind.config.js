@@ -7,15 +7,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        aether: {
-          bg: '#FEFAF5', // Warm linen cream background
-          surface: '#FFFFFF', // Clean white for cards
-          text: '#4B433E', // Warm mocha dark text
-          accent: '#FFA07A', // Soft Coral/Peach primary accent
-          'glass-light': 'rgba(255, 255, 255, 0.7)', // Clear glass effect
-        }
+        forest: {
+          DEFAULT: '#0B2118', // Deep Forest (Fondo oscuro principal)
+          light: '#163E2E',   // Tarjetas oscuras secundarias
+        },
+        mint: {
+          DEFAULT: '#A7F38F', // Vibrant Mint (Acentos y botones)
+          hover: '#8EE874',
+        },
+        sage: {
+          DEFAULT: '#F4F9F2', // Soft Sage (Fondo claro de la app)
+          dark: '#E2EDE0',    // Bordes sutiles
+        },
+        charcoal: '#2D3A35',  // Textos principales sobre fondos claros
+      },
+      fontFamily: {
+        sans: ['system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Georgia', 'serif'],
+      },
+      borderRadius: {
+        '4xl': '2rem',   // 32px
+        '5xl': '2.5rem', // 40px
       }
     },
   },
-  plugins: [],
+  plugins: [
+    require("tailwindcss-animate"),
+  ],
 }

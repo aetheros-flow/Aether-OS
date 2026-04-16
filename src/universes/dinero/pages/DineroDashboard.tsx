@@ -497,7 +497,15 @@ export default function DineroDashboard() {
       {/* ÁREA CENTRAL */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar pb-32 md:pb-10 w-full flex justify-center">
         {/* LÍNEA CORREGIDA ABAJO: Se agregan las props setNewTransaction e setIsTransactionModalOpen */}
-        {activeTab === 'dashboard' && <DineroOverview accounts={accounts} transactions={transactions} cryptoTrades={cryptoTrades} netWorthCalculated={netWorthCalculated} setActiveTab={setActiveTab} theme={theme} setNewTransaction={setNewTransaction} setIsTransactionModalOpen={setIsTransactionModalOpen} />}
+        {activeTab === 'dashboard' && (
+          <DineroOverview 
+            transactions={transactions} 
+            netWorthCalculated={netWorthCalculated} 
+            setNewTransaction={setNewTransaction} 
+            setIsTransactionModalOpen={setIsTransactionModalOpen}
+            setActiveTab={setActiveTab}
+          />
+        )}
         {activeTab === 'transactions' && <DineroTransactions accounts={accounts} transactions={transactions} theme={theme} setEditTransaction={setEditTransaction} setIsEditModalOpen={setIsEditModalOpen} setIsTransactionModalOpen={setIsTransactionModalOpen} onImportClick={() => setIsCsvModalOpen(true)} onExportClick={() => setIsExportModalOpen(true)} />}
         {activeTab === 'categories' && <DineroCategories theme={theme} transactions={transactions} categories={categories} setIsCategoryModalOpen={setIsCategoryModalOpen} />}
         {activeTab === 'radar' && <DineroRadar cryptoTrades={cryptoTrades} />}
