@@ -34,10 +34,15 @@ export default defineConfig({
           }
         ]
       },
-      // ---> ESTA ES LA MAGIA QUE ARREGLA EL ERROR EN NETLIFY <---
       workbox: {
-        maximumFileSizeToCacheInBytes: 4000000 // Aumentamos el límite a 4 MB
+        maximumFileSizeToCacheInBytes: 4000000 
       }
     })
   ],
+  // ---> ESTO ES LO QUE FALTABA (EL TRADUCTOR DEL ARROBA) <---
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
 })

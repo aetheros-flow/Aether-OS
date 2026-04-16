@@ -1,3 +1,5 @@
+//src/core/router.tsx
+
 import { createBrowserRouter } from 'react-router-dom';
 import AetherDiagnostics from '../universes/base/pages/AetherDiagnostics';
 import DashboardPage from '../universes/base/pages/DashboardPage';

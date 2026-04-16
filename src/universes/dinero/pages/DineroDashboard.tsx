@@ -11,10 +11,12 @@ import { DineroCategories } from '../components/views/DineroCategories';
 import { DineroRadar } from '../components/views/DineroRadar';
 import { DineroModals } from '../components/modals/DineroModals';
 import { DineroSubscriptions } from '../components/views/DineroSubscriptions';
+import { UniverseSelector } from '../../../components/UniverseSelector';
 
 import { useDineroData } from '../hooks/useDineroData';
 import { useDineroActions } from '../hooks/useDineroActions';
 import { useAuth } from '../../../core/contexts/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 import { toast } from 'sonner';
 import type { Transaction } from '../types';
 
@@ -317,14 +319,14 @@ export default function DineroDashboard() {
     <div className="min-h-screen flex flex-col font-sans relative bg-[#F4F9F2]" style={{ fontFamily: "'Nunito', sans-serif" }}>
 
       {/* ── Top navigation ── */}
+      {/* ── Top navigation ── */}
       <nav className="w-full shrink-0 flex flex-col z-30 shadow-md bg-[#0B2118]">
         <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
           <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center gap-2">
-              <span className="text-white font-extrabold text-lg tracking-tight flex items-center gap-1.5">
-                <Zap size={20} className="text-mint-DEFAULT" /> Financial Hub
-              </span>
-            </button>
+            
+            {/* ✨ COMPONENTE GLOBAL INYECTADO ✨ */}
+            <UniverseSelector />
+
             {/* Desktop tab bar */}
             <div className="hidden md:flex items-center gap-1 pt-1">
               {DESKTOP_TABS.map(tab => (
