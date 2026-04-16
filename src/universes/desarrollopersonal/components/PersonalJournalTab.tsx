@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Brain, Send, Smile, Zap, Meh, Frown, Quote, Trash2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import { toast } from 'sonner';
+import { useAuth } from '../../../core/contexts/AuthContext';
 import type { JournalEntry } from '../types';
 
 const MOODS = [
@@ -11,55 +13,70 @@ const MOODS = [
 ] as const;
 
 export default function PersonalJournalTab() {
+  const { user } = useAuth();
   const [entries,      setEntries]      = useState<JournalEntry[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [newEntry,     setNewEntry]     = useState('');
   const [selectedMood, setSelectedMood] = useState<string>('focused');
   const [isSaving,     setIsSaving]     = useState(false);
-  const [error,        setError]        = useState<string | null>(null);
 
   const fetchEntries = async () => {
+    if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('Desarrollo_Journal')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
-    if (data) setEntries(data);
+      
+    if (error) {
+      toast.error('Failed to load journal entries');
+    } else if (data) {
+      setEntries(data);
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchEntries(); }, []);
+  useEffect(() => { 
+    if (user) {
+      fetchEntries(); 
+    }
+  }, [user]);
 
   const handleSaveEntry = async () => {
     if (!newEntry.trim()) return;
+    if (!user) {
+      toast.error('User not authenticated');
+      return;
+    }
     setIsSaving(true);
-    setError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No autenticado');
       const { error: err } = await supabase.from('Desarrollo_Journal').insert([{
         user_id: user.id,
         content: newEntry,
         mood:    selectedMood,
       }]);
       if (err) throw err;
+      
+      toast.success('Journal entry saved successfully');
       setNewEntry('');
       await fetchEntries();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error al guardar entrada');
+    } catch (e: any) {
+      toast.error(e.message || 'Error saving entry');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteEntry = async (id: string) => {
-    if (!window.confirm('¿Eliminar esta entrada?')) return;
+    if (!window.confirm('Delete this entry?')) return;
     try {
       const { error: err } = await supabase.from('Desarrollo_Journal').delete().eq('id', id);
       if (err) throw err;
+      toast.success('Entry deleted');
       await fetchEntries();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error al eliminar entrada');
+    } catch (e: any) {
+      toast.error(e.message || 'Error deleting entry');
     }
   };
 
@@ -73,14 +90,6 @@ export default function PersonalJournalTab() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-      {/* ERROR BANNER */}
-      {error && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold px-5 py-3 rounded-2xl">
-          {error}
-        </div>
-      )}
-
       {/* WRITER */}
       <div className="bg-white/70 backdrop-blur-3xl rounded-[32px] p-8 border border-white shadow-xl">
         <div className="flex items-center gap-3 mb-6">
@@ -140,7 +149,7 @@ export default function PersonalJournalTab() {
                 <button
                   onClick={() => handleDeleteEntry(entry.id)}
                   className="opacity-0 group-hover:opacity-100 p-2 text-rose-400 hover:bg-rose-50 rounded-lg transition-all"
-                  aria-label="Eliminar entrada"
+                  aria-label="Delete entry"
                 >
                   <Trash2 size={14} />
                 </button>

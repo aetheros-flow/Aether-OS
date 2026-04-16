@@ -1,36 +1,12 @@
-// src/universes/dinero/lib/ai-service.ts
-
-export const aiFinancialService = {
-  async categorizeWithAI(rawTransactions: any[], userCategories: any[]) {
-    // Simulamos el retraso de pensar de la IA
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    return rawTransactions.map(t => {
-      const desc = t.description.toUpperCase();
-      let category = 'General';
-
-      // Lógica de "AI Semántica" por contexto de NZ
-      if (desc.includes('COUNTDOWN') || desc.includes('PAKN') || desc.includes('NEW WORLD') || desc.includes('SUPERMARKET')) {
-        category = 'Groceries & Supermarket';
-      } else if (desc.includes('NETFLIX') || desc.includes('SPOTIFY') || desc.includes('DISNEY') || desc.includes('PRIME')) {
-        category = 'Entertainment & Subscriptions';
-      } else if (desc.includes('SHELL') || desc.includes('Z ENERGY') || desc.includes('AT HOP') || desc.includes('BP ')) {
-        category = 'Transportation';
-      } else if (desc.includes('WAREHOUSE') || desc.includes('PB TECH') || desc.includes('NOEL LEEMING') || desc.includes('BUNNINGS')) {
-        category = 'Work & IT';
-      } else if (desc.includes('RESTAURANT') || desc.includes('CAFE') || desc.includes('UBER EATS') || desc.includes('MCDONALDS') || desc.includes('KFC')) {
-        category = 'Dining out';
-      } else if (desc.includes('GYM') || desc.includes('FITNESS') || desc.includes('PHARMACY') || desc.includes('CHEMIST')) {
-        category = 'Health & Fitness';
-      } else if (desc.includes('POWER') || desc.includes('WATER') || desc.includes('SPARK') || desc.includes('VODAFONE') || desc.includes('ONE NZ')) {
-        category = 'Housing & Utilities';
-      }
-
-      return {
-        ...t,
-        suggestedCategory: category,
-        confidence: 0.9,
-      };
-    });
-  }
-};
+/**
+ * This module previously contained a fake "AI" categorization function
+ * that was a hardcoded keyword if/else chain with an artificial delay.
+ *
+ * It has been replaced by `autoCategorize` in `dinero-io.ts`, which:
+ *  - Has an honest name and JSDoc that states it is rule-based
+ *  - Does not add a fake processing delay
+ *  - Is co-located with the other import/export utilities
+ *
+ * This file is kept as a placeholder to avoid breaking any future imports.
+ */
+export {};

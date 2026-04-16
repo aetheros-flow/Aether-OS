@@ -1,26 +1,12 @@
-import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { Loader2 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthenticated(!!session);
-      setLoading(false);
-    });
-  }, []);
+  // El AuthProvider ya maneja el loading globalmente y muestra un spinner.
+  // Sin embargo, por si acaso, podemos prevenir el renderizado si aún está cargando.
+  if (loading) return null;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
-        <Loader2 className="w-12 h-12 animate-spin text-gray-400" />
-      </div>
-    );
-  }
-
-  return authenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  return user ? <>{children}</> : <Navigate to="/login" replace />;
 }

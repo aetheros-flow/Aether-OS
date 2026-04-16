@@ -3,13 +3,12 @@ import { ArrowLeft, Loader2, Plus, Target, BookOpen, Heart, Star, Globe, DollarS
 import { useNavigate } from 'react-router-dom';
 
 import { useDesarrolloPersonalData } from '../hooks/useDesarrolloPersonalData';
+import { NewSkillInputSchema, NewIkigaiInputSchema } from '../types';
 import type { NewSkillInput, NewIkigaiInput } from '../types';
 import AetherModal from '../../../core/components/AetherModal';
 import PersonalJournalTab from '../components/PersonalJournalTab';
 
 type ActiveTab = 'matrix' | 'ikigai' | 'journal';
-
-const ACCENT = '#8B5CF6';
 
 const getIkigaiVerdict = (checks: { love: boolean; good: boolean; need: boolean; pay: boolean }) => {
   const { love, good, need, pay } = checks;
@@ -46,11 +45,16 @@ export default function PersonalGrowthPage() {
     setIsSubmitting(true);
     setFormError(null);
     try {
-      await createSkill(newSkill);
+      const validatedInput = NewSkillInputSchema.parse(newSkill);
+      await createSkill(validatedInput);
       setIsSkillModalOpen(false);
       setNewSkill(DEFAULT_SKILL);
-    } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Error al guardar');
+    } catch (err: any) {
+      if (err.errors) {
+        setFormError(err.errors[0].message);
+      } else {
+        setFormError(err instanceof Error ? err.message : 'Error saving mastery');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -61,11 +65,16 @@ export default function PersonalGrowthPage() {
     setIsSubmitting(true);
     setFormError(null);
     try {
-      await createIkigaiLog(newIkigai);
+      const validatedInput = NewIkigaiInputSchema.parse(newIkigai);
+      await createIkigaiLog(validatedInput);
       setIsIkigaiModalOpen(false);
       setNewIkigai(DEFAULT_IKIGAI);
-    } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Error al guardar');
+    } catch (err: any) {
+      if (err.errors) {
+        setFormError(err.errors[0].message);
+      } else {
+        setFormError(err instanceof Error ? err.message : 'Error logging activity');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -74,7 +83,7 @@ export default function PersonalGrowthPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
-        <Loader2 className="animate-spin" size={40} style={{ color: ACCENT }} />
+        <Loader2 className="animate-spin text-purple-600" size={40} />
       </div>
     );
   }
@@ -108,7 +117,7 @@ export default function PersonalGrowthPage() {
             ))}
           </div>
 
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: ACCENT }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg bg-purple-600">
             <Sparkles size={18} />
           </div>
         </div>
@@ -124,10 +133,10 @@ export default function PersonalGrowthPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <button
               onClick={() => setIsSkillModalOpen(true)}
-              className="group h-[200px] border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center gap-4 hover:border-[#8B5CF6]/40 hover:bg-white/40 transition-all"
+              className="group h-[200px] border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center gap-4 hover:border-purple-600/40 hover:bg-white/40 transition-all"
             >
               <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Plus size={20} style={{ color: ACCENT }} />
+                <Plus size={20} className="text-purple-600" />
               </div>
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#8A8681]">Add New Mastery</span>
             </button>
@@ -135,21 +144,21 @@ export default function PersonalGrowthPage() {
             {skills.map(skill => (
               <div key={skill.id} className="bg-white/80 backdrop-blur-xl rounded-[32px] p-8 border border-black/5 shadow-sm hover:shadow-xl transition-all group">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="p-3 rounded-2xl" style={{ backgroundColor: `${ACCENT}1A`, color: ACCENT }}><Zap size={20} /></div>
+                  <div className="p-3 rounded-2xl bg-purple-600/10 text-purple-600"><Zap size={20} /></div>
                   <div className="text-right">
-                    <span className="text-[9px] font-extrabold uppercase tracking-tighter" style={{ color: ACCENT }}>Level {skill.current_level}</span>
+                    <span className="text-[9px] font-extrabold uppercase tracking-tighter text-purple-600">Level {skill.current_level}</span>
                     <h3 className="font-serif text-xl font-bold">{skill.skill_name}</h3>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[9px] font-bold uppercase text-[#8A8681]">
                     <span>Progress</span>
-                    <span>{Math.round((skill.current_level / skill.target_level) * 100)}%</span>
+                    <span>{Math.round((skill.current_level / (skill.target_level || 1)) * 100)}%</span>
                   </div>
                   <div className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-1000"
-                      style={{ width: `${(skill.current_level / skill.target_level) * 100}%`, background: `linear-gradient(to right, ${ACCENT}, #818cf8)` }}
+                      className="h-full rounded-full transition-all duration-1000 bg-gradient-to-r from-purple-600 to-indigo-400"
+                      style={{ width: `${(skill.current_level / (skill.target_level || 1)) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -172,8 +181,7 @@ export default function PersonalGrowthPage() {
               </div>
               <button
                 onClick={() => setIsIkigaiModalOpen(true)}
-                className="px-8 py-4 text-white rounded-2xl text-[11px] font-extrabold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
-                style={{ backgroundColor: ACCENT }}
+                className="px-8 py-4 text-white rounded-2xl text-[11px] font-extrabold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg bg-purple-600"
               >
                 Log Daily Activity
               </button>
@@ -225,13 +233,12 @@ export default function PersonalGrowthPage() {
             required
             placeholder="Mastery Name (e.g. System Design)"
             value={newSkill.skill_name}
-            className="w-full bg-[#FAF9F6] border-none rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:ring-2 transition-all"
-            style={{ '--tw-ring-color': ACCENT } as React.CSSProperties}
+            className="w-full bg-[#FAF9F6] border-none rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:ring-2 focus:ring-purple-600 transition-all"
             onChange={e => setNewSkill({ ...newSkill, skill_name: e.target.value })}
           />
           <div className="flex gap-4">
             <button type="button" onClick={() => setIsSkillModalOpen(false)} className="flex-1 py-5 text-[10px] font-extrabold uppercase tracking-widest text-[#8A8681]">Abort</button>
-            <button type="submit" disabled={isSubmitting} className="flex-1 py-5 text-white rounded-2xl text-[10px] font-extrabold uppercase tracking-widest shadow-xl disabled:opacity-60" style={{ backgroundColor: ACCENT }}>
+            <button type="submit" disabled={isSubmitting} className="flex-1 py-5 text-white rounded-2xl text-[10px] font-extrabold uppercase tracking-widest shadow-xl disabled:opacity-60 bg-purple-600">
               {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Confirm'}
             </button>
           </div>
@@ -249,7 +256,7 @@ export default function PersonalGrowthPage() {
               value={newIkigai.activity_name}
               onChange={e => setNewIkigai({ ...newIkigai, activity_name: e.target.value })}
               placeholder="Coding Aether OS, Italian class..."
-              className="w-full bg-[#FAF9F6] border-none rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:ring-2 transition-all"
+              className="w-full bg-[#FAF9F6] border-none rounded-2xl px-6 py-5 text-sm font-bold outline-none focus:ring-2 focus:ring-purple-600 transition-all"
             />
           </div>
 
@@ -264,7 +271,7 @@ export default function PersonalGrowthPage() {
                 key={item.key}
                 type="button"
                 onClick={() => setNewIkigai({ ...newIkigai, [item.key]: !newIkigai[item.key] })}
-                className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${newIkigai[item.key] ? 'bg-purple-50 border-[#8B5CF6] text-[#8B5CF6]' : 'bg-[#FAF9F6] border-black/5 text-[#8A8681]'}`}
+                className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${newIkigai[item.key] ? 'bg-purple-50 border-purple-600 text-purple-600' : 'bg-[#FAF9F6] border-black/5 text-[#8A8681]'}`}
               >
                 <item.icon size={14} />
                 <span className="text-[10px] font-extrabold uppercase tracking-widest">{item.label}</span>

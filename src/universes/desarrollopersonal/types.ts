@@ -1,42 +1,38 @@
-export interface Skill {
-  id: string;
-  skill_name: string;
-  category: string;
-  current_level: number;
-  target_level: number;
-  hours_invested?: number;
-}
+import { z } from 'zod';
 
-export interface IkigaiLog {
-  id: string;
-  activity_name: string;
-  love_it: boolean;
-  good_at_it: boolean;
-  world_needs_it: boolean;
-  paid_for_it: boolean;
-  created_at: string;
-  log_date?: string;
-}
+export const SkillSchema = z.object({
+  id: z.string(),
+  skill_name: z.string().min(1, "Skill name is required"),
+  category: z.string().min(1, "Category is required"),
+  current_level: z.number().min(0, "Level cannot be negative"),
+  target_level: z.number().min(1, "Target level must be at least 1"),
+  hours_invested: z.number().optional(),
+});
+export type Skill = z.infer<typeof SkillSchema>;
 
-export interface JournalEntry {
-  id: string;
-  content: string;
-  mood: string;
-  created_at: string;
-  tags?: string[];
-}
+export const IkigaiLogSchema = z.object({
+  id: z.string(),
+  activity_name: z.string().min(1, "Activity name is required"),
+  love_it: z.boolean(),
+  good_at_it: z.boolean(),
+  world_needs_it: z.boolean(),
+  paid_for_it: z.boolean(),
+  created_at: z.string(),
+  log_date: z.string().optional(),
+});
+export type IkigaiLog = z.infer<typeof IkigaiLogSchema>;
 
-export interface NewSkillInput {
-  skill_name: string;
-  category: string;
-  current_level: number;
-  target_level: number;
-}
+export const JournalEntrySchema = z.object({
+  id: z.string(),
+  content: z.string(),
+  mood: z.string(),
+  created_at: z.string(),
+  tags: z.array(z.string()).optional(),
+});
+export type JournalEntry = z.infer<typeof JournalEntrySchema>;
 
-export interface NewIkigaiInput {
-  activity_name: string;
-  love_it: boolean;
-  good_at_it: boolean;
-  world_needs_it: boolean;
-  paid_for_it: boolean;
-}
+export const NewSkillInputSchema = SkillSchema.omit({ id: true, hours_invested: true });
+export type NewSkillInput = z.infer<typeof NewSkillInputSchema>;
+
+export const NewIkigaiInputSchema = IkigaiLogSchema.omit({ id: true, created_at: true, log_date: true });
+export type NewIkigaiInput = z.infer<typeof NewIkigaiInputSchema>;
