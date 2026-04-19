@@ -14,6 +14,7 @@ import type {
 import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
 import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
+import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -189,6 +190,8 @@ export default function SocialDashboard() {
       style={{ backgroundColor: THEME.bg, color: THEME.textMain }}
     >
 
+      <UniverseMobileHeader title="Vida Social" subtitle="Comunidad & Entorno" color="#1447E6" />
+
       {/* ── SIDEBAR ───────────────────────────────────────────────────────── */}
       <nav
         className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r"
@@ -219,49 +222,53 @@ export default function SocialDashboard() {
       </nav>
 
       {/* ── MAIN AREA ─────────────────────────────────────────────────────── */}
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pb-20 md:pb-0">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-14 md:pt-10 pb-20 md:pb-0">
 
-        {/* ── Header ── */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12">
-          <div>
-            <p className="aether-eyebrow mb-2" style={{ color: 'rgba(255,255,255,0.65)' }}>
-              {activeTab === 'dashboard'   ? 'Tu Red de Vida'      :
-               activeTab === 'contactos'  ? 'Personas Importantes' :
-               activeTab === 'eventos'    ? 'Agenda Social'        :
-               'Comunidades Activas'}
+        {/* ── Daylio header ── */}
+        <header className="mb-7 md:mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.40)' }}>
+              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <div className="flex items-baseline gap-3">
-              <span className="aether-metric-xl text-white">
-                {activeTab === 'dashboard'   ? contacts.length       :
-                 activeTab === 'contactos'   ? contacts.length       :
-                 activeTab === 'eventos'     ? upcomingEvents.length :
-                 activeComms}
-              </span>
-              <span className="text-xl font-mono" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                {activeTab === 'dashboard'   ? ' personas'    :
-                 activeTab === 'contactos'   ? ' contactos'   :
-                 activeTab === 'eventos'     ? ' próximos'    :
-                 ' activas'}
-              </span>
-            </div>
+            {activeTab !== 'dashboard' && (
+              <button
+                onClick={() => {
+                  setFormError(null);
+                  if (activeTab === 'contactos')   setIsContactModalOpen(true);
+                  if (activeTab === 'eventos')     setIsEventModalOpen(true);
+                  if (activeTab === 'comunidades') setIsCommunityModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs active:scale-95 transition-all"
+                style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                <Plus size={13} strokeWidth={3} />
+                {activeTab === 'contactos' ? 'Nuevo Contacto' : activeTab === 'eventos' ? 'Nuevo Evento' : 'Nueva Comunidad'}
+              </button>
+            )}
           </div>
-
-          {activeTab !== 'dashboard' && (
-            <button
-              onClick={() => {
-                setFormError(null);
-                if (activeTab === 'contactos')   setIsContactModalOpen(true);
-                if (activeTab === 'eventos')     setIsEventModalOpen(true);
-                if (activeTab === 'comunidades') setIsCommunityModalOpen(true);
-              }}
-              className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-transform hover:scale-105 active:scale-95 text-sm shadow-xl"
-              style={{ backgroundColor: THEME.surface, color: THEME.accent }}
-            >
-              <Plus size={18} />
-              {activeTab === 'contactos'   ? 'Nuevo Contacto'   :
-               activeTab === 'eventos'     ? 'Nuevo Evento'     :
-               'Nueva Comunidad'}
-            </button>
+          <h2 className="font-black text-white mb-4" style={{ fontSize: 'clamp(1.6rem, 6vw, 2.8rem)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            {activeTab === 'dashboard'   ? 'Tu red de vida' :
+             activeTab === 'contactos'  ? 'Personas importantes' :
+             activeTab === 'eventos'    ? 'Agenda social' :
+             'Comunidades activas'}
+          </h2>
+          {activeTab === 'dashboard' && (
+            <div className="flex gap-2.5 flex-wrap">
+              {[
+                { icon: '👥', label: 'Contactos', val: contacts.length },
+                { icon: '📅', label: 'Próx. eventos', val: upcomingEvents.length },
+                { icon: '🌐', label: 'Comunidades', val: activeComms },
+                { icon: '🆕', label: 'Este año', val: newConnectionsThisYear },
+              ].map(s => (
+                <div key={s.label} className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.14)' }}>
+                  <span className="text-sm leading-none">{s.icon}</span>
+                  <div>
+                    <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', lineHeight: 1.2 }}>{s.label}</p>
+                    <p style={{ fontSize: 15, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.val}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </header>
 

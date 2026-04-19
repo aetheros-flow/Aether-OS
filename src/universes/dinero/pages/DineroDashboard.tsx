@@ -584,22 +584,51 @@ export default function DineroDashboard() {
       />
 
       {/* ── Bottom Tab Bar (mobile only) ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0B2118]/95 backdrop-blur-xl border-t border-white/10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        <div className="flex items-center justify-around px-2 py-2">
-          {MOBILE_TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all min-w-[52px] ${
-                activeTab === tab.id
-                  ? 'text-[#A7F38F]'
-                  : 'text-white/40'
-              }`}
-            >
-              {tab.icon}
-              <span className="text-[9px] font-bold uppercase tracking-wider">{tab.label}</span>
-            </button>
-          ))}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+        style={{
+          background: 'linear-gradient(to top, #0B2118 60%, #0B2118E8 100%)',
+          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
+          boxShadow: '0 -1px 0 rgba(255,255,255,0.06), 0 -12px 32px rgba(0,0,0,0.45)',
+        }}
+      >
+        <div className="flex items-center justify-around px-2 pt-2 pb-1">
+          {MOBILE_TABS.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex flex-col items-center gap-1 transition-all duration-200 active:scale-90 select-none outline-none"
+                style={{ minWidth: 52, padding: '4px 4px' }}
+              >
+                <div
+                  className="flex flex-col items-center justify-center transition-all duration-200"
+                  style={{
+                    width: 48, height: 28, borderRadius: 14,
+                    backgroundColor: isActive ? '#A7F38F28' : 'transparent',
+                  }}
+                >
+                  <span style={{
+                    color: isActive ? '#A7F38F' : 'rgba(255,255,255,0.38)',
+                    filter: isActive ? 'drop-shadow(0 0 6px #A7F38F88)' : 'none',
+                    transition: 'color 0.18s',
+                    display: 'flex',
+                  }}>
+                    {tab.icon}
+                  </span>
+                </div>
+                <span style={{
+                  fontSize: 9, fontWeight: isActive ? 800 : 500,
+                  letterSpacing: '0.04em', textTransform: 'uppercase',
+                  color: isActive ? '#A7F38F' : 'rgba(255,255,255,0.30)',
+                  lineHeight: 1,
+                }}>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </nav>
     </div>

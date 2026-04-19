@@ -14,6 +14,7 @@ import type {
 import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
 import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
+import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TabType = 'dashboard' | 'biblioteca' | 'pantalla' | 'hobbies' | 'bucket';
@@ -239,6 +240,8 @@ export default function OcioDashboard() {
       className="min-h-screen flex flex-col md:flex-row font-sans"
       style={{ backgroundColor: THEME.bg, color: THEME.textMain }}
     >
+      <UniverseMobileHeader title="Ocio & Hobbies" subtitle="Entretenimiento & Pasatiempos" color="#00C4D4" />
+
       {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
       <nav
         className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-black/10"
@@ -269,53 +272,55 @@ export default function OcioDashboard() {
       </nav>
 
       {/* ── MAIN ─────────────────────────────────────────────────────────── */}
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pb-20 md:pb-0">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-14 md:pt-10 pb-20 md:pb-0">
 
         {/* ── Header ── */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12">
-          <div>
-            <p className="aether-eyebrow mb-2" style={{ color: THEME.textLight }}>
-              {activeTab === 'dashboard'  ? 'Tu universo de ocio'
-               : activeTab === 'biblioteca' ? 'Tus libros'
-               : activeTab === 'pantalla'   ? 'Series & Películas'
-               : activeTab === 'hobbies'    ? 'Hobbies activos'
-               : 'Bucket List'}
+        {/* ── Daylio header ── */}
+        <header className="mb-7 md:mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.40)' }}>
+              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <div className="flex items-baseline gap-3">
-              <span className="aether-metric-xl" style={{ color: THEME.textMain }}>
-                {activeTab === 'dashboard'  ? booksRead
-                 : activeTab === 'biblioteca' ? books.length
-                 : activeTab === 'pantalla'   ? watchlist.length
-                 : activeTab === 'hobbies'    ? hobbies.length
-                 : bucket.length}
-              </span>
-              <span className="text-xl font-mono" style={{ color: THEME.textLight }}>
-                {activeTab === 'dashboard'  ? ' libros leídos'
-                 : activeTab === 'biblioteca' ? ' títulos'
-                 : activeTab === 'pantalla'   ? ' títulos'
-                 : activeTab === 'hobbies'    ? ' hobbies'
-                 : ' experiencias'}
-              </span>
-            </div>
+            {activeTab !== 'dashboard' && (
+              <button
+                onClick={() => {
+                  if (activeTab === 'biblioteca') setBookModalOpen(true);
+                  else if (activeTab === 'pantalla') setWatchModalOpen(true);
+                  else if (activeTab === 'hobbies') setHobbyModalOpen(true);
+                  else if (activeTab === 'bucket') setBucketModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs active:scale-95 transition-all"
+                style={{ backgroundColor: 'rgba(255,255,255,0.22)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)' }}
+              >
+                <Plus size={13} strokeWidth={3} />
+                {activeTab === 'biblioteca' ? 'Agregar Libro' : activeTab === 'pantalla' ? 'Agregar Título' : activeTab === 'hobbies' ? 'Agregar Hobby' : 'Agregar Experiencia'}
+              </button>
+            )}
           </div>
-
-          {activeTab !== 'dashboard' && (
-            <button
-              onClick={() => {
-                if (activeTab === 'biblioteca') { setBookModalOpen(true); }
-                else if (activeTab === 'pantalla') { setWatchModalOpen(true); }
-                else if (activeTab === 'hobbies') { setHobbyModalOpen(true); }
-                else if (activeTab === 'bucket') { setBucketModalOpen(true); }
-              }}
-              className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-transform hover:scale-105 active:scale-95 text-sm shadow-xl"
-              style={{ backgroundColor: THEME.textMain, color: '#FFFFFF' }}
-            >
-              <Plus size={18} />
-              {activeTab === 'biblioteca' ? 'Agregar Libro'
-               : activeTab === 'pantalla' ? 'Agregar Título'
-               : activeTab === 'hobbies' ? 'Agregar Hobby'
-               : 'Agregar Experiencia'}
-            </button>
+          <h2 className="font-black mb-4" style={{ fontSize: 'clamp(1.6rem, 6vw, 2.8rem)', letterSpacing: '-0.02em', lineHeight: 1.1, color: THEME.textMain }}>
+            {activeTab === 'dashboard'   ? 'Tu universo de ocio' :
+             activeTab === 'biblioteca' ? 'Biblioteca personal' :
+             activeTab === 'pantalla'   ? 'Series & Películas' :
+             activeTab === 'hobbies'    ? 'Hobbies activos' :
+             'Bucket List'}
+          </h2>
+          {activeTab === 'dashboard' && (
+            <div className="flex gap-2.5 flex-wrap">
+              {[
+                { icon: '📚', label: 'Libros leídos', val: booksRead },
+                { icon: '🎬', label: 'Watchlist', val: watchlist.length },
+                { icon: '🎮', label: 'Hobbies', val: hobbies.length },
+                { icon: '✈️', label: 'Bucket list', val: bucket.length },
+              ].map(s => (
+                <div key={s.label} className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.22)' }}>
+                  <span className="text-sm leading-none">{s.icon}</span>
+                  <div>
+                    <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.50)', lineHeight: 1.2 }}>{s.label}</p>
+                    <p style={{ fontSize: 15, fontWeight: 900, color: THEME.textMain, lineHeight: 1 }}>{s.val}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </header>
 

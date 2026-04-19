@@ -10,7 +10,7 @@ interface UniverseBottomNavProps {
   tabs: BottomNavTab[];
   activeTab: string;
   onTabChange: (id: string) => void;
-  /** Hex color for the active tab indicator (e.g. '#A7F38F') */
+  /** Hex color for active pill background (e.g. '#A7F38F') */
   activeColor?: string;
   /** Hex background color for the bar (e.g. '#0B2118') */
   bgColor?: string;
@@ -25,33 +25,63 @@ export default function UniverseBottomNav({
 }: UniverseBottomNavProps) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/10 backdrop-blur-xl"
+      className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
       style={{
-        backgroundColor: bgColor + 'F0',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        background: `linear-gradient(to top, ${bgColor} 60%, ${bgColor}E8 100%)`,
+        paddingBottom: 'env(safe-area-inset-bottom, 8px)',
+        boxShadow: '0 -1px 0 rgba(255,255,255,0.06), 0 -12px 32px rgba(0,0,0,0.45)',
       }}
     >
-      <div className="flex items-center justify-around px-1 py-2">
+      <div
+        className="flex items-center justify-around px-2 pt-2 pb-1"
+        style={{ gap: tabs.length >= 5 ? '0' : undefined }}
+      >
         {tabs.map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-all active:scale-90 min-w-[48px]"
-              style={{ color: isActive ? activeColor : 'rgba(255,255,255,0.35)' }}
               aria-current={isActive ? 'page' : undefined}
+              className="flex flex-col items-center gap-1 transition-all duration-200 active:scale-90 select-none outline-none focus-visible:outline-none"
+              style={{
+                minWidth: tabs.length >= 5 ? 52 : 60,
+                padding: '4px 4px',
+              }}
             >
-              <tab.icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-              <span className="text-[8px] font-black uppercase tracking-wider leading-none mt-0.5">
+              {/* Pill container */}
+              <div
+                className="flex flex-col items-center justify-center transition-all duration-200"
+                style={{
+                  width: 48,
+                  height: 28,
+                  borderRadius: 14,
+                  backgroundColor: isActive ? activeColor + '28' : 'transparent',
+                }}
+              >
+                <tab.icon
+                  size={tabs.length >= 5 ? 18 : 20}
+                  strokeWidth={isActive ? 2.5 : 1.75}
+                  style={{
+                    color: isActive ? activeColor : 'rgba(255,255,255,0.38)',
+                    filter: isActive ? `drop-shadow(0 0 6px ${activeColor}88)` : 'none',
+                    transition: 'color 0.18s, filter 0.18s',
+                  }}
+                />
+              </div>
+              {/* Label */}
+              <span
+                className="leading-none transition-all duration-200"
+                style={{
+                  fontSize: 9,
+                  fontWeight: isActive ? 800 : 500,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: isActive ? activeColor : 'rgba(255,255,255,0.30)',
+                }}
+              >
                 {tab.label}
               </span>
-              {isActive && (
-                <div
-                  className="w-1 h-1 rounded-full mt-0.5"
-                  style={{ backgroundColor: activeColor }}
-                />
-              )}
             </button>
           );
         })}

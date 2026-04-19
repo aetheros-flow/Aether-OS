@@ -19,6 +19,7 @@ import { useAmorData } from '../hooks/useAmorData';
 import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
 import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
+import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
 import {
   MOOD_EMOJI,
   MOOD_LABEL,
@@ -126,14 +127,22 @@ function ScoreBar({ value, color, max = 5 }: { value: number; color: string; max
 
 function KpiCard({ label, value, unit, icon }: { label: string; value: string | number; unit?: string; icon: React.ReactNode }) {
   return (
-    <div className="aether-card flex flex-col gap-3 p-5">
+    <div
+      className="flex flex-col gap-3 p-5 rounded-2xl transition-all duration-200 active:scale-[0.97]"
+      style={{
+        background: 'rgba(255,255,255,0.10)',
+        border: '1px solid rgba(255,255,255,0.13)',
+      }}
+    >
       <div className="flex items-center gap-2">
-        <span className="text-xl">{icon}</span>
-        <span className="aether-eyebrow">{label}</span>
+        <span className="text-xl leading-none">{icon}</span>
+        <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.52)' }}>
+          {label}
+        </p>
       </div>
       <div className="flex items-baseline gap-1.5">
-        <span className="aether-metric-md" style={{ color: THEME.accent }}>{value}</span>
-        {unit && <span className="text-sm text-[#8A8681] font-medium">{unit}</span>}
+        <span style={{ fontSize: 32, fontWeight: 900, lineHeight: 1, color: '#fff', letterSpacing: '-0.02em' }}>{value}</span>
+        {unit && <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.48)' }}>{unit}</span>}
       </div>
     </div>
   );
@@ -324,6 +333,8 @@ export default function AmorDashboard() {
       style={{ backgroundColor: THEME.bg, color: THEME.textMain }}
     >
 
+      <UniverseMobileHeader title="Amor" subtitle="Relaciones & Vínculos" color="#FF0040" />
+
       {/* ══ SIDEBAR ════════════════════════════════════════════════════════ */}
       <nav
         className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-white/10"
@@ -352,109 +363,126 @@ export default function AmorDashboard() {
       </nav>
 
       {/* ══ MAIN AREA ══════════════════════════════════════════════════════ */}
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pb-20 md:pb-0">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-14 md:pt-10 pb-20 md:pb-0">
 
-        {/* Page header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12">
-          <div>
-            <p className="aether-eyebrow mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              {headerMetric.label}
+        {/* ── Daylio-style page header ── */}
+        <header className="mb-8 md:mb-10">
+          {/* Date + tab label row */}
+          <div className="flex items-center justify-between mb-3">
+            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.42)' }}>
+              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
-            <div className="flex items-baseline gap-3">
-              <span className="aether-metric-xl text-white">{headerMetric.value}</span>
-              {headerMetric.unit && (
-                <span className="text-xl font-mono" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                  {headerMetric.unit}
-                </span>
-              )}
-            </div>
+            {activeTab === 'fechas' && (
+              <button
+                onClick={() => setIsDateModalOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs active:scale-95 transition-all"
+                style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                <Plus size={13} strokeWidth={3} /> Nueva Fecha
+              </button>
+            )}
+            {activeTab === 'reflexiones' && (
+              <button
+                onClick={() => setIsReflectionModalOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs active:scale-95 transition-all"
+                style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                <Plus size={13} strokeWidth={3} /> Nueva Reflexión
+              </button>
+            )}
           </div>
 
-          {activeTab === 'fechas' && (
-            <button
-              onClick={() => setIsDateModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-transform hover:scale-105 active:scale-95 text-sm shadow-xl"
-              style={{ backgroundColor: THEME.surface, color: THEME.accent }}
-            >
-              <Plus size={18} />
-              Nueva Fecha
-            </button>
-          )}
+          {/* Big title */}
+          <h2 className="font-black text-white mb-4" style={{ fontSize: 'clamp(1.6rem, 6vw, 2.8rem)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            {activeTab === 'dashboard'   ? 'Tu historia de amor' :
+             activeTab === 'fechas'      ? 'Fechas especiales' :
+             activeTab === 'lenguajes'   ? 'Lenguajes del amor' :
+             'Reflexiones'}
+          </h2>
 
-          {activeTab === 'reflexiones' && (
-            <button
-              onClick={() => setIsReflectionModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-transform hover:scale-105 active:scale-95 text-sm shadow-xl"
-              style={{ backgroundColor: THEME.surface, color: THEME.accent }}
-            >
-              <Plus size={18} />
-              Nueva Reflexión
-            </button>
+          {/* Stats strip — only on dashboard tab */}
+          {activeTab === 'dashboard' && (
+            <div className="flex gap-2.5 flex-wrap">
+              {[
+                { icon: '💑', label: 'Relación', val: relationshipScore ?? '—', unit: '/10' },
+                { icon: '📅', label: 'Próxima fecha', val: nextDate ? `${daysUntilNext(nextDate.date)}d` : '—', unit: '' },
+                { icon: '📖', label: 'Reflexiones', val: reflections.length, unit: 'notas' },
+                { icon: '💬', label: 'Fechas', val: specialDates.length, unit: 'total' },
+              ].map(stat => (
+                <div
+                  key={stat.label}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.14)' }}
+                >
+                  <span className="text-base leading-none">{stat.icon}</span>
+                  <div>
+                    <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.48)', lineHeight: 1.2 }}>{stat.label}</p>
+                    <p style={{ fontSize: 15, fontWeight: 900, color: '#fff', lineHeight: 1.1 }}>
+                      {stat.val}{stat.unit ? <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.55)', marginLeft: 2 }}>{stat.unit}</span> : null}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </header>
 
         {/* ══ TAB: DASHBOARD ══════════════════════════════════════════════ */}
         {activeTab === 'dashboard' && (
-          <div className="flex flex-col gap-8">
-
-            {/* KPI strip */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <KpiCard
-                label="Puntaje de Relación"
-                value={relationshipScore ?? '—'}
-                unit={relationshipScore ? '/ 10' : ''}
-                icon="💑"
-              />
-              <KpiCard
-                label="Próxima fecha especial"
-                value={nextDate ? daysUntilNext(nextDate.date) : '—'}
-                unit={nextDate ? 'días' : ''}
-                icon="💍"
-              />
-              <KpiCard
-                label="Reflexiones escritas"
-                value={reflections.length}
-                unit="notas"
-                icon="📖"
-              />
-            </div>
+          <div className="flex flex-col gap-5">
 
             {/* Two-column section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Upcoming dates preview */}
-              <div className="aether-card p-5 flex flex-col gap-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-sm font-bold tracking-wide" style={{ color: THEME.textDark }}>
+              <div
+                className="flex flex-col gap-4 p-5 rounded-2xl"
+                style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
                     Próximas fechas
-                  </h3>
-                  <span className="aether-eyebrow" style={{ color: THEME.accent }}>Calendario</span>
+                  </p>
+                  <button
+                    onClick={() => handleTabChange('fechas')}
+                    style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    Ver todas →
+                  </button>
                 </div>
                 {specialDates.length === 0 ? (
-                  <p className="text-sm text-[#8A8681]">Aún no hay fechas especiales guardadas.</p>
+                  <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>Aún no hay fechas guardadas.</p>
                 ) : (
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col">
                     {[...specialDates]
                       .sort((a, b) => daysUntilNext(a.date) - daysUntilNext(b.date))
                       .slice(0, 4)
-                      .map(d => {
+                      .map((d, i) => {
                         const days = daysUntilNext(d.date);
                         return (
-                          <div key={d.id} className="flex items-center gap-3">
+                          <div
+                            key={d.id}
+                            className="flex items-center gap-3 py-2.5"
+                            style={{ borderBottom: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}
+                          >
                             <div
-                              className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0"
-                              style={{ backgroundColor: `${THEME.accent}15` }}
+                              className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0"
+                              style={{ background: 'rgba(255,255,255,0.14)' }}
                             >
                               {DATE_TYPE_ICON[d.type]}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold truncate" style={{ color: THEME.textDark }}>{d.title}</p>
-                              <p className="text-xs" style={{ color: THEME.textMuted }}>{formatDateShort(d.date)}</p>
+                              <p className="text-sm font-bold truncate text-white">{d.title}</p>
+                              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{formatDateShort(d.date)}</p>
                             </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-sm font-bold" style={{ color: days <= 7 ? THEME.accent : THEME.textDark }}>
-                                {days === 0 ? '¡Hoy!' : `${days}d`}
-                              </p>
+                            <div
+                              className="px-2.5 py-1 rounded-full text-xs font-black"
+                              style={{
+                                background: days === 0 ? 'rgba(255,255,255,0.25)' : days <= 7 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
+                                color: days === 0 ? '#fff' : days <= 7 ? '#fff' : 'rgba(255,255,255,0.55)',
+                              }}
+                            >
+                              {days === 0 ? '¡Hoy!' : `${days}d`}
                             </div>
                           </div>
                         );
@@ -465,23 +493,35 @@ export default function AmorDashboard() {
               </div>
 
               {/* Latest reflections preview */}
-              <div className="aether-card p-5 flex flex-col gap-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-sm font-bold tracking-wide" style={{ color: THEME.textDark }}>
+              <div
+                className="flex flex-col gap-4 p-5 rounded-2xl"
+                style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <div className="flex items-center justify-between">
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
                     Últimas reflexiones
-                  </h3>
-                  <span className="aether-eyebrow" style={{ color: THEME.accent }}>Diario</span>
+                  </p>
+                  <button
+                    onClick={() => handleTabChange('reflexiones')}
+                    style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    Ver todas →
+                  </button>
                 </div>
                 {reflections.length === 0 ? (
-                  <p className="text-sm text-[#8A8681]">Aún no hay reflexiones escritas.</p>
+                  <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>Aún no hay reflexiones escritas.</p>
                 ) : (
-                  <div className="flex flex-col gap-3">
-                    {reflections.slice(0, 3).map(r => (
-                      <div key={r.id} className="flex items-start gap-3">
-                        <span className="text-2xl leading-none mt-0.5">{MOOD_EMOJI[r.mood]}</span>
+                  <div className="flex flex-col">
+                    {reflections.slice(0, 3).map((r, i) => (
+                      <div
+                        key={r.id}
+                        className="flex items-start gap-3 py-2.5"
+                        style={{ borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}
+                      >
+                        <span className="text-2xl leading-none mt-0.5 shrink-0">{MOOD_EMOJI[r.mood]}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium line-clamp-2" style={{ color: THEME.textDark }}>{r.content}</p>
-                          <p className="text-xs mt-1" style={{ color: THEME.textMuted }}>{formatTimestamp(r.created_at)}</p>
+                          <p className="text-sm font-medium line-clamp-2 text-white/85">{r.content}</p>
+                          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.40)', marginTop: 3 }}>{formatTimestamp(r.created_at)}</p>
                         </div>
                       </div>
                     ))}
@@ -491,45 +531,49 @@ export default function AmorDashboard() {
             </div>
 
             {/* Love language snapshot */}
-            {loveLanguages && (
-              <div className="aether-card p-5">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold tracking-wide" style={{ color: THEME.textDark }}>
-                    Tus lenguajes del amor
-                  </h3>
+            {loveLanguages ? (
+              <div
+                className="p-5 rounded-2xl"
+                style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>
+                    Lenguajes del amor
+                  </p>
                   <button
                     onClick={() => handleTabChange('lenguajes')}
-                    className="aether-eyebrow transition-opacity hover:opacity-70"
-                    style={{ color: THEME.accent }}
+                    style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.55)' }}
                   >
                     Ver detalle →
                   </button>
                 </div>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3.5">
                   {(Object.keys(LOVE_LANGUAGE_LABELS) as (keyof typeof LOVE_LANGUAGE_LABELS)[]).map(key => (
                     <div key={key} className="flex items-center gap-3">
-                      <span className="text-base w-6">{LOVE_LANGUAGE_ICONS[key]}</span>
-                      <span className="text-sm font-medium w-44 shrink-0" style={{ color: THEME.textDark }}>
-                        {LOVE_LANGUAGE_LABELS[key]}
-                      </span>
-                      <ScoreBar value={loveLanguages.own_scores[key]} color={THEME.accent} />
+                      <span className="text-base w-6 shrink-0">{LOVE_LANGUAGE_ICONS[key]}</span>
+                      <span className="text-xs font-bold w-40 shrink-0 text-white/70">{LOVE_LANGUAGE_LABELS[key]}</span>
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${(loveLanguages.own_scores[key] / 5) * 100}%`, background: 'rgba(255,255,255,0.85)' }}
+                        />
+                      </div>
+                      <span className="text-xs font-black text-white w-4 text-right">{loveLanguages.own_scores[key]}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-
-            {!loveLanguages && (
+            ) : (
               <div
-                className="flex flex-col items-center justify-center h-48 rounded-[32px] border-dashed border-2 border-white/20"
-                style={{ backgroundColor: 'rgba(0,0,0,0.08)' }}
+                className="flex flex-col items-center justify-center h-40 rounded-2xl border-dashed border-2"
+                style={{ borderColor: 'rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.10)' }}
               >
-                <Sparkles className="w-8 h-8 text-white/60 mb-3" />
-                <p className="text-white font-bold mb-1">Aún no has completado tus lenguajes del amor</p>
+                <Sparkles className="w-7 h-7 mb-3" style={{ color: 'rgba(255,255,255,0.45)' }} />
+                <p className="text-sm font-bold text-white/70 mb-2">Completa tus lenguajes del amor</p>
                 <button
                   onClick={() => handleTabChange('lenguajes')}
-                  className="text-sm font-bold mt-2 underline underline-offset-2"
-                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                  className="text-xs font-black px-4 py-2 rounded-full transition-all active:scale-95"
+                  style={{ background: 'rgba(255,255,255,0.18)', color: '#fff' }}
                 >
                   Completar ahora →
                 </button>

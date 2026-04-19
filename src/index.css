@@ -204,4 +204,120 @@
   .aether-modal-panel {
     @apply bg-white w-full rounded-t-[32px] md:rounded-[32px] p-8 md:p-10 shadow-2xl;
   }
+
+  /* ==========================================
+     DAYLIO-STYLE PREMIUM COMPONENTS
+     ========================================== */
+
+  /* Stat chip — colored pill with icon + number */
+  .daylio-stat {
+    @apply flex flex-col items-center justify-center gap-1 rounded-2xl px-4 py-4 transition-all duration-200;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .daylio-stat:hover {
+    background: rgba(255,255,255,0.16);
+  }
+
+  /* Glass card — for dark-bg universes */
+  .glass-card {
+    @apply rounded-2xl p-4 transition-all duration-200;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .glass-card:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.16);
+  }
+
+  /* Light glass card — for light-bg universes */
+  .glass-card-light {
+    @apply rounded-2xl p-4 transition-all duration-200;
+    background: rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  .glass-card-light:hover {
+    background: rgba(0,0,0,0.10);
+  }
+
+  /* Metric block — big number + eyebrow label */
+  .universe-metric {
+    @apply flex flex-col gap-1;
+  }
+  .universe-metric-value {
+    @apply font-black tracking-tighter leading-none;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+  }
+  .universe-metric-label {
+    @apply text-[10px] font-black uppercase tracking-[0.18em] opacity-55;
+  }
+
+  /* Activity row — used in universe list views */
+  .activity-row {
+    @apply flex items-center gap-3 py-3 border-b last:border-b-0 transition-colors;
+    border-color: rgba(255,255,255,0.07);
+  }
+  .activity-row:active {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+  }
+
+  /* Streak badge */
+  .streak-badge {
+    @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full font-black text-xs;
+    background: linear-gradient(135deg, #FF6B35 0%, #FF4500 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(255,70,0,0.35);
+  }
+
+  /* Universe header card — top summary block on dashboard */
+  .universe-hero {
+    @apply rounded-3xl p-6 md:p-8 mb-6 md:mb-8;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* Daylio-style grid of colored category chips */
+  .category-chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all;
+  }
+
+  /* Premium aether card — updated with better shadow */
+  .aether-card-premium {
+    @apply bg-white rounded-[24px] transition-all duration-300;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .aether-card-premium:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 0 1px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+  }
+
+  /* Sidebar nav item — Daylio left-bar style */
+  .universe-nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 w-full text-left;
+  }
+  .universe-nav-item.active {
+    @apply font-bold;
+    background: rgba(255,255,255,0.18);
+    box-shadow: inset 3px 0 0 currentColor;
+  }
+  .universe-nav-item:not(.active) {
+    @apply opacity-60;
+  }
+  .universe-nav-item:not(.active):hover {
+    @apply opacity-90;
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* Progress bar — universe themed */
+  .universe-progress {
+    @apply h-1.5 rounded-full overflow-hidden;
+    background: rgba(255,255,255,0.15);
+  }
+  .universe-progress-fill {
+    @apply h-full rounded-full transition-all duration-700;
+  }
 }
