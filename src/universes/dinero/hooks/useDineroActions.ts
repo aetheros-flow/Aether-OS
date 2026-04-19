@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { ZodError } from 'zod';
 import {
   newAccountSchema,
   newTransactionSchema,
@@ -13,8 +13,6 @@ import {
   type Category,
 } from '../types';
 import { parseFile, autoCategorize, exportRecords } from '../lib/dinero-io';
-
-type FetchData = () => Promise<void>;
 
 /**
  * Reads the current balance from the DB before writing, preventing
@@ -44,12 +42,12 @@ const txDelta = (type: string, amount: number) =>
 
 /** Sanitizes errors so raw DB messages are never shown in the UI. */
 const sanitize = (err: unknown): string => {
-  if (err instanceof z.ZodError) return err.errors[0].message;
+  if (err instanceof ZodError) return err.issues[0]?.message ?? 'Validation error';
   console.error('[DineroAction]', err);
   return 'An unexpected error occurred. Please try again.';
 };
 
-export function useDineroActions(userId: string | undefined, fetchData: FetchData) {
+export function useDineroActions(userId: string | undefined, fetchData: () => Promise<void>) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const guard = (): boolean => {

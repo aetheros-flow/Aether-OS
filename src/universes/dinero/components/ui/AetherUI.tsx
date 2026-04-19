@@ -13,7 +13,6 @@ export function Card({ children, className = '', interactive = false, onClick, .
     <div 
       onClick={onClick} 
       className={`${baseClasses} ${hoverClasses} ${className}`} 
-      style={{ fontFamily: "'Nunito', ui-sans-serif, system-ui, sans-serif" }}
       {...props}
     >
       {children}
@@ -92,7 +91,7 @@ export function Dropdown({ value, options, onChange, icon }: DropdownProps) {
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef} style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

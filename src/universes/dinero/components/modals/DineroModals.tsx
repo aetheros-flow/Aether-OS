@@ -296,8 +296,18 @@ export function DineroModals({
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold uppercase tracking-wide text-gray-500">Category</label>
                   <select value={editTransaction.category} onChange={(e) => setEditTransaction({...editTransaction, category: e.target.value})} className="px-4 py-3 bg-white text-sm font-medium border border-gray-200 outline-none rounded-[12px] appearance-none cursor-pointer text-forest-DEFAULT">
-                    {!CATEGORIES.includes(editTransaction.category) && <option value={editTransaction.category}>{editTransaction.category}</option>}
                     {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    {categories
+                      .filter(c => !CATEGORIES.includes(c.name))
+                      .map(c => (
+                        <option key={c.id} value={c.name}>{c.icon} {c.name}</option>
+                      ))
+                    }
+                    {/* Fallback: si la categoría guardada no está en ninguna lista */}
+                    {!CATEGORIES.includes(editTransaction.category) &&
+                      !categories.some((c: any) => c.name === editTransaction.category) && (
+                      <option value={editTransaction.category}>{editTransaction.category}</option>
+                    )}
                   </select>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -364,6 +374,12 @@ export function DineroModals({
                     {CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
+                    {categories
+                      .filter(c => !CATEGORIES.includes(c.name))
+                      .map(c => (
+                        <option key={c.id} value={c.name}>{c.icon} {c.name}</option>
+                      ))
+                    }
                     <option value="custom_select">Custom...</option>
                   </select>
                 </div>

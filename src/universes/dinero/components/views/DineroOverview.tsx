@@ -7,16 +7,16 @@ import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 import type { TabType } from '../../pages/DineroDashboard';
 import type { Transaction } from '../../types';
 
-// ─── Design tokens (consolidated) ────────────────────────────────────────────
+// ─── Design tokens — Dinero palette ──────────────────────────────────────────
 const C = {
-  bg:        '#e0f7e9',
-  dark:      '#1a2d21',
-  mid:       '#2e4939',
-  green:     '#86efac',
-  lime:      '#bef264',
+  bg:        '#F4F9F2',   // sage (matches dashboard bg)
+  dark:      '#0B2118',   // forest.DEFAULT
+  mid:       '#163E2E',   // forest.light
+  green:     '#A7F38F',   // mint.DEFAULT
+  lime:      '#86efac',   // mint softer
   white:     '#ffffff',
-  muted:     '#a0b0a8',
-  text:      '#1a2d21',
+  muted:     '#8aab96',
+  text:      '#0B2118',
 } as const;
 
 const PIE_COLORS = [C.dark, C.green, '#e0f7e9', C.lime, C.white];
@@ -122,25 +122,24 @@ export function DineroOverview({
 
   return (
     <div
-      className="w-full min-h-screen rounded-[40px] px-4 py-8 md:px-8 font-sans flex flex-col items-center"
-      style={{ backgroundColor: C.bg }}
+      className="w-full px-0 py-0 font-sans flex flex-col items-center"
     >
       {/* HEADER */}
-      <div className="w-full max-w-4xl flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold leading-tight" style={{ color: C.text }}>
-          Financial Statistics &amp; Activity
+      <div className="w-full max-w-5xl flex items-center justify-between mb-3">
+        <h1 className="text-xl font-extrabold tracking-tight" style={{ color: C.text }}>
+          Financial Overview
         </h1>
         <button
           onClick={() => setIsTransactionModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all hover:opacity-90"
           style={{ backgroundColor: C.dark, color: C.white }}
         >
-          <Plus size={16} /> Add Transaction
+          <Plus size={15} /> Add Transaction
         </button>
       </div>
 
       {/* SUMMARY STATS */}
-      <div className="w-full max-w-4xl grid grid-cols-3 gap-4 mb-4">
+      <div className="w-full max-w-5xl grid grid-cols-3 gap-3 mb-3">
         {[
           { label: 'Net Worth',        value: netWorthCalculated, positive: netWorthCalculated >= 0 },
           { label: 'Monthly Income',   value: monthlyIncome,      positive: true },
@@ -148,17 +147,17 @@ export function DineroOverview({
         ].map(stat => (
           <div
             key={stat.label}
-            className="rounded-[24px] p-5 flex flex-col gap-1"
+            className="rounded-2xl p-4 flex flex-col gap-0.5"
             style={{ backgroundColor: C.dark }}
           >
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: C.muted }}>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: C.muted }}>
               {stat.label}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 mt-1">
               {stat.positive
-                ? <ArrowUpRight size={16} style={{ color: C.green }} />
-                : <ArrowDownRight size={16} style={{ color: C.lime }} />}
-              <span className="text-xl font-bold tabular-nums" style={{ color: C.white }}>
+                ? <ArrowUpRight size={15} style={{ color: C.green }} />
+                : <ArrowDownRight size={15} style={{ color: C.lime }} />}
+              <span className="text-lg font-bold tabular-nums" style={{ color: C.white }}>
                 ${Math.abs(stat.value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
@@ -166,12 +165,12 @@ export function DineroOverview({
         ))}
       </div>
 
-      <div className="w-full max-w-4xl flex flex-col gap-4">
+      <div className="w-full max-w-5xl flex flex-col gap-3">
 
         {/* CASHFLOW CHART */}
-        <div className="w-full rounded-[32px] p-6 shadow-xl flex flex-col" style={{ backgroundColor: C.dark }}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold" style={{ color: C.white }}>Cashflow</h2>
+        <div className="w-full rounded-2xl p-5 shadow-lg flex flex-col" style={{ backgroundColor: C.dark }}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-base font-bold" style={{ color: C.white }}>Cashflow</h2>
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(Number(e.target.value))}
@@ -184,17 +183,17 @@ export function DineroOverview({
             </select>
           </div>
 
-          <div className="flex justify-center space-x-6 mb-6 text-sm">
+          <div className="flex justify-center space-x-5 mb-4 text-xs">
             {[{ label: 'Income', color: C.green }, { label: 'Expense', color: C.lime }].map(l => (
-              <div key={l.label} className="flex items-center space-x-2">
-                <span className="w-4 h-4 rounded inline-block" style={{ backgroundColor: l.color }} />
+              <div key={l.label} className="flex items-center space-x-1.5">
+                <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: l.color }} />
                 <span style={{ color: C.white }}>{l.label}</span>
               </div>
             ))}
           </div>
 
           {hasTransactions ? (
-            <div className="h-[220px] w-full">
+            <div className="h-[190px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barChartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={2}>
                   <Tooltip
@@ -219,17 +218,17 @@ export function DineroOverview({
         </div>
 
         {/* BOTTOM GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-6">
 
           {/* SPENDING BREAKDOWN */}
-          <div className="rounded-[32px] p-6 shadow-xl flex flex-col" style={{ backgroundColor: C.dark }}>
-            <h2 className="text-lg font-semibold mb-6" style={{ color: C.white }}>
+          <div className="rounded-2xl p-5 shadow-lg flex flex-col" style={{ backgroundColor: C.dark }}>
+            <h2 className="text-base font-bold mb-4" style={{ color: C.white }}>
               Spending Breakdown
             </h2>
 
             {hasMonthlyExpenses ? (
               <>
-                <div className="relative w-full h-[200px] flex items-center justify-center mb-6">
+                <div className="relative w-full h-[180px] flex items-center justify-center mb-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -261,7 +260,7 @@ export function DineroOverview({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-4 mt-auto">
+                <div className="flex flex-col gap-2.5 mt-auto">
                   {categoryData.slice(0, 5).map((cat, idx) => {
                     const Icon = CATEGORY_ICONS[cat.name] ?? Wallet;
                     const bgColors = [C.mid, C.mid, C.mid, C.lime, C.white];
@@ -296,9 +295,9 @@ export function DineroOverview({
           </div>
 
           {/* RECENT TRANSACTIONS */}
-          <div className="rounded-[32px] p-6 shadow-xl flex flex-col overflow-hidden" style={{ backgroundColor: C.dark }}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold" style={{ color: C.white }}>Recent Transactions</h2>
+          <div className="rounded-2xl p-5 shadow-lg flex flex-col overflow-hidden" style={{ backgroundColor: C.dark }}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-bold" style={{ color: C.white }}>Recent Transactions</h2>
               {setActiveTab && (
                 <button
                   onClick={() => setActiveTab('transactions')}
@@ -311,7 +310,7 @@ export function DineroOverview({
             </div>
 
             {recentTransactions.length > 0 ? (
-              <div className="flex flex-col gap-5 overflow-y-auto pr-2">
+              <div className="flex flex-col gap-3 overflow-y-auto pr-1">
                 {recentTransactions.map(tx => {
                   const isIncome = tx.type === 'income';
                   const Icon = CATEGORY_ICONS[tx.category] ?? Wallet;

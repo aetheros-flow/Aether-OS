@@ -5,7 +5,6 @@ import { Card, Badge, Dropdown } from '../ui/AetherUI';
 interface DineroTransactionsProps {
   accounts: any[];
   transactions: any[];
-  theme: any;
   setEditTransaction: (t: any) => void;
   setIsEditModalOpen: (val: boolean) => void;
   setIsTransactionModalOpen: (val: boolean) => void;
@@ -37,7 +36,7 @@ export function DineroTransactions({
   }, [transactions, searchTerm, filterAccount, filterType]);
 
   return (
-    <div className="w-full max-w-7xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="w-full max-w-7xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -119,9 +118,10 @@ export function DineroTransactions({
           </Card>
         </div>
 
-        {/* Transactions Table */}
+        {/* Transactions List */}
         <Card className="flex-1 p-0 overflow-hidden w-full">
-          <div className="w-full overflow-x-auto custom-scrollbar">
+          {/* Desktop table */}
+          <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-500 font-bold">
@@ -135,8 +135,8 @@ export function DineroTransactions({
               </thead>
               <tbody>
                 {filteredTransactions.map((t, index) => (
-                  <tr 
-                    key={t.id} 
+                  <tr
+                    key={t.id}
                     onClick={() => { setEditTransaction(t); setIsEditModalOpen(true); }}
                     className={`group cursor-pointer hover:bg-gray-50 transition-colors ${index !== filteredTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}
                   >
@@ -166,15 +166,45 @@ export function DineroTransactions({
                 ))}
               </tbody>
             </table>
-            
-            {filteredTransactions.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                <Search size={32} className="text-gray-300 mb-3" />
-                <p className="text-sm font-bold text-gray-800">No transactions found</p>
-                <p className="text-xs">Adjust your filters or add a new record.</p>
-              </div>
-            )}
           </div>
+
+          {/* Mobile card list */}
+          <div className="md:hidden flex flex-col divide-y divide-gray-50">
+            {filteredTransactions.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => { setEditTransaction(t); setIsEditModalOpen(true); }}
+                className="flex items-center gap-3 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors w-full"
+              >
+                {/* Category icon dot */}
+                <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-base ${t.type === 'income' ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                  <span>{t.category?.charAt(0)?.toUpperCase() || '?'}</span>
+                </div>
+                {/* Middle: description + meta */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900 truncate">{t.description}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {t.Finanzas_accounts?.name || 'Unknown'} · {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </p>
+                </div>
+                {/* Right: amount + badge */}
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className={`text-sm font-bold tabular-nums ${t.type === 'income' ? 'text-emerald-600' : 'text-gray-900'}`}>
+                    {t.type === 'income' ? '+' : '-'}${Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                  <Badge variant={t.type === 'income' ? 'green' : 'gray'}>{t.category}</Badge>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {filteredTransactions.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+              <Search size={32} className="text-gray-300 mb-3" />
+              <p className="text-sm font-bold text-gray-800">No transactions found</p>
+              <p className="text-xs">Adjust your filters or add a new record.</p>
+            </div>
+          )}
           <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center text-xs font-bold text-gray-500">
             <span>Showing {filteredTransactions.length} records</span>
           </div>

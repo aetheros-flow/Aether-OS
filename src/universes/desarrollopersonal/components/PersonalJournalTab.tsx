@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Brain, Send, Smile, Zap, Meh, Frown, Quote, Trash2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
-import { toast } from 'sonner';
-import { useAuth } from '../../../core/contexts/AuthContext';
 import type { JournalEntry } from '../types';
 
 const MOODS = [
@@ -13,70 +11,55 @@ const MOODS = [
 ] as const;
 
 export default function PersonalJournalTab() {
-  const { user } = useAuth();
   const [entries,      setEntries]      = useState<JournalEntry[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [newEntry,     setNewEntry]     = useState('');
   const [selectedMood, setSelectedMood] = useState<string>('focused');
   const [isSaving,     setIsSaving]     = useState(false);
+  const [error,        setError]        = useState<string | null>(null);
 
   const fetchEntries = async () => {
-    if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('Desarrollo_Journal')
       .select('*')
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
-      
-    if (error) {
-      toast.error('Failed to load journal entries');
-    } else if (data) {
-      setEntries(data);
-    }
+    if (data) setEntries(data);
     setLoading(false);
   };
 
-  useEffect(() => { 
-    if (user) {
-      fetchEntries(); 
-    }
-  }, [user]);
+  useEffect(() => { fetchEntries(); }, []);
 
   const handleSaveEntry = async () => {
     if (!newEntry.trim()) return;
-    if (!user) {
-      toast.error('User not authenticated');
-      return;
-    }
     setIsSaving(true);
+    setError(null);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No autenticado');
       const { error: err } = await supabase.from('Desarrollo_Journal').insert([{
         user_id: user.id,
         content: newEntry,
         mood:    selectedMood,
       }]);
       if (err) throw err;
-      
-      toast.success('Journal entry saved successfully');
       setNewEntry('');
       await fetchEntries();
-    } catch (e: any) {
-      toast.error(e.message || 'Error saving entry');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error al guardar entrada');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteEntry = async (id: string) => {
-    if (!window.confirm('Delete this entry?')) return;
+    if (!window.confirm('¿Eliminar esta entrada?')) return;
     try {
       const { error: err } = await supabase.from('Desarrollo_Journal').delete().eq('id', id);
       if (err) throw err;
-      toast.success('Entry deleted');
       await fetchEntries();
-    } catch (e: any) {
-      toast.error(e.message || 'Error deleting entry');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error al eliminar entrada');
     }
   };
 
@@ -90,6 +73,14 @@ export default function PersonalJournalTab() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+      {/* ERROR BANNER */}
+      {error && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold px-5 py-3 rounded-2xl">
+          {error}
+        </div>
+      )}
+
       {/* WRITER */}
       <div className="bg-white/70 backdrop-blur-3xl rounded-[32px] p-8 border border-white shadow-xl">
         <div className="flex items-center gap-3 mb-6">
@@ -101,19 +92,19 @@ export default function PersonalJournalTab() {
           value={newEntry}
           onChange={(e) => setNewEntry(e.target.value)}
           placeholder="What concepts or reflections emerged today?"
-          className="w-full h-40 bg-black/5 border-none rounded-3xl p-6 text-sm font-medium focus:ring-2 focus:ring-purple-500/20 transition-all resize-none mb-6"
+          className="w-full h-40 bg-white/60 backdrop-blur-sm border border-purple-100 rounded-[20px] p-6 text-sm font-medium focus:outline-none focus:border-purple-300 focus:ring-2 focus:ring-purple-200/50 transition-all resize-none mb-6"
         />
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex bg-black/5 p-1.5 rounded-2xl gap-2">
+          <div className="flex bg-purple-50/80 p-1.5 rounded-2xl gap-3">
             {MOODS.map((m) => (
               <button
                 key={m.id}
                 onClick={() => setSelectedMood(m.id)}
-                className={`p-3 rounded-xl transition-all ${selectedMood === m.id ? 'bg-white shadow-md scale-110' : 'opacity-40 hover:opacity-100'}`}
+                className={`p-3.5 rounded-xl transition-all ${selectedMood === m.id ? 'bg-white shadow-md scale-110 ring-2 ring-purple-300/60' : 'opacity-40 hover:opacity-80'}`}
                 aria-label={m.id}
               >
-                <m.icon size={18} className={m.color} />
+                <m.icon size={20} className={m.color} />
               </button>
             ))}
           </div>
@@ -149,7 +140,7 @@ export default function PersonalJournalTab() {
                 <button
                   onClick={() => handleDeleteEntry(entry.id)}
                   className="opacity-0 group-hover:opacity-100 p-2 text-rose-400 hover:bg-rose-50 rounded-lg transition-all"
-                  aria-label="Delete entry"
+                  aria-label="Eliminar entrada"
                 >
                   <Trash2 size={14} />
                 </button>

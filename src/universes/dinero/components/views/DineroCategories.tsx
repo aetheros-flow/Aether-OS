@@ -9,7 +9,6 @@ interface Category {
 }
 
 interface DineroCategoriesProps {
-  theme: any;
   transactions: any[];
   categories: Category[]; // Ahora recibimos las categorías reales de la BD
   setIsCategoryModalOpen: (val: boolean) => void; // Disparador del nuevo modal
@@ -57,7 +56,7 @@ export function DineroCategories({ transactions, categories, setIsCategoryModalO
   }, [transactions, selectedCategory]);
 
   return (
-    <div className="w-full max-w-7xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ fontFamily: "'Nunito', sans-serif" }}>
+    <div className="w-full max-w-7xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

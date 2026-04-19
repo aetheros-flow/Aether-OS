@@ -11,31 +11,48 @@ export default defineConfig({
       registerType: 'autoUpdate',
       devOptions: {
         enabled: true,
-        type: 'module'
       },
-      includeAssets: ['icon-192x192.png', 'icon-512x512.png'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png', 'pwa-64x64.png', 'pwa-192x192.png', 'pwa-512x512.png', 'maskable-icon-512x512.png'],
       manifest: {
         name: 'Aether OS',
         short_name: 'Aether',
-        description: 'Premium Life & Wealth Management',
-        theme_color: '#F4F9F2',
-        background_color: '#F4F9F2',
+        description: 'Your premium life operating system',
+        theme_color: '#1a0533',
+        background_color: '#FAF9F6',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
+        orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
+        categories: ['productivity', 'lifestyle'],
         icons: [
           {
-            src: '/icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
+            src: 'pwa-64x64.png',
+            sizes: '64x64',
+            type: 'image/png',
           },
           {
-            src: '/icon-512x512.png',
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 4000000 
+        maximumFileSizeToCacheInBytes: 4000000,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       }
     })
   ],
