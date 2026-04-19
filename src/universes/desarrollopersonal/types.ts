@@ -36,3 +36,32 @@ export type NewSkillInput = z.infer<typeof NewSkillInputSchema>;
 
 export const NewIkigaiInputSchema = IkigaiLogSchema.omit({ id: true, created_at: true, log_date: true });
 export type NewIkigaiInput = z.infer<typeof NewIkigaiInputSchema>;
+
+// ─── Astrology & Numerology ───────────────────────────────────────────────────
+
+export interface UserBirthData {
+  id: string;
+  user_id: string;
+  birth_date: string;
+  birth_time: string | null;
+  birth_city: string | null;
+  birth_latitude: number | null;
+  birth_longitude: number | null;
+  birth_timezone: string | null;
+  full_name: string;
+  created_at: string;
+}
+
+export interface AetherScore {
+  overall: number;
+  selfReported: number;
+  discrepancy: number;
+  factors: {
+    habitConsistency: number;
+    financialStress: number;
+    journalSentiment: number;
+    selfPerception: number;
+  };
+  insight: string;
+  calculatedAt: string;
+}

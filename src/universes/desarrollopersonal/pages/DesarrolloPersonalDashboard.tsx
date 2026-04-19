@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase'; // Asegurate de que esta ruta sea la correcta en tu proyecto
-import { calculateNatalChart, NatalChartData } from '../lib/astrologyEngine';
+import { calculateNatalChart } from '../lib/astrologyEngine';
+import type { NatalChartData } from '../lib/astrologyEngine';
 import { HabitsMiniApp } from '../components/ui/HabitsMiniApp';
 import { HabitsManager } from '../components/ui/HabitsManager';
 import { calculateLifePathNumber, calculateExpressionNumber, NUMBER_MEANINGS } from '../lib/numerologyEngine';
