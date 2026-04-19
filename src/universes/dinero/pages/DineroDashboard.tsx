@@ -4,8 +4,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
-import { parseFile, exportRecords } from '../lib/dinero-io';
-import { aiFinancialService } from '../../../lib/ai-service'; // <--- IA IMPORT
+import { parseFile, exportRecords, autoCategorize } from '../lib/dinero-io';
 
 import { DineroOverview } from '../components/views/DineroOverview';
 import { DineroTransactions } from '../components/views/DineroTransactions';
@@ -264,7 +263,9 @@ export default function DineroDashboard() {
     finally { setIsSubmitting(false); }
   };
 
-  const handleDeleteTransaction = async (id: string) => {
+  const handleDeleteTransaction = async () => {
+    const id = editTransaction?.id;
+    if (!id) return;
     if (!window.confirm("Are you sure you want to delete this transaction? This action cannot be undone.")) return;
     setIsSubmitting(true);
     try {
@@ -289,18 +290,18 @@ export default function DineroDashboard() {
       const rawRecords = await parseFile(csvFile);
       if (rawRecords.length === 0) throw new Error("No readable transactions found in file.");
 
-      // 2. Pasamos los datos crudos por el "Cerebro" de IA
-      const enrichedRecords = await aiFinancialService.categorizeWithAI(rawRecords, categories);
+      // 2. Auto-categorize using rule-based engine
+      const enrichedRecords = autoCategorize(rawRecords, categories);
 
-      // 3. Preparamos el formato final para la base de datos usando la categoría sugerida
-      const recordsToInsert = enrichedRecords.map(r => ({
+      // 3. Preparamos el formato final para la base de datos
+      const recordsToInsert = enrichedRecords.map((r: Record<string, unknown>) => ({
         user_id: user.id,
         account_id: importAccountId,
         amount: r.amount,
         type: r.type,
         date: r.date,
         description: r.description,
-        category: r.suggestedCategory // <--- Magia de la IA
+        category: r.category,
       }));
 
       // 4. Guardamos en Supabase
