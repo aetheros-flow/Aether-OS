@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ArrowLeft, LayoutDashboard, Dumbbell, Apple, Stethoscope,
-  Plus, Activity, Flame, Droplets, Moon, Trophy, Loader2, Menu, X,
+  Plus, Activity, Flame, Droplets, Moon, Trophy, Loader2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -10,6 +10,7 @@ import { useSaludData } from '../hooks/useSaludData';
 import type { NewMetricInput, NewWorkoutInput } from '../types';
 import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
+import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
 
 type TabType = 'dashboard' | 'entrenamientos' | 'nutricion' | 'medico';
 
@@ -34,7 +35,6 @@ export default function SaludDashboard() {
   const { metrics, workouts, loading, createMetric, createWorkout } = useSaludData();
 
   const [activeTab,          setActiveTab]          = useState<TabType>('dashboard');
-  const [isMobileMenuOpen,   setIsMobileMenuOpen]   = useState(false);
   const [isMetricModalOpen,  setIsMetricModalOpen]  = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [isSubmitting,       setIsSubmitting]       = useState(false);
@@ -88,7 +88,7 @@ export default function SaludDashboard() {
     }
   };
 
-  const handleTabChange = (tab: TabType) => { setActiveTab(tab); setIsMobileMenuOpen(false); };
+  const handleTabChange = (tab: TabType) => { setActiveTab(tab); };
 
   // ── Loading ───────────────────────────────────────
   if (loading && metrics.length === 0 && workouts.length === 0) {
@@ -103,23 +103,18 @@ export default function SaludDashboard() {
     <div className="min-h-screen flex flex-col md:flex-row font-sans selection:bg-white selection:text-black" style={{ backgroundColor: THEME.bg, color: THEME.textMain }}>
 
       {/* ── SIDEBAR ─────────────────────────────────── */}
-      <nav className="w-full md:w-64 flex flex-col z-30 shrink-0 border-r border-white/10" style={{ backgroundColor: THEME.bg }}>
-        <div className="flex items-center justify-between p-4 md:p-6 md:mb-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-black/10 transition-colors text-white" aria-label="Volver">
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-              <h1 className="aether-title text-white">Salud Física</h1>
-              <p className="aether-eyebrow" style={{ color: 'rgba(255,255,255,0.7)' }}>Cuerpo & Energía</p>
-            </div>
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(v => !v)} className="md:hidden p-2 rounded-xl hover:bg-black/10 transition-colors text-white/70" aria-label="Menú">
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-white/10" style={{ backgroundColor: THEME.bg }}>
+        <div className="flex items-center gap-4 p-6 mb-4">
+          <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-black/10 transition-colors text-white" aria-label="Volver">
+            <ArrowLeft size={20} />
           </button>
+          <div>
+            <h1 className="aether-title text-white">Salud Física</h1>
+            <p className="aether-eyebrow" style={{ color: 'rgba(255,255,255,0.7)' }}>Cuerpo & Energía</p>
+          </div>
         </div>
 
-        <div className={`flex-col gap-2 md:gap-4 px-4 pb-4 md:px-6 md:pb-6 md:flex ${isMobileMenuOpen ? 'flex animate-in fade-in slide-in-from-top-2 duration-300' : 'hidden'}`}>
+        <div className="flex flex-col gap-4 px-6 pb-6">
           <UniverseNavItem icon={LayoutDashboard} label="Resumen"         isActive={activeTab === 'dashboard'}      onClick={() => handleTabChange('dashboard')} />
           <UniverseNavItem icon={Dumbbell}        label="Entrenamientos"  isActive={activeTab === 'entrenamientos'} onClick={() => handleTabChange('entrenamientos')} />
           <UniverseNavItem icon={Apple}           label="Nutrición"       isActive={activeTab === 'nutricion'}      onClick={() => handleTabChange('nutricion')} />
@@ -128,7 +123,7 @@ export default function SaludDashboard() {
       </nav>
 
       {/* ── ÁREA PRINCIPAL ──────────────────────────── */}
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pb-32 md:pb-10">
+      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pb-20 md:pb-0">
 
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-12">
           <div>
@@ -316,6 +311,19 @@ export default function SaludDashboard() {
           </button>
         </form>
       </AetherModal>
+
+      <UniverseBottomNav
+        tabs={[
+          { id: 'dashboard',      label: 'Resumen',   icon: LayoutDashboard },
+          { id: 'entrenamientos', label: 'Entrenos',  icon: Dumbbell        },
+          { id: 'nutricion',      label: 'Nutrición', icon: Apple           },
+          { id: 'medico',         label: 'Médicos',   icon: Stethoscope     },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(tab) => handleTabChange(tab as TabType)}
+        activeColor="#FFFFFF"
+        bgColor="#C05A00"
+      />
     </div>
   );
 }

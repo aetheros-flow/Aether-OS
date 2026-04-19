@@ -1,12 +1,162 @@
 /**
  * Astrology Engine — Aether OS
  *
- * Provides birth chart calculations and daily transit data.
- * Uses external API (AstrologyAPI or Swiss Ephemeris via Edge Function).
- *
- * For now, defines the data structures and a mock implementation
- * that will be replaced by real API calls.
+ * Client-side astronomical calculations using standard formulae
+ * (Jean Meeus, "Astronomical Algorithms", 2nd edition).
+ * Accuracy: Sun ±1′, Moon ±1°, Ascendant ±1°.
  */
+
+// ─── Natal Chart ─────────────────────────────────────────────────────────────
+
+export interface NatalChartPoint {
+  sign: string;
+  degree: number;   // degrees within the sign (0–29.99)
+  longitude: number; // absolute ecliptic longitude (0–359.99)
+}
+
+export interface NatalChartData {
+  sun: NatalChartPoint;
+  moon: NatalChartPoint;
+  ascendant: NatalChartPoint;
+  mercury: NatalChartPoint;
+  venus: NatalChartPoint;
+  mars: NatalChartPoint;
+}
+
+const ZODIAC_SIGNS = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+];
+
+function normalizeDeg(d: number): number {
+  return ((d % 360) + 360) % 360;
+}
+
+function toRad(d: number): number { return (d * Math.PI) / 180; }
+function toDeg(r: number): number { return (r * 180) / Math.PI; }
+
+function pointFromLon(lon: number): NatalChartPoint {
+  const n = normalizeDeg(lon);
+  const idx = Math.floor(n / 30);
+  return { sign: ZODIAC_SIGNS[idx], degree: n % 30, longitude: n };
+}
+
+/** Julian Day Number (UT) */
+function julianDay(
+  year: number, month: number, day: number,
+  hour: number, minute: number, utcOffset: number,
+): number {
+  const ut = hour - utcOffset + minute / 60;
+  let y = year;
+  let m = month;
+  if (month <= 2) { y--; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return (
+    Math.floor(365.25 * (y + 4716)) +
+    Math.floor(30.6001 * (m + 1)) +
+    day + ut / 24 + B - 1524.5
+  );
+}
+
+/** Solar ecliptic longitude (accuracy ~1′) */
+function solarLongitude(jd: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+  let M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+  M = toRad(M);
+  const C =
+    (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M) +
+    (0.019993 - 0.000101 * T) * Math.sin(2 * M) +
+    0.000289 * Math.sin(3 * M);
+  return L0 + C;
+}
+
+/** Lunar ecliptic longitude (accuracy ~1°) */
+function moonLongitude(jd: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const Lm = 218.3165 + 481267.8813 * T;
+  let M  = toRad(357.5291 + 35999.0503 * T);
+  let Mm = toRad(134.9634 + 477198.8676 * T);
+  let F  = toRad(93.2721  + 483202.0175 * T);
+  let D  = toRad(297.8502 + 445267.1115 * T);
+  return (
+    Lm +
+    6.289 * Math.sin(Mm) +
+    1.274 * Math.sin(2 * D - Mm) +
+    0.658 * Math.sin(2 * D) +
+    0.214 * Math.sin(2 * Mm) -
+    0.186 * Math.sin(M) -
+    0.114 * Math.sin(2 * F)
+  );
+}
+
+/** Mercury ecliptic longitude (simplified) */
+function mercuryLongitude(jd: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const L = 252.2509 + 149472.6746 * T;
+  const M = toRad(174.7948 + 149472.515 * T);
+  return L + 23.4400 * Math.sin(M) + 2.9818 * Math.sin(2 * M);
+}
+
+/** Venus ecliptic longitude (simplified) */
+function venusLongitude(jd: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const L = 181.9798 + 58517.8156 * T;
+  const M = toRad(50.4161 + 58517.8039 * T);
+  return L + 0.7758 * Math.sin(M) + 0.0033 * Math.sin(2 * M);
+}
+
+/** Mars ecliptic longitude (simplified) */
+function marsLongitude(jd: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const L = 355.4330 + 19140.2993 * T;
+  const M = toRad(19.3730 + 19139.8584 * T);
+  return L + 10.6912 * Math.sin(M) + 0.6228 * Math.sin(2 * M);
+}
+
+/** Ascendant / Rising sign */
+function ascendantLongitude(jd: number, latitude: number, longitude: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  let GMST = normalizeDeg(
+    280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T,
+  );
+  const LST = GMST + longitude;
+  const eps = toRad(23.4393 - 0.013 * T);
+  const RAMC = toRad(LST);
+  const lat = toRad(latitude);
+  const y = -Math.cos(RAMC);
+  const x = Math.sin(RAMC) * Math.cos(eps) + Math.tan(lat) * Math.sin(eps);
+  return normalizeDeg(toDeg(Math.atan2(y, x)));
+}
+
+/**
+ * Calculate a full natal chart.
+ * @param day        Day of birth (1–31)
+ * @param month      Month of birth (1–12)
+ * @param year       Year of birth (e.g. 1983)
+ * @param hour       Birth hour in local time (0–23)
+ * @param minute     Birth minute (0–59)
+ * @param latitude   Birth city latitude (decimal degrees, south = negative)
+ * @param longitude  Birth city longitude (decimal degrees, west = negative)
+ * @param utcOffset  UTC offset in hours at birth (e.g. -3 for ART)
+ */
+export async function calculateNatalChart(
+  day: number, month: number, year: number,
+  hour: number, minute: number,
+  latitude: number, longitude: number,
+  utcOffset: number,
+): Promise<NatalChartData> {
+  const jd = julianDay(year, month, day, hour, minute, utcOffset);
+  return {
+    sun:       pointFromLon(solarLongitude(jd)),
+    moon:      pointFromLon(moonLongitude(jd)),
+    ascendant: pointFromLon(ascendantLongitude(jd, latitude, longitude)),
+    mercury:   pointFromLon(mercuryLongitude(jd)),
+    venus:     pointFromLon(venusLongitude(jd)),
+    mars:      pointFromLon(marsLongitude(jd)),
+  };
+}
 
 export interface BirthData {
   date: string;       // ISO date: "1983-05-15"

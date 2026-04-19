@@ -98,3 +98,7 @@ export function getNumerologyProfile(birthDate: string, fullName: string): Numer
     personalDayNumber: getPersonalDayNumber(birthDate),
   };
 }
+
+// ─── Aliases used by DesarrolloPersonalDashboard ─────────────────────────────
+export const calculateLifePathNumber = getLifePathNumber;
+export const calculateExpressionNumber = getExpressionNumber;
