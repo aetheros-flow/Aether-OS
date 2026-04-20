@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 
 interface UniverseNavItemProps {
@@ -5,7 +6,12 @@ interface UniverseNavItemProps {
   label: string;
   isActive: boolean;
   onClick: () => void;
-  /** true cuando el fondo del universo es claro (Ocio, Des. Prof.) */
+  /**
+   * Color de acento del universo (HEX). Si se pasa, se usa para iluminar
+   * el item activo (icono, label, glow lateral). Si no, fallback a blanco.
+   */
+  accent?: string;
+  /** Compatibilidad con la API anterior. Ignorado en el sistema Neo-Dark. */
   lightBg?: boolean;
 }
 
@@ -14,48 +20,51 @@ export default function UniverseNavItem({
   label,
   isActive,
   onClick,
-  lightBg = false,
+  accent,
 }: UniverseNavItemProps) {
+  const accentColor = accent ?? '#FFFFFF';
+
   return (
-    <button
+    <motion.button
       onClick={onClick}
-      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200 active:scale-[0.97] text-left"
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.96, filter: 'brightness(1.1)' }}
+      transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+      className="relative flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-left overflow-hidden group"
       style={{
         background: isActive
-          ? (lightBg ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.16)')
+          ? 'rgba(255,255,255,0.06)'
           : 'transparent',
-        boxShadow: isActive
-          ? `inset 3px 0 0 ${lightBg ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.9)'}`
-          : 'none',
-        color: isActive
-          ? (lightBg ? '#1A1A2E' : '#FFFFFF')
-          : (lightBg ? 'rgba(0,0,0,0.48)' : 'rgba(255,255,255,0.46)'),
-      }}
-      onMouseEnter={e => {
-        if (!isActive) {
-          (e.currentTarget as HTMLButtonElement).style.background = lightBg
-            ? 'rgba(0,0,0,0.07)'
-            : 'rgba(255,255,255,0.08)';
-          (e.currentTarget as HTMLButtonElement).style.color = lightBg
-            ? 'rgba(0,0,0,0.75)'
-            : 'rgba(255,255,255,0.75)';
-        }
-      }}
-      onMouseLeave={e => {
-        if (!isActive) {
-          (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-          (e.currentTarget as HTMLButtonElement).style.color = lightBg
-            ? 'rgba(0,0,0,0.48)'
-            : 'rgba(255,255,255,0.46)';
-        }
+        border: isActive
+          ? '1px solid rgba(255,255,255,0.10)'
+          : '1px solid transparent',
+        color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
       }}
     >
+      {/* Glow lateral del color del universo cuando está activo */}
+      {isActive && (
+        <span
+          aria-hidden
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-full"
+          style={{
+            background: accentColor,
+            boxShadow: `0 0 12px ${accentColor}, 0 0 4px ${accentColor}`,
+          }}
+        />
+      )}
+
       <Icon
         size={18}
         strokeWidth={isActive ? 2.5 : 2}
-        style={{ flexShrink: 0 }}
+        style={{
+          flexShrink: 0,
+          color: isActive ? accentColor : 'rgba(255,255,255,0.55)',
+          filter: isActive ? `drop-shadow(0 0 6px ${accentColor}80)` : 'none',
+          transition: 'color 200ms ease, filter 200ms ease',
+        }}
       />
       <span
+        className="font-sans"
         style={{
           fontSize: 13,
           fontWeight: isActive ? 700 : 500,
@@ -64,6 +73,6 @@ export default function UniverseNavItem({
       >
         {label}
       </span>
-    </button>
+    </motion.button>
   );
 }

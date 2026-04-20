@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Wallet, ArrowLeft, Loader2, Upload, Target, Zap, Trophy, Plus, LayoutDashboard, Receipt, Tag, Bitcoin, CalendarClock, PieChart
+  Wallet, ArrowLeft, Loader2, Upload, Target, Trophy, Plus, LayoutDashboard, Receipt, Tag, Bitcoin, CalendarClock, PieChart, Sparkles, Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, type Variants } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { parseFile, exportRecords, autoCategorize } from '../lib/dinero-io';
 
@@ -21,16 +22,26 @@ interface Project { id: string; name: string; status: string; allocated_budget: 
 interface CryptoRadarTrade { id: string; user_id: string; pair: string; direction: string; entry_price: number; exit_price: number | null; position_size: number; leverage: number; stop_loss: number | null; take_profit: number | null; commissions: number; notes: string; status: string; pnl_neto: number | null; trade_date: string; }
 interface Budget { id: string; category_name: string; limit_amount: number; }
 
+const ACCENT = '#05DF72';
+const ACCENT_SOFT = '#86EFAC';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+};
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+};
+const tapPhysics = { scale: 0.96, filter: 'brightness(1.1)' };
+const hoverPhysics = { scale: 1.01 };
+
 export default function DineroDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [loading, setLoading] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState<number>(0);
-  const [isManageDropdownOpen, setIsManageDropdownOpen] = useState(false);
 
-  // ==========================================
-  // DATA STATES
-  // ==========================================
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [_investments, setInvestments] = useState<Investment[]>([]);
   const [_projects, setProjects] = useState<Project[]>([]);
@@ -38,17 +49,14 @@ export default function DineroDashboard() {
   const [cryptoTrades, setCryptoTrades] = useState<CryptoRadarTrade[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]); // <--- SUSCRIPCIONES
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
-  // ==========================================
-  // MODALES & FORMULARIOS
-  // ==========================================
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCryptoModalOpen, setIsCryptoModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false); // <--- MODAL SUSCRIPCIONES
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -60,7 +68,7 @@ export default function DineroDashboard() {
   const [newBudget, setNewBudget] = useState({ category_name: '', limit_amount: '' });
   const [newSubscription, setNewSubscription] = useState({
     name: '', amount: '', frequency: 'Monthly', next_billing_date: new Date().toISOString().split('T')[0]
-  }); // <--- FORMULARIO SUSCRIPCIONES
+  });
   const [customCategoryInput, setCustomCategoryInput] = useState('');
   const [editTransaction, setEditTransaction] = useState<any>(null);
 
@@ -72,13 +80,14 @@ export default function DineroDashboard() {
     entry_price: '', exit_price: '', position_size: '', leverage: '1', stop_loss: '', take_profit: '', commissions: '', notes: '', status: 'Open', pnl_neto: ''
   });
 
-  const MOBILE_TABS: { id: TabType; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard', label: 'Home', icon: <LayoutDashboard size={20} /> },
-    { id: 'transactions', label: 'Txns', icon: <Receipt size={20} /> },
-    { id: 'categories', label: 'Cats', icon: <Tag size={20} /> },
-    { id: 'calendar', label: 'Subs', icon: <CalendarClock size={20} /> },
-    { id: 'budget', label: 'Budget', icon: <PieChart size={20} /> },
-    { id: 'radar', label: 'Crypto', icon: <Bitcoin size={20} /> },
+  const TABS: { id: TabType; label: string; icon: React.ReactNode; mobileLabel: string }[] = [
+    { id: 'dashboard',    label: 'Dashboard',     mobileLabel: 'Home',   icon: <LayoutDashboard size={18} /> },
+    { id: 'transactions', label: 'Transactions',  mobileLabel: 'Txns',   icon: <Receipt size={18} /> },
+    { id: 'categories',   label: 'Categories',    mobileLabel: 'Cats',   icon: <Tag size={18} /> },
+    { id: 'calendar',     label: 'Subscriptions', mobileLabel: 'Subs',   icon: <CalendarClock size={18} /> },
+    { id: 'budget',       label: 'Budget',        mobileLabel: 'Budget', icon: <PieChart size={18} /> },
+    { id: 'radar',        label: 'Radar Crypto',  mobileLabel: 'Crypto', icon: <Bitcoin size={18} /> },
+    { id: 'reports',      label: 'Reports',       mobileLabel: 'Reports',icon: <Trophy size={18} /> },
   ];
 
   const fetchData = async () => {
@@ -92,7 +101,7 @@ export default function DineroDashboard() {
         { data: trades },
         { data: cats },
         { data: bdgts },
-        { data: subs } // <--- FETCH SUSCRIPCIONES
+        { data: subs }
       ] = await Promise.all([
         supabase.from('Finanzas_accounts').select('*'),
         supabase.from('Finanzas_investments').select('*'),
@@ -101,7 +110,7 @@ export default function DineroDashboard() {
         supabase.from('Finanzas_crypto_radar').select('*').order('trade_date', { ascending: false }),
         supabase.from('Finanzas_categories').select('*'),
         supabase.from('Finanzas_budgets').select('*'),
-        supabase.from('Finanzas_subscriptions').select('*') // <--- FETCH SUSCRIPCIONES
+        supabase.from('Finanzas_subscriptions').select('*')
       ]);
 
       if (accs) {
@@ -116,7 +125,7 @@ export default function DineroDashboard() {
       if (trades) setCryptoTrades(trades);
       if (cats) setCategories(cats);
       if (bdgts) setBudgets(bdgts);
-      if (subs) setSubscriptions(subs); // <--- GUARDAMOS SUSCRIPCIONES
+      if (subs) setSubscriptions(subs);
 
     } catch (error) {
       console.error("Error cargando finanzas:", error);
@@ -144,10 +153,6 @@ export default function DineroDashboard() {
       return null;
     }
   };
-
-  // ==========================================
-  // HANDLERS DE CREACIÓN
-  // ==========================================
 
   const handleCreateSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,14 +291,11 @@ export default function DineroDashboard() {
       const user = await checkUser();
       if (!user) return;
 
-      // 1. Parseamos el archivo CSV localmente
       const rawRecords = await parseFile(csvFile);
       if (rawRecords.length === 0) throw new Error("No readable transactions found in file.");
 
-      // 2. Auto-categorize using rule-based engine
       const enrichedRecords = autoCategorize(rawRecords, categories);
 
-      // 3. Preparamos el formato final para la base de datos
       const recordsToInsert = enrichedRecords.map((r: Record<string, unknown>) => ({
         user_id: user.id,
         account_id: importAccountId,
@@ -304,7 +306,6 @@ export default function DineroDashboard() {
         category: r.category,
       }));
 
-      // 4. Guardamos en Supabase
       const { error } = await supabase.from('Finanzas_transactions').insert(recordsToInsert);
       if (error) throw error;
 
@@ -344,9 +345,6 @@ export default function DineroDashboard() {
     finally { setIsSubmitting(false); }
   };
 
-  // ==========================================
-  // CÁLCULOS DINÁMICOS
-  // ==========================================
   const netWorthCalculated = accounts.reduce((acc, curr) => acc + Number(curr.balance), 0);
 
   const currentMonthTransactions = transactions.filter(t => {
@@ -361,124 +359,151 @@ export default function DineroDashboard() {
     return acc;
   }, {});
 
-  const totalExpensesCalculated = Object.values(expensesByCategoryMap).reduce((a, b) => a + b, 0);
-  const sortedCategoriesMap = Object.entries(expensesByCategoryMap).sort((a, b) => b[1] - a[1]);
-
-  // ==========================================
-  // PANTALLAS DE ONBOARDING / LOADING
-  // ==========================================
   if (loading && accounts.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F4F9F2]">
-        <Loader2 className="w-12 h-12 animate-spin text-gray-500" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+        <Loader2 className="w-12 h-12 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   if (onboardingStep === 1 || onboardingStep === 2) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-sans tracking-tight bg-gray-200">
+      <div className="relative min-h-screen flex items-center justify-center font-sans bg-[#0A0A0A] text-white overflow-hidden p-4">
+        <div className="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${ACCENT}22 0%, transparent 70%)`, filter: 'blur(120px)' }} />
         {onboardingStep === 1 && (
-          <div className="bg-white rounded-[20px] shadow-xl border border-gray-100 max-w-md w-full flex flex-col overflow-hidden text-[#111827]">
-            <div className="px-6 py-5 border-b border-gray-50 flex items-center gap-4">
-              <button onClick={() => navigate('/')} className="text-blue-600 hover:text-blue-800 transition-colors"><ArrowLeft size={20} /></button>
-              <h2 className="text-xl font-extrabold flex-1 text-center pr-6">Add Unlinked Account</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 rounded-3xl bg-zinc-900/80 backdrop-blur-xl border border-white/10 max-w-md w-full flex flex-col overflow-hidden"
+          >
+            <div className="px-6 py-5 border-b border-white/5 flex items-center gap-4">
+              <motion.button whileTap={tapPhysics} onClick={() => navigate('/')} className="p-2 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-colors"><ArrowLeft size={18} /></motion.button>
+              <h2 className="font-serif text-xl font-medium tracking-tight flex-1 text-center pr-6 text-white">Add Unlinked Account</h2>
             </div>
             <form onSubmit={handleCreateAccount} className="p-6 flex flex-col gap-5">
-              <p className="text-sm font-medium text-gray-600 leading-relaxed"><b className="font-bold text-gray-900">Let's go!</b> And don't worry—if you change your mind, you can link your account at any time.</p>
+              <p className="text-sm font-medium text-zinc-300 leading-relaxed"><b className="font-bold text-white">Let's go!</b> And don't worry—if you change your mind, you can link your account at any time.</p>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-900">Give it a nickname</label>
-                <input type="text" required placeholder="KiwiBank - Daily" value={newAccount.name} onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })} className="px-4 py-3 bg-white text-sm font-medium border border-gray-200 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 text-gray-900 rounded-xl hover:bg-gray-50/50" />
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Give it a nickname</label>
+                <input type="text" required placeholder="KiwiBank - Daily" value={newAccount.name} onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })} className="neo-input" />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-900">What type of account are you adding?</label>
-                <select value={newAccount.type} onChange={(e) => setNewAccount({ ...newAccount, type: e.target.value })} className="px-4 py-3 bg-white text-sm font-medium border border-gray-200 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 text-gray-900 rounded-xl hover:bg-gray-50/50 appearance-none">
-                  <option value="Checking">Checking</option>
-                  <option value="Savings">Savings</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Credit Card">Credit Card</option>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">What type of account are you adding?</label>
+                <select value={newAccount.type} onChange={(e) => setNewAccount({ ...newAccount, type: e.target.value })} className="neo-input appearance-none">
+                  <option value="Checking" className="bg-zinc-900">Checking</option>
+                  <option value="Savings" className="bg-zinc-900">Savings</option>
+                  <option value="Cash" className="bg-zinc-900">Cash</option>
+                  <option value="Credit Card" className="bg-zinc-900">Credit Card</option>
                 </select>
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-900">What is your current account balance?</label>
-                <input type="number" step="0.01" required placeholder="0" value={newAccount.balance} onChange={(e) => setNewAccount({ ...newAccount, balance: e.target.value })} className="px-4 py-3 bg-white text-sm font-medium border border-gray-200 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 text-gray-900 rounded-xl hover:bg-gray-50/50" />
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">What is your current account balance?</label>
+                <input type="number" step="0.01" required placeholder="0" value={newAccount.balance} onChange={(e) => setNewAccount({ ...newAccount, balance: e.target.value })} className="neo-input font-mono" />
               </div>
-              <div className="pt-4 border-t border-gray-50 mt-2">
-                <button type="submit" disabled={isSubmitting} className="w-full py-3.5 rounded-[12px] font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center bg-emerald-500 text-white">
+              <div className="pt-4 border-t border-white/5 mt-2">
+                <motion.button whileTap={tapPhysics} type="submit" disabled={isSubmitting} className="w-full py-3.5 rounded-full font-black text-sm text-black flex items-center justify-center" style={{ backgroundColor: ACCENT, boxShadow: `0 0 32px ${ACCENT}55` }}>
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Next'}
-                </button>
+                </motion.button>
               </div>
             </form>
-          </div>
+          </motion.div>
         )}
         {onboardingStep === 2 && (
-          <div className="bg-white rounded-[20px] shadow-xl border border-gray-100 max-w-md w-full flex flex-col overflow-hidden text-[#111827]">
-            <div className="px-6 py-4 bg-white border-b border-gray-50">
-              <h2 className="text-md font-extrabold">Add Checking, Savings, or Cash Account</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 rounded-3xl bg-zinc-900/80 backdrop-blur-xl border border-white/10 max-w-md w-full flex flex-col overflow-hidden"
+          >
+            <div className="px-6 py-4 border-b border-white/5">
+              <h2 className="font-serif text-base font-medium text-white">Add Checking, Savings, or Cash Account</h2>
             </div>
-            <div className="bg-emerald-50 h-40 w-full flex flex-col items-center justify-center relative overflow-hidden">
-              <Wallet size={64} className="text-emerald-500 drop-shadow-sm transform -rotate-12" />
+            <div className="h-40 w-full flex flex-col items-center justify-center relative overflow-hidden" style={{ background: `radial-gradient(circle at center, ${ACCENT}22, transparent 70%)` }}>
+              <Wallet size={64} style={{ color: ACCENT, filter: `drop-shadow(0 0 24px ${ACCENT}88)` }} className="transform -rotate-12" />
             </div>
             <div className="p-6 flex flex-col gap-4">
-              <h3 className="text-[15px] font-bold text-gray-900">It's all about assigning the money you have right now.</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">That means money that you have in a checking account, a savings account, and/or in cash.</p>
+              <h3 className="text-[15px] font-bold text-white">It's all about assigning the money you have right now.</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">That means money that you have in a checking account, a savings account, and/or in cash.</p>
               <div className="flex items-center justify-end gap-3 mt-4 pt-4">
-                <button onClick={() => setOnboardingStep(3)} className="px-6 py-2.5 rounded-[12px] text-sm font-bold bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">Skip</button>
-                <button onClick={() => setOnboardingStep(1)} className="px-5 py-2.5 rounded-[12px] text-sm font-bold shadow-sm hover:shadow-md transition-shadow bg-emerald-500 text-white">Add Another Account</button>
+                <motion.button whileTap={tapPhysics} onClick={() => setOnboardingStep(3)} className="px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-300 hover:bg-white/10 transition-colors">Skip</motion.button>
+                <motion.button whileTap={tapPhysics} onClick={() => setOnboardingStep(1)} className="px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest text-black" style={{ backgroundColor: ACCENT, boxShadow: `0 0 28px ${ACCENT}55` }}>Add Another</motion.button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     );
   }
 
-  // ==========================================
-  // RENDER PRINCIPAL (DASHBOARD TABS)
-  // ==========================================
   return (
-    <div className="min-h-screen flex flex-col font-sans relative bg-[#F4F9F2] text-gray-900">
+    <div className="relative min-h-screen flex flex-col font-sans bg-[#0A0A0A] text-white overflow-x-hidden">
+      <div className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-40" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)' }} />
+      <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, ${ACCENT_SOFT}22 0%, transparent 70%)`, filter: 'blur(100px)' }} />
 
-      {/* HEADER Y NAV */}
-      <nav className="w-full shrink-0 transition-all duration-300 flex flex-col z-30 shadow-md bg-[#0B2118]">
-        <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
-          <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center gap-2">
-              <span className="text-white font-extrabold text-lg tracking-tight flex items-center gap-1.5"><Zap size={20} className="text-emerald-400" /> Financial Hub</span>
-            </button>
-            <div className="hidden md:flex items-center gap-2 pt-1 overflow-x-auto whitespace-nowrap">
-              <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'dashboard' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Dashboard</button>
-              <button onClick={() => setActiveTab('transactions')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'transactions' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Transactions</button>
-              <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'categories' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Categories</button>
-              <button onClick={() => setActiveTab('radar')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'radar' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Radar Crypto</button>
-              <button onClick={() => setActiveTab('calendar')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'calendar' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Subscriptions</button>
-              <button onClick={() => setActiveTab('budget')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'budget' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Budget</button>
-              <button onClick={() => setActiveTab('reports')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'reports' ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}>Reports</button>
+      <nav className="relative z-30 w-full shrink-0 flex flex-col bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3.5">
+          <div className="flex items-center gap-6 min-w-0">
+            <motion.button whileTap={tapPhysics} onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center gap-2 shrink-0">
+              <span className="text-white font-serif text-lg tracking-tight flex items-center gap-2">
+                <Zap size={20} style={{ color: ACCENT, filter: `drop-shadow(0 0 8px ${ACCENT}88)` }} />
+                Financial Hub
+              </span>
+            </motion.button>
+            <div className="hidden md:flex items-center gap-1 overflow-x-auto whitespace-nowrap hide-scrollbar">
+              {TABS.map(t => {
+                const isActive = activeTab === t.id;
+                return (
+                  <motion.button
+                    key={t.id}
+                    whileTap={tapPhysics}
+                    onClick={() => setActiveTab(t.id)}
+                    className="px-4 py-2 text-xs font-black uppercase tracking-widest rounded-full transition-all"
+                    style={{
+                      color: isActive ? '#000' : 'rgba(255,255,255,0.55)',
+                      backgroundColor: isActive ? ACCENT : 'transparent',
+                      boxShadow: isActive ? `0 0 20px ${ACCENT}55` : 'none',
+                    }}
+                  >
+                    {t.label}
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
-          {/* Desktop-only action buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {activeTab === 'radar' && (<button onClick={() => setIsCryptoModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-[12px] font-bold text-sm bg-white text-gray-900 shadow-sm"><Plus size={16} /> Log Trade</button>)}
-            {(activeTab === 'dashboard' || activeTab === 'transactions') && (<button onClick={() => setIsCsvModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-[12px] font-bold text-sm bg-transparent text-white border border-white/20 shadow-sm"><Upload size={16} /> Quick Import</button>)}
+            {activeTab === 'radar' && (
+              <motion.button whileTap={tapPhysics} onClick={() => setIsCryptoModalOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest text-black" style={{ backgroundColor: ACCENT, boxShadow: `0 0 24px ${ACCENT}55` }}>
+                <Plus size={14} strokeWidth={3} /> Log Trade
+              </motion.button>
+            )}
+            {(activeTab === 'dashboard' || activeTab === 'transactions') && (
+              <motion.button whileTap={tapPhysics} onClick={() => setIsCsvModalOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-200 hover:bg-white/10 transition-colors">
+                <Upload size={14} /> Quick Import
+              </motion.button>
+            )}
           </div>
         </div>
 
-        {/* Sub-header: desktop only */}
-        <div className="hidden md:flex flex-row items-center justify-between px-6 py-3 gap-4 bg-[#021f15]">
-          <h1 className="text-base font-bold text-white tracking-tight">
-            {activeTab === 'dashboard' ? 'Overview' : activeTab === 'transactions' ? 'Transactions' : activeTab === 'categories' ? 'Categories' : activeTab === 'radar' ? 'Radar Crypto' : activeTab === 'budget' ? 'Budgets' : activeTab === 'reports' ? 'Reports' : 'Subscriptions'}
+        <div className="hidden md:flex flex-row items-center justify-between px-6 py-2.5 border-t border-white/5 bg-black/40">
+          <h1 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            {TABS.find(t => t.id === activeTab)?.label || 'Overview'}
           </h1>
+          <div className="flex items-center gap-2">
+            <Sparkles size={12} style={{ color: ACCENT }} />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: ACCENT_SOFT }}>
+              Net worth · ${netWorthCalculated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
       </nav>
 
-      {/* ÁREA CENTRAL */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar pb-32 md:pb-10 w-full flex justify-center">
-        {/* LÍNEA CORREGIDA ABAJO: Se agregan las props setNewTransaction e setIsTransactionModalOpen */}
+      <main className="relative z-10 flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar pb-32 md:pb-10 w-full flex justify-center">
         {activeTab === 'dashboard' && (
-          <DineroOverview 
-            transactions={transactions} 
-            netWorthCalculated={netWorthCalculated} 
-            setNewTransaction={setNewTransaction} 
+          <DineroOverview
+            transactions={transactions}
+            netWorthCalculated={netWorthCalculated}
+            setNewTransaction={setNewTransaction}
             setIsTransactionModalOpen={setIsTransactionModalOpen}
             setActiveTab={setActiveTab}
           />
@@ -487,25 +512,39 @@ export default function DineroDashboard() {
         {activeTab === 'categories' && <DineroCategories transactions={transactions} categories={categories} setIsCategoryModalOpen={setIsCategoryModalOpen} />}
         {activeTab === 'radar' && <DineroRadar cryptoTrades={cryptoTrades} />}
 
-        {/* PESTAÑA SUSCRIPCIONES (reemplaza Calendar) */}
         {activeTab === 'calendar' && (
           <DineroSubscriptions subscriptions={subscriptions} setIsSubscriptionModalOpen={setIsSubscriptionModalOpen} />
         )}
 
-        {/* === PESTAÑA: BUDGETS === */}
         {activeTab === 'budget' && (
-          <div className="flex flex-col gap-6 w-full max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white rounded-[20px] shadow-sm flex flex-col justify-center items-center py-10 border border-gray-200/80 relative overflow-hidden">
-              <Target size={40} className="text-emerald-500 mb-4" />
-              <h3 className="text-xl font-extrabold text-gray-900 mb-2">Smart Budgets</h3>
-              <p className="text-sm text-gray-500 max-w-md text-center font-medium">Model your monthly spending limits and avoid debt.</p>
-              <button
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-6 w-full max-w-7xl"
+          >
+            <motion.div
+              variants={itemVariants}
+              className="rounded-3xl bg-zinc-900/60 border border-white/5 backdrop-blur-xl flex flex-col justify-center items-center py-10 relative overflow-hidden"
+            >
+              <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}22, transparent 70%)`, filter: 'blur(80px)' }} />
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="p-4 rounded-2xl mb-4" style={{ backgroundColor: `${ACCENT}1F` }}>
+                  <Target size={32} style={{ color: ACCENT }} />
+                </div>
+                <h3 className="font-serif text-2xl font-medium text-white mb-2">Smart Budgets</h3>
+                <p className="text-sm text-zinc-400 max-w-md text-center font-medium">Model your monthly spending limits and avoid debt.</p>
+              </div>
+              <motion.button
+                whileTap={tapPhysics}
+                whileHover={hoverPhysics}
                 onClick={() => setIsBudgetModalOpen(true)}
-                className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[12px] text-sm font-bold shadow-sm transition-colors"
+                className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest text-black z-10"
+                style={{ backgroundColor: ACCENT, boxShadow: `0 0 24px ${ACCENT}55` }}
               >
-                <Plus size={16} /> Set Budget
-              </button>
-            </div>
+                <Plus size={14} strokeWidth={3} /> Set Budget
+              </motion.button>
+            </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {budgets.length > 0 ? budgets.map((b) => {
@@ -514,36 +553,64 @@ export default function DineroDashboard() {
                 const percent = max > 0 ? Math.min((amount / max) * 100, 100) : 100;
                 const isDanger = percent >= 80;
                 const isExceeded = percent >= 100;
+                const barColor = isExceeded ? '#FB7185' : isDanger ? '#FBBF24' : ACCENT;
 
                 return (
-                  <div key={b.id} className="bg-white rounded-[20px] p-6 shadow-sm border border-gray-200/80 flex flex-col gap-4 hover:shadow-md transition-all">
-                    <div className="flex justify-between items-center">
-                      <span className="font-extrabold text-gray-900 truncate">{b.category_name}</span>
-                      <span className="text-[10px] font-bold px-3 py-1 bg-gray-100 rounded-md text-gray-600 uppercase tracking-wider shrink-0">Limit: ${max}</span>
+                  <motion.div
+                    key={b.id}
+                    variants={itemVariants}
+                    whileHover={hoverPhysics}
+                    className="rounded-3xl p-6 bg-zinc-900/60 border border-white/5 backdrop-blur-xl flex flex-col gap-4"
+                  >
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="font-bold text-white truncate">{b.category_name}</span>
+                      <span className="text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shrink-0 bg-white/5 border border-white/5 text-zinc-400">Limit · ${max}</span>
                     </div>
                     <div className="flex justify-between items-end">
-                      <span className={`text-2xl font-extrabold tabular-nums tracking-tight ${isDanger ? 'text-rose-600' : 'text-gray-900'}`}>${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      <span className="text-xs font-bold text-gray-500">{percent.toFixed(0)}%</span>
+                      <span className="text-3xl font-black tabular-nums tracking-tight" style={{ color: isExceeded ? '#FB7185' : '#fff' }}>
+                        ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      <span className="text-xs font-bold text-zinc-400">{percent.toFixed(0)}%</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-1000 ${isExceeded ? 'bg-rose-600' : isDanger ? 'bg-orange-400' : 'bg-emerald-500'}`} style={{ width: `${percent}%` }}></div>
+                    <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000"
+                        style={{ width: `${percent}%`, backgroundColor: barColor, boxShadow: `0 0 12px ${barColor}66` }}
+                      />
                     </div>
-                    {isExceeded && <p className="text-[10px] text-rose-600 font-bold uppercase text-center mt-1">Budget Exceeded</p>}
-                  </div>
+                    {isExceeded && <p className="text-[10px] font-black uppercase tracking-widest text-rose-400 text-center mt-1">Budget Exceeded</p>}
+                  </motion.div>
                 );
               }) : (
-                <div className="col-span-full bg-white rounded-[20px] p-10 shadow-sm border border-gray-200/80 text-center">
-                  <p className="text-sm text-gray-500 font-medium">No budgets set yet. Click "Set Budget" to start tracking your limits.</p>
-                </div>
+                <motion.div variants={itemVariants} className="col-span-full rounded-3xl p-10 bg-zinc-900/60 border border-white/5 backdrop-blur-xl text-center">
+                  <p className="text-sm text-zinc-400 font-medium">No budgets set yet. Click "Set Budget" to start tracking your limits.</p>
+                </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {activeTab === 'reports' && (<div className="flex flex-col gap-6 w-full max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-500"><div className="bg-white rounded-[20px] shadow-sm flex flex-col justify-center items-center py-10 border border-gray-200/80"><Trophy size={40} className="text-yellow-400 mb-4" /><h3 className="text-xl font-extrabold text-gray-900 mb-2">Reports</h3></div></div>)}
+        {activeTab === 'reports' && (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-6 w-full max-w-7xl"
+          >
+            <motion.div variants={itemVariants} className="rounded-3xl bg-zinc-900/60 border border-white/5 backdrop-blur-xl flex flex-col justify-center items-center py-10 relative overflow-hidden">
+              <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}22, transparent 70%)`, filter: 'blur(80px)' }} />
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="p-4 rounded-2xl mb-4" style={{ backgroundColor: `${ACCENT}1F` }}>
+                  <Trophy size={32} style={{ color: ACCENT }} />
+                </div>
+                <h3 className="font-serif text-2xl font-medium text-white mb-2">Reports</h3>
+                <p className="text-sm text-zinc-400 max-w-md text-center font-medium">Insights and analytics coming soon.</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </main>
 
-      {/* MODALES EXTERNALIZADOS */}
       <DineroModals
         isCryptoModalOpen={isCryptoModalOpen} setIsCryptoModalOpen={setIsCryptoModalOpen}
         isAccountModalOpen={isAccountModalOpen} setIsAccountModalOpen={setIsAccountModalOpen}
@@ -583,35 +650,31 @@ export default function DineroDashboard() {
         handleCreateTransaction={handleCreateTransaction}
       />
 
-      {/* ── Bottom Tab Bar (mobile only) ── */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
-        style={{
-          background: 'linear-gradient(to top, #0B2118 60%, #0B2118E8 100%)',
-          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
-          boxShadow: '0 -1px 0 rgba(255,255,255,0.06), 0 -12px 32px rgba(0,0,0,0.45)',
-        }}
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-zinc-950/90 backdrop-blur-xl border-t border-white/5"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
       >
         <div className="flex items-center justify-around px-2 pt-2 pb-1">
-          {MOBILE_TABS.map(tab => {
+          {TABS.slice(0, 6).map(tab => {
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <motion.button
                 key={tab.id}
+                whileTap={tapPhysics}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex flex-col items-center gap-1 transition-all duration-200 active:scale-90 select-none outline-none"
+                className="flex flex-col items-center gap-1 select-none outline-none"
                 style={{ minWidth: 52, padding: '4px 4px' }}
               >
                 <div
                   className="flex flex-col items-center justify-center transition-all duration-200"
                   style={{
                     width: 48, height: 28, borderRadius: 14,
-                    backgroundColor: isActive ? '#A7F38F28' : 'transparent',
+                    backgroundColor: isActive ? `${ACCENT}24` : 'transparent',
                   }}
                 >
                   <span style={{
-                    color: isActive ? '#A7F38F' : 'rgba(255,255,255,0.38)',
-                    filter: isActive ? 'drop-shadow(0 0 6px #A7F38F88)' : 'none',
+                    color: isActive ? ACCENT_SOFT : 'rgba(255,255,255,0.38)',
+                    filter: isActive ? `drop-shadow(0 0 6px ${ACCENT}88)` : 'none',
                     transition: 'color 0.18s',
                     display: 'flex',
                   }}>
@@ -619,14 +682,16 @@ export default function DineroDashboard() {
                   </span>
                 </div>
                 <span style={{
-                  fontSize: 9, fontWeight: isActive ? 800 : 500,
-                  letterSpacing: '0.04em', textTransform: 'uppercase',
-                  color: isActive ? '#A7F38F' : 'rgba(255,255,255,0.30)',
+                  fontSize: 9,
+                  fontWeight: isActive ? 800 : 500,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: isActive ? ACCENT_SOFT : 'rgba(255,255,255,0.30)',
                   lineHeight: 1,
                 }}>
-                  {tab.label}
+                  {tab.mobileLabel}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
         </div>

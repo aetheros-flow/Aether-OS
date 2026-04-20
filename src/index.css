@@ -320,4 +320,108 @@
   .universe-progress-fill {
     @apply h-full rounded-full transition-all duration-700;
   }
+
+  /* ==========================================
+     NEO-DARK PREMIUM SYSTEM
+     ========================================== */
+
+  /* Card base: zinc-900 con backdrop blur y borde casi invisible */
+  .neo-card {
+    @apply relative rounded-[28px] p-5 md:p-6 transition-all duration-300 overflow-hidden;
+    background: rgba(28, 28, 30, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .neo-card-interactive {
+    cursor: pointer;
+  }
+  .neo-card-interactive:hover {
+    background: rgba(34, 34, 38, 0.78);
+    border-color: rgba(255, 255, 255, 0.10);
+  }
+
+  /* Card más grande para heroes */
+  .neo-card-lg {
+    @apply rounded-[32px] p-6 md:p-8;
+  }
+
+  /* Tipografía */
+  .neo-title {
+    @apply font-sans text-3xl md:text-4xl font-bold tracking-tight text-white;
+  }
+  .neo-title-hero {
+    @apply font-sans text-5xl md:text-6xl font-bold tracking-tight text-white leading-none;
+  }
+  .neo-eyebrow {
+    @apply text-[10px] uppercase font-black tracking-[0.22em] text-zinc-500;
+  }
+  .neo-metric {
+    @apply font-sans font-bold tracking-tight text-white;
+    font-size: clamp(2.25rem, 7vw, 3.75rem);
+    line-height: 1;
+  }
+  .neo-label {
+    @apply text-[10px] uppercase font-black tracking-[0.18em] text-zinc-400;
+  }
+
+  /* Inputs */
+  .neo-input {
+    @apply w-full px-5 py-3.5 rounded-2xl outline-none transition-all duration-200;
+    @apply text-sm font-medium text-white placeholder:text-zinc-600;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .neo-input:focus {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+
+  /* Botones */
+  .neo-btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-all duration-200;
+    @apply text-white;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  .neo-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .neo-btn:active {
+    transform: scale(0.96);
+    filter: brightness(1.1);
+  }
+
+  /* Botón con color de acento (debe pasarse via style={{ background: color }}) */
+  .neo-btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-black text-sm text-white transition-all duration-200;
+    @apply uppercase tracking-wider;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  .neo-btn-accent:active {
+    transform: scale(0.96);
+    filter: brightness(1.15);
+  }
+
+  /* Modal panel oscuro */
+  .neo-modal-panel {
+    @apply w-full rounded-t-[32px] md:rounded-[32px] p-6 md:p-8 shadow-2xl;
+    background: rgba(20, 20, 22, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  /* Stat chip oscuro */
+  .neo-chip {
+    @apply flex items-center gap-2 px-3.5 py-2.5 rounded-2xl;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Background base de universo Neo-Dark */
+  .neo-bg {
+    background-color: #0A0A0A;
+    color: #FFFFFF;
+  }
 }
