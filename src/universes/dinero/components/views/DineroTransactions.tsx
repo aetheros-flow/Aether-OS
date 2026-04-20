@@ -1,6 +1,19 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, Filter, Download, Upload, MoreHorizontal } from 'lucide-react';
-import { Card, Badge, Dropdown } from '../ui/AetherUI';
+import { motion, type Variants } from 'framer-motion';
+import { Search, Plus, Filter, Download, Upload, Pencil, Sparkles } from 'lucide-react';
+import { resolveCategoryIcon } from '../../lib/category-icons';
+
+const ACCENT = '#05DF72';
+const ACCENT_SOFT = '#86EFAC';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.04 } },
+};
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+};
 
 interface DineroTransactionsProps {
   accounts: any[];
@@ -19,7 +32,7 @@ export function DineroTransactions({
   setIsEditModalOpen,
   setIsTransactionModalOpen,
   onImportClick,
-  onExportClick
+  onExportClick,
 }: DineroTransactionsProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAccount, setFilterAccount] = useState('all');
@@ -27,8 +40,9 @@ export function DineroTransactions({
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
-      const matchSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          t.category?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch =
+        (t.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (t.category || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchAccount = filterAccount === 'all' || t.account_id === filterAccount;
       const matchType = filterType === 'all' || t.type === filterType;
       return matchSearch && matchAccount && matchType;
@@ -36,181 +50,234 @@ export function DineroTransactions({
   }, [transactions, searchTerm, filterAccount, filterType]);
 
   return (
-    <div className="w-full max-w-7xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-xl font-extrabold text-gray-800 tracking-tight">Transactions</h2>
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button 
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="w-full max-w-6xl mx-auto px-1 md:px-0 pb-8 font-sans flex flex-col gap-5"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">Ledger</p>
+          <h1 className="font-serif text-2xl md:text-3xl font-medium tracking-tight text-white">Transactions</h1>
+        </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setIsTransactionModalOpen(true)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[12px] text-sm font-bold shadow-sm transition-colors"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold"
+            style={{ backgroundColor: ACCENT, color: '#0A0A0A' }}
           >
-            <Plus size={16} /> New Transaction
-          </button>
-          <div className="flex items-center gap-1 bg-white p-1 rounded-[12px] border border-gray-200 shadow-sm">
-             <button onClick={onImportClick} className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" title="Import CSV">
-               <Upload size={16} />
-             </button>
-             <button onClick={onExportClick} className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" title="Export Data">
-               <Download size={16} />
-             </button>
+            <Plus size={15} strokeWidth={2.5} /> New
+          </motion.button>
+          <div className="flex items-center gap-1 bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-1 rounded-full">
+            <button
+              onClick={onImportClick}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-full transition-colors"
+              title="Import"
+            >
+              <Upload size={15} />
+            </button>
+            <button
+              onClick={onExportClick}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-full transition-colors"
+              title="Export"
+            >
+              <Download size={15} />
+            </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Main Content Layout */}
-      <div className="flex flex-col md:flex-row gap-6 items-start">
-        
-        {/* Sidebar Filters */}
-        <div className="w-full md:w-64 shrink-0 flex flex-col gap-4">
-          <Card className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Filter size={16} className="text-gray-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Filters</span>
+      <div className="flex flex-col md:flex-row gap-5 items-start">
+        {/* Filters */}
+        <motion.div variants={itemVariants} className="w-full md:w-64 shrink-0">
+          <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 flex flex-col gap-5">
+            <div className="flex items-center gap-2">
+              <Filter size={14} className="text-zinc-500" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Filters</span>
             </div>
-            
-            <div className="flex flex-col gap-5">
-              {/* Search */}
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input 
-                  type="text" 
-                  placeholder="Search keywords..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-[10px] text-sm font-medium outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-                />
-              </div>
 
-              {/* Accounts Filter */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold uppercase text-gray-400">Account</label>
-                <Dropdown 
-                  value={filterAccount}
-                  onChange={setFilterAccount}
-                  options={[
-                    { value: 'all', label: 'All Accounts' },
-                    ...accounts.map(acc => ({ value: acc.id, label: acc.name }))
-                  ]}
-                />
-              </div>
+            <div className="relative">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input
+                type="text"
+                placeholder="Search…"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 rounded-full text-sm font-medium outline-none transition-colors"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#fff',
+                }}
+              />
+            </div>
 
-              {/* Type Filter */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold uppercase text-gray-400">Type</label>
-                <div className="flex bg-gray-100 p-1 rounded-[10px]">
-                  <button 
-                    onClick={() => setFilterType('all')}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${filterType === 'all' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
-                  >All</button>
-                  <button 
-                    onClick={() => setFilterType('income')}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${filterType === 'income' ? 'bg-white shadow-sm text-emerald-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  >In</button>
-                  <button 
-                    onClick={() => setFilterType('expense')}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${filterType === 'expense' ? 'bg-white shadow-sm text-rose-600' : 'text-gray-500 hover:text-gray-700'}`}
-                  >Out</button>
-                </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Account</label>
+              <select
+                value={filterAccount}
+                onChange={(e) => setFilterAccount(e.target.value)}
+                className="w-full py-2 px-3 rounded-full text-sm font-medium outline-none appearance-none cursor-pointer"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#fff',
+                }}
+              >
+                <option value="all" style={{ backgroundColor: '#111' }}>All accounts</option>
+                {accounts.map(acc => (
+                  <option key={acc.id} value={acc.id} style={{ backgroundColor: '#111' }}>{acc.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Type</label>
+              <div className="flex p-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {[
+                  { key: 'all', label: 'All', color: '#fff' },
+                  { key: 'income', label: 'In', color: ACCENT },
+                  { key: 'expense', label: 'Out', color: '#F87171' },
+                ].map(opt => {
+                  const active = filterType === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      onClick={() => setFilterType(opt.key)}
+                      className="flex-1 py-1.5 text-xs font-semibold rounded-full transition-all"
+                      style={{
+                        backgroundColor: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                        color: active ? opt.color : 'rgba(255,255,255,0.45)',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </Card>
-        </div>
 
-        {/* Transactions List */}
-        <Card className="flex-1 p-0 overflow-hidden w-full">
-          {/* Desktop table */}
-          <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-500 font-bold">
-                  <th className="p-4 pl-6 font-bold w-32">Date</th>
-                  <th className="p-4 font-bold">Description</th>
-                  <th className="p-4 font-bold">Account</th>
-                  <th className="p-4 font-bold">Category</th>
-                  <th className="p-4 text-right pr-6 font-bold">Amount</th>
-                  <th className="p-4 w-10"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.map((t, index) => (
-                  <tr
+            <div className="mt-2 pt-4 border-t border-white/5 flex items-start gap-2">
+              <Sparkles size={13} style={{ color: ACCENT_SOFT }} className="mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] leading-relaxed text-zinc-400">
+                Tap any transaction to edit or reassign the category.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* List */}
+        <motion.div variants={itemVariants} className="flex-1 w-full">
+          <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 overflow-hidden">
+            {/* Desktop table */}
+            <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black">
+                    <th className="p-4 pl-6 w-36">Date</th>
+                    <th className="p-4">Description</th>
+                    <th className="p-4">Account</th>
+                    <th className="p-4">Category</th>
+                    <th className="p-4 text-right pr-6">Amount</th>
+                    <th className="p-4 w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransactions.map((t, index) => {
+                    const { icon: Icon, color } = resolveCategoryIcon(t.category);
+                    const isIncome = t.type === 'income';
+                    return (
+                      <tr
+                        key={t.id}
+                        onClick={() => { setEditTransaction(t); setIsEditModalOpen(true); }}
+                        className={`group cursor-pointer hover:bg-white/[0.03] transition-colors ${index !== filteredTransactions.length - 1 ? 'border-b border-white/5' : ''}`}
+                      >
+                        <td className="p-4 pl-6">
+                          <span className="text-xs font-medium text-zinc-500">
+                            {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </td>
+                        <td className="p-4 font-medium text-sm text-white">{t.description}</td>
+                        <td className="p-4">
+                          <span
+                            className="text-[11px] font-medium px-2 py-1 rounded-md"
+                            style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)' }}
+                          >
+                            {t.Finanzas_accounts?.name || 'Unknown'}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md" style={{ backgroundColor: `${color}15`, border: `1px solid ${color}25` }}>
+                            <Icon size={11} color={color} />
+                            <span className="text-[11px] font-semibold" style={{ color }}>{t.category}</span>
+                          </div>
+                        </td>
+                        <td className={`p-4 text-right pr-6 font-bold tabular-nums`} style={{ color: isIncome ? ACCENT : '#F87171' }}>
+                          {isIncome ? '+' : '−'}${Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="p-4 text-right">
+                          <Pencil size={13} className="text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile list */}
+            <div className="md:hidden flex flex-col divide-y divide-white/5">
+              {filteredTransactions.map((t) => {
+                const { icon: Icon, color } = resolveCategoryIcon(t.category);
+                const isIncome = t.type === 'income';
+                return (
+                  <button
                     key={t.id}
                     onClick={() => { setEditTransaction(t); setIsEditModalOpen(true); }}
-                    className={`group cursor-pointer hover:bg-gray-50 transition-colors ${index !== filteredTransactions.length - 1 ? 'border-b border-gray-50' : ''}`}
+                    className="flex items-center gap-3 px-4 py-3.5 text-left hover:bg-white/[0.03] transition-colors w-full"
                   >
-                    <td className="p-4 pl-6">
-                      <span className="text-xs font-semibold text-gray-500">
-                        {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    <div
+                      className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center"
+                      style={{ backgroundColor: `${color}18`, border: `1px solid ${color}30` }}
+                    >
+                      <Icon size={15} color={color} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{t.description}</p>
+                      <p className="text-[11px] text-zinc-500 mt-0.5 truncate">
+                        {t.Finanzas_accounts?.name || 'Unknown'} · {t.category}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-0.5 shrink-0">
+                      <span className="text-sm font-bold tabular-nums" style={{ color: isIncome ? ACCENT : '#F87171' }}>
+                        {isIncome ? '+' : '−'}${Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </span>
-                    </td>
-                    <td className="p-4 font-bold text-sm text-gray-900">{t.description}</td>
-                    <td className="p-4">
-                      <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
-                        {t.Finanzas_accounts?.name || 'Unknown'}
+                      <span className="text-[10px] text-zinc-500">
+                        {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
-                    </td>
-                    <td className="p-4">
-                      <Badge variant={t.type === 'income' ? 'green' : 'gray'}>{t.category}</Badge>
-                    </td>
-                    <td className={`p-4 text-right pr-6 font-bold tabular-nums ${t.type === 'income' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                      {t.type === 'income' ? '+' : '-'}${Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="p-4 text-right">
-                      <button className="p-1.5 text-gray-400 hover:text-gray-800 hover:bg-gray-200 rounded-md opacity-0 group-hover:opacity-100 transition-all">
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile card list */}
-          <div className="md:hidden flex flex-col divide-y divide-gray-50">
-            {filteredTransactions.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => { setEditTransaction(t); setIsEditModalOpen(true); }}
-                className="flex items-center gap-3 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors w-full"
-              >
-                {/* Category icon dot */}
-                <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-base ${t.type === 'income' ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                  <span>{t.category?.charAt(0)?.toUpperCase() || '?'}</span>
-                </div>
-                {/* Middle: description + meta */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">{t.description}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {t.Finanzas_accounts?.name || 'Unknown'} · {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-                {/* Right: amount + badge */}
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className={`text-sm font-bold tabular-nums ${t.type === 'income' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                    {t.type === 'income' ? '+' : '-'}${Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                  <Badge variant={t.type === 'income' ? 'green' : 'gray'}>{t.category}</Badge>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {filteredTransactions.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-              <Search size={32} className="text-gray-300 mb-3" />
-              <p className="text-sm font-bold text-gray-800">No transactions found</p>
-              <p className="text-xs">Adjust your filters or add a new record.</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-          )}
-          <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center text-xs font-bold text-gray-500">
-            <span>Showing {filteredTransactions.length} records</span>
-          </div>
-        </Card>
 
+            {filteredTransactions.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 gap-2">
+                <Search size={28} className="text-zinc-600" />
+                <p className="text-sm font-medium text-white">No transactions found</p>
+                <p className="text-xs text-zinc-500">Adjust your filters or add a new record.</p>
+              </div>
+            )}
+            <div className="px-5 py-3 border-t border-white/5 flex justify-between items-center text-[11px] font-semibold text-zinc-500">
+              <span>Showing {filteredTransactions.length} records</span>
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

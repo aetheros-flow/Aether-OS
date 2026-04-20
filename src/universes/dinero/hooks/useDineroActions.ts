@@ -13,6 +13,13 @@ import {
   type Category,
 } from '../types';
 import { parseFile, autoCategorize, exportRecords } from '../lib/dinero-io';
+import { categorizeTransactions } from '../../../lib/ai-service';
+import { CANONICAL_CATEGORIES } from '../lib/category-icons';
+import {
+  fetchCategoryMemory,
+  matchFromMemory,
+  rememberCategory,
+} from '../lib/category-memory';
 
 /**
  * Reads the current balance from the DB before writing, preventing
@@ -145,6 +152,14 @@ export function useDineroActions(userId: string | undefined, fetchData: () => Pr
           -txDelta(original.type, Number(original.amount)) +
           txDelta(draft.type, newAmount);
         await adjustAccountBalance(original.account_id, delta);
+
+        // If the user re-categorised this transaction, remember the mapping
+        // so future imports can auto-apply it (and Gemini learns from it).
+        if (userId && draft.category && draft.category !== original.category) {
+          const txType: 'income' | 'expense' = draft.type === 'income' ? 'income' : 'expense';
+          rememberCategory(userId, original.description, draft.category, txType)
+            .catch(err => console.warn('[rememberCategory] failed:', err));
+        }
 
         toast.success('Transaction updated');
         onSuccess();
@@ -289,15 +304,95 @@ export function useDineroActions(userId: string | undefined, fetchData: () => Pr
         if (rawRecords.length === 0)
           throw new Error('No readable transactions found in the file.');
 
-        const enriched = autoCategorize(rawRecords, categories);
-        const records = enriched.map(r => ({
+        // 1. Rule-based fallback — guarantees every row gets *some* label even
+        //    if both memory and Gemini are unavailable.
+        const fallback = autoCategorize(rawRecords, categories);
+
+        // 2. Load personalised memory (past user corrections).
+        const memory = userId ? await fetchCategoryMemory(userId, 50) : [];
+
+        const allowed = Array.from(new Set([
+          ...CANONICAL_CATEGORIES,
+          ...categories.map(c => c.name),
+        ]));
+
+        // 3. Classify each row: explicit-from-file > memory exact-match > AI >
+        //    fallback. We only send rows needing AI to Gemini.
+        const finalRecords: Array<{ amount: number; type: 'income' | 'expense'; date: string; description: string; category: string }> = rawRecords.map(r => ({
+          amount: r.amount,
+          type: r.type,
+          date: r.date,
+          description: r.description,
+          category: '',
+        }));
+
+        const needsAI: number[] = [];
+        let memoryHits = 0;
+
+        rawRecords.forEach((r, i) => {
+          // If the source file already carried a real category (round-tripped
+          // export, manually labelled sheet), trust it.
+          if (r.category && r.category !== 'General' && allowed.includes(r.category)) {
+            finalRecords[i].category = r.category;
+            return;
+          }
+          // Personalised memory beats the model.
+          const mem = matchFromMemory(r.description, memory);
+          if (mem && allowed.includes(mem.category)) {
+            finalRecords[i].category = mem.category;
+            finalRecords[i].type = mem.type;
+            memoryHits += 1;
+            return;
+          }
+          needsAI.push(i);
+        });
+
+        if (needsAI.length > 0) {
+          try {
+            const aiResults = await categorizeTransactions(
+              needsAI.map(i => ({
+                description: rawRecords[i].description,
+                amount: rawRecords[i].amount,
+                date: rawRecords[i].date,
+              })),
+              allowed,
+              memory.map(m => ({
+                description_pattern: m.description_pattern,
+                category: m.category,
+                type: m.type,
+              })),
+            );
+            aiResults.forEach((r, k) => {
+              const i = needsAI[k];
+              const useAI = r.confidence >= 0.4;
+              finalRecords[i].category = useAI ? r.category : fallback[i].suggestedCategory;
+              finalRecords[i].type = useAI ? r.type : fallback[i].type;
+            });
+            toast.success(
+              memoryHits > 0
+                ? `${memoryHits} from memory, ${aiResults.length} via AI. Review any low-confidence rows.`
+                : 'AI categorisation applied. Review any low-confidence rows.',
+            );
+          } catch (aiErr) {
+            console.warn('Gemini categorisation failed, using rule-based fallback:', aiErr);
+            needsAI.forEach(i => {
+              finalRecords[i].category = fallback[i].suggestedCategory;
+              finalRecords[i].type = fallback[i].type;
+            });
+            toast.warning('AI unavailable — used rule-based labels. Deploy gemini-proxy to enable AI.');
+          }
+        } else if (memoryHits > 0) {
+          toast.success(`All ${memoryHits} transactions matched from memory.`);
+        }
+
+        const records = finalRecords.map(r => ({
           user_id: userId,
           account_id: importAccountId,
           amount: r.amount,
           type: r.type,
           date: r.date,
           description: r.description,
-          category: r.suggestedCategory,
+          category: r.category,
         }));
 
         const { error } = await supabase.from('Finanzas_transactions').insert(records);

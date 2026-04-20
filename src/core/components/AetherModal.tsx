@@ -40,7 +40,7 @@ export default function AetherModal({ isOpen, onClose, title, children, maxWidth
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.92 }}
                 className="p-2 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Cerrar"
+                aria-label="Close"
               >
                 <X size={18} />
               </motion.button>

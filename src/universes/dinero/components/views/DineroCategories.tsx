@@ -1,6 +1,18 @@
 import { useState, useMemo } from 'react';
+import { motion, type Variants } from 'framer-motion';
 import { Plus, ArrowLeft, Receipt } from 'lucide-react';
-import { Card, CardLabel, CardValue, Badge } from '../ui/AetherUI';
+import { resolveCategoryIcon } from '../../lib/category-icons';
+
+const ACCENT = '#05DF72';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.04 } },
+};
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+};
 
 interface Category {
   id: string;
@@ -10,38 +22,26 @@ interface Category {
 
 interface DineroCategoriesProps {
   transactions: any[];
-  categories: Category[]; // Ahora recibimos las categorías reales de la BD
-  setIsCategoryModalOpen: (val: boolean) => void; // Disparador del nuevo modal
+  categories: Category[];
+  setIsCategoryModalOpen: (val: boolean) => void;
 }
 
 export function DineroCategories({ transactions, categories, setIsCategoryModalOpen }: DineroCategoriesProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Calcular gastos por categoría usando las dinámicas
   const categoriesMap = useMemo(() => {
     const expenses = transactions.filter(t => t.type === 'expense');
-    const map: Record<string, { total: number, count: number, icon: string }> = {};
-    
-    // Inicializamos el mapa con las categorías de la base de datos
-    categories.forEach(c => { 
-      map[c.name] = { total: 0, count: 0, icon: c.icon }; 
-    });
-
-    // Sumamos los gastos
+    const map: Record<string, { total: number; count: number }> = {};
+    categories.forEach(c => { map[c.name] = { total: 0, count: 0 }; });
     expenses.forEach(t => {
       const cat = t.category || 'General';
-      if (!map[cat]) {
-        // Si hay una categoría huérfana (borrada o vieja), le ponemos pin por defecto
-        map[cat] = { total: 0, count: 0, icon: '📌' }; 
-      }
+      if (!map[cat]) map[cat] = { total: 0, count: 0 };
       map[cat].total += Number(t.amount);
       map[cat].count += 1;
     });
-
     return map;
   }, [transactions, categories]);
 
-  // Filtramos para mostrar solo las categorías que tienen transacciones o que existen en la BD
   const sortedCategories = Object.entries(categoriesMap)
     .sort((a, b) => b[1].total - a[1].total)
     .filter(([name, data]) => data.count > 0 || categories.some(c => c.name === name));
@@ -55,107 +55,153 @@ export function DineroCategories({ transactions, categories, setIsCategoryModalO
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, selectedCategory]);
 
+  const selectedIcon = selectedCategory ? resolveCategoryIcon(selectedCategory) : null;
+
   return (
-    <div className="w-full max-w-7xl flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-xl font-extrabold text-gray-800 tracking-tight">
-          {selectedCategory ? `Category: ${selectedCategory}` : 'Spending Categories'}
-        </h2>
-        
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="w-full max-w-6xl mx-auto px-1 md:px-0 pb-8 font-sans flex flex-col gap-5"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">
+            {selectedCategory ? 'Category' : 'By type'}
+          </p>
+          <h1 className="font-serif text-2xl md:text-3xl font-medium tracking-tight text-white">
+            {selectedCategory ?? 'Categories'}
+          </h1>
+        </div>
         {!selectedCategory && (
-          <button 
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setIsCategoryModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[12px] text-sm font-bold shadow-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold"
+            style={{ backgroundColor: ACCENT, color: '#0A0A0A' }}
           >
-            <Plus size={16} /> New Category
-          </button>
+            <Plus size={15} strokeWidth={2.5} /> New category
+          </motion.button>
         )}
-      </div>
+      </motion.div>
 
       {selectedCategory ? (
-        // --- VISTA DE DETALLE ---
-        <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <button 
+        // DETAIL VIEW
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
+          <button
             onClick={() => setSelectedCategory(null)}
-            className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors self-start mb-2 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm"
+            className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors self-start px-4 py-2 rounded-full"
+            style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
-            <ArrowLeft size={16} /> Back to Categories
+            <ArrowLeft size={14} /> Back
           </button>
-          
-          <Card className="p-0 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest">Transactions</h3>
-              <Badge variant="gray">{categoryTransactions.length} records</Badge>
+
+          <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 overflow-hidden">
+            <div className="p-5 border-b border-white/5 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                {selectedIcon && (
+                  <div
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                    style={{ backgroundColor: `${selectedIcon.color}18`, border: `1px solid ${selectedIcon.color}30` }}
+                  >
+                    <selectedIcon.icon size={16} color={selectedIcon.color} />
+                  </div>
+                )}
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Transactions</p>
+                  <p className="text-sm font-medium text-white">{categoryTransactions.length} records</p>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col">
-              {categoryTransactions.map((t, i) => (
-                <div key={t.id} className={`flex justify-between items-center p-4 hover:bg-gray-50 transition-colors ${i !== categoryTransactions.length -1 ? 'border-b border-gray-100' : ''}`}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
-                      <Receipt size={18} />
+
+            <div className="flex flex-col divide-y divide-white/5">
+              {categoryTransactions.map((t) => (
+                <div key={t.id} className="flex justify-between items-center p-4 hover:bg-white/[0.03] transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: 'rgba(244,63,94,0.12)', border: '1px solid rgba(244,63,94,0.25)' }}
+                    >
+                      <Receipt size={15} color="#F87171" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">{t.description}</span>
-                      <span className="text-[11px] text-gray-500 uppercase font-medium">
-                        {new Date(t.date).toLocaleDateString()} • {t.Finanzas_accounts?.name || 'Account'}
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-white truncate">{t.description}</span>
+                      <span className="text-[11px] text-zinc-500">
+                        {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · {t.Finanzas_accounts?.name || 'Account'}
                       </span>
                     </div>
                   </div>
-                  <span className="font-bold tabular-nums text-base text-gray-900">
-                    -${Number(t.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <span className="font-bold tabular-nums text-sm" style={{ color: '#F87171' }}>
+                    −${Number(t.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               ))}
               {categoryTransactions.length === 0 && (
-                <p className="text-center text-sm text-gray-500 py-10">No expenses in this category yet.</p>
+                <p className="text-center text-sm text-zinc-500 py-12">No expenses in this category yet.</p>
               )}
             </div>
-          </Card>
-        </div>
+          </div>
+        </motion.div>
       ) : (
-        // --- VISTA DE GRILLA ---
+        // GRID
         <>
           {sortedCategories.length === 0 ? (
-            <Card className="py-20 items-center justify-center">
-              <p className="text-sm font-bold text-gray-500">No categories recorded yet. Create one!</p>
-            </Card>
+            <motion.div
+              variants={itemVariants}
+              className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 py-20 flex flex-col items-center justify-center gap-2"
+            >
+              <p className="text-sm font-medium text-white">No categories yet</p>
+              <p className="text-xs text-zinc-500">Create your first one.</p>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {sortedCategories.map(([catName, data]) => {
                 const percentage = totalExpenses > 0 ? ((data.total / totalExpenses) * 100).toFixed(1) : '0';
+                const { icon: Icon, color } = resolveCategoryIcon(catName);
 
                 return (
-                  <Card 
-                    key={catName} 
-                    interactive 
+                  <motion.button
+                    key={catName}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedCategory(catName)}
-                    className="p-5 justify-between gap-4"
+                    className="text-left rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 flex flex-col justify-between gap-4 hover:border-white/10 transition-colors"
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-xl shadow-sm">
-                          {data.icon}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-sm text-gray-900 leading-tight">{catName}</span>
-                          <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">{data.count} transactions</span>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: `${color}18`, border: `1px solid ${color}30` }}
+                      >
+                        <Icon size={18} color={color} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-sm text-white leading-tight truncate">{catName}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mt-0.5">
+                          {data.count} {data.count === 1 ? 'txn' : 'txns'}
+                        </span>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-between items-end">
-                      <CardValue className="text-xl">${data.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</CardValue>
-                      <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">{percentage}%</span>
+                      <span className="text-xl font-bold text-white tabular-nums tracking-tight">
+                        ${data.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      <span
+                        className="text-[11px] font-semibold px-2 py-1 rounded-md tabular-nums"
+                        style={{ backgroundColor: `${color}15`, color }}
+                      >
+                        {percentage}%
+                      </span>
                     </div>
-                  </Card>
+                  </motion.button>
                 );
               })}
-            </div>
+            </motion.div>
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

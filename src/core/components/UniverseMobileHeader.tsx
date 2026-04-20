@@ -45,7 +45,7 @@ export default function UniverseMobileHeader({
           color: textColor,
           flexShrink: 0,
         }}
-        aria-label="Volver al inicio"
+        aria-label="Back to home"
       >
         <ArrowLeft size={18} strokeWidth={2.5} />
       </button>

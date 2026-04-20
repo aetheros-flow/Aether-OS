@@ -87,7 +87,7 @@ export default function UniverseDashboardShell({
               whileTap={{ scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 420, damping: 24 }}
               className="p-2 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
-              aria-label="Volver al inicio"
+              aria-label="Back to home"
             >
               <ArrowLeft size={18} />
             </motion.button>
@@ -110,7 +110,7 @@ export default function UniverseDashboardShell({
             onClick={() => setIsMobileMenuOpen(v => !v)}
             whileTap={{ scale: 0.92 }}
             className="md:hidden p-2 rounded-xl bg-white/5 border border-white/10 text-white/80"
-            aria-label="Abrir menú"
+            aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </motion.button>
@@ -125,7 +125,7 @@ export default function UniverseDashboardShell({
         >
           <UniverseNavItem
             icon={LayoutDashboard}
-            label="Resumen"
+            label="Overview"
             isActive
             accent={color}
             onClick={() => setIsMobileMenuOpen(false)}
@@ -150,11 +150,11 @@ export default function UniverseDashboardShell({
               className="text-[10px] uppercase font-black tracking-[0.24em] mb-3"
               style={{ color }}
             >
-              Estado General
+              General status
             </p>
             <div className="flex items-center gap-4">
               <h2 className="font-sans text-5xl md:text-6xl font-bold tracking-tight text-white leading-none">
-                En Calibración
+                Calibrating
               </h2>
               <span
                 className="hidden md:inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5 border border-white/10"
@@ -198,9 +198,9 @@ export default function UniverseDashboardShell({
                   Aether AI · Insight
                 </p>
                 <p className="text-[15px] md:text-base font-medium text-white/90 leading-relaxed">
-                  Estoy preparando tu lectura de {moduleLabel}. Cuando registres
-                  tu primera señal, aquí aparecerá un veredicto contextual y
-                  recomendaciones priorizadas.
+                  Preparing your {moduleLabel} reading. Once you log your first
+                  signal, a contextual verdict and prioritised recommendations
+                  will appear here.
                 </p>
               </div>
             </div>
@@ -233,10 +233,10 @@ export default function UniverseDashboardShell({
                 <HeaderIcon size={26} strokeWidth={2.2} style={{ color }} />
               </span>
               <h3 className="relative font-serif text-3xl md:text-4xl font-medium tracking-tight text-white mb-3">
-                Módulo en Construcción
+                Module under construction
               </h3>
               <p className="relative text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500 max-w-md">
-                Próximamente desplegaremos la matriz de datos para {moduleLabel}.
+                Coming soon: the data matrix for {moduleLabel}.
               </p>
             </motion.div>
           </motion.div>

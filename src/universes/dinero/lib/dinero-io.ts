@@ -156,15 +156,49 @@ export const parseFile = async (file: File): Promise<any[]> => {
   throw new Error('Unsupported file format.');
 };
 
+const toNumber = (raw: unknown): number => {
+  if (raw === null || raw === undefined || raw === '') return NaN;
+  // Strip currency symbols, thousand separators, whitespace — keep digits, dot, minus.
+  return parseFloat(String(raw).replace(/[^0-9.\-]+/g, ''));
+};
+
+/**
+ * Infers transaction type from an explicit column if present, otherwise falls
+ * back to the amount's sign. Handles Spanish + English variants and common
+ * bank-CSV dual-column layouts (Debit / Credit).
+ */
+const inferType = (row: any, amountVal: number): 'income' | 'expense' => {
+  const explicit = String(
+    row['Type'] ?? row['type'] ?? row['Tipo'] ?? row['tipo'] ?? '',
+  ).trim().toLowerCase();
+  if (explicit) {
+    if (['income', 'ingreso', 'credit', 'crédito', 'credito', 'deposit', 'abono'].includes(explicit)) return 'income';
+    if (['expense', 'gasto', 'debit', 'débito', 'debito', 'withdrawal', 'cargo', 'egreso'].includes(explicit)) return 'expense';
+  }
+  // Dual-column bank layout: positive value in one of Debit/Credit wins.
+  const debit = toNumber(row['Debit'] ?? row['debit'] ?? row['Débito'] ?? row['Debito']);
+  const credit = toNumber(row['Credit'] ?? row['credit'] ?? row['Crédito'] ?? row['Credito']);
+  if (Number.isFinite(debit) && debit > 0) return 'expense';
+  if (Number.isFinite(credit) && credit > 0) return 'income';
+  // Fallback: sign of amount.
+  return amountVal < 0 ? 'expense' : 'income';
+};
+
 const standardizeImport = (data: any[]): any[] =>
   data
     .map(row => {
-      const rawAmount =
-        row['Amount'] ?? row['amount'] ?? row['Monto'] ?? row['monto'] ?? '0';
-      const amountVal = parseFloat(String(rawAmount).replace(/[^0-9.-]+/g, ''));
-      if (isNaN(amountVal)) return null;
+      // Amount can come from a single column, or be split across Debit/Credit.
+      const debit = toNumber(row['Debit'] ?? row['debit'] ?? row['Débito'] ?? row['Debito']);
+      const credit = toNumber(row['Credit'] ?? row['credit'] ?? row['Crédito'] ?? row['Credito']);
+      const single = toNumber(row['Amount'] ?? row['amount'] ?? row['Monto'] ?? row['monto']);
 
-      const type = amountVal < 0 ? 'expense' : 'income';
+      let amountVal: number;
+      if (Number.isFinite(debit) && debit > 0) amountVal = -Math.abs(debit);
+      else if (Number.isFinite(credit) && credit > 0) amountVal = Math.abs(credit);
+      else if (Number.isFinite(single)) amountVal = single;
+      else return null;
+
+      const type = inferType(row, amountVal);
       const amount = Math.abs(amountVal);
 
       let isoDate = new Date().toISOString();
@@ -183,9 +217,17 @@ const standardizeImport = (data: any[]): any[] =>
 
       const description =
         row['Description'] ?? row['description'] ?? row['Details'] ?? row['Detalle'] ??
-        'Imported Transaction';
+        row['Descripción'] ?? row['Descripcion'] ?? 'Imported Transaction';
 
-      return { amount, type, date: isoDate, description, category: 'General' };
+      // Respect an explicit category column if the file already carries one
+      // (e.g. round-tripped exports). Otherwise caller will classify later.
+      const explicitCategory =
+        row['Category'] ?? row['category'] ?? row['Categoría'] ?? row['Categoria'];
+      const category = explicitCategory && String(explicitCategory).trim()
+        ? String(explicitCategory).trim()
+        : 'General';
+
+      return { amount, type, date: isoDate, description, category };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
 

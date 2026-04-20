@@ -1,0 +1,18 @@
+# Snyk (https://snyk.io) policy file
+version: v1.22.1
+ignore:
+  # Vulnerabilidad de Prototype Pollution en xlsx (Sin parche disponible)
+  SNYK-JS-XLSX-5457926:
+    - '*':
+        reason: 'No hay parche disponible para la v0.18.5. Uso controlado en entorno interno.'
+        expires: '2026-05-20T00:00:00.000Z'
+  # Vulnerabilidad de ReDoS en xlsx (Sin parche disponible)
+  SNYK-JS-XLSX-6252523:
+    - '*':
+        reason: 'No hay parche disponible para la v0.18.5. Riesgo aceptado temporalmente.'
+        expires: '2026-05-20T00:00:00.000Z'
+  # Vulnerabilidad en dompurify (Si no quieres actualizar a la 3.4.0 todavía)
+  SNYK-JS-DOMPURIFY-1607837:
+    - '*':
+        reason: 'Postergando actualización de dependencias de jspdf.'
+        expires: '2026-05-20T00:00:00.000Z'
