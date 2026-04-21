@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   ArrowLeft, LayoutDashboard, BookOpen, Tv, Puzzle, Star, Plus,
   Loader2, Trash2, CheckCircle2, Circle, Clock, Edit3, Sparkles,
+  ExternalLink, Library, ArrowRight,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
@@ -34,6 +35,8 @@ const itemVariants: Variants = {
 };
 const tapPhysics = { scale: 0.96, filter: 'brightness(1.1)' };
 const hoverPhysics = { scale: 1.01 };
+
+const LEBRARY_URL = 'https://lebrary.netlify.app/';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PLATFORMS = ['Netflix', 'HBO Max', 'Disney+', 'Amazon Prime', 'Apple TV+', 'Crunchyroll', 'Otro'];
@@ -295,7 +298,20 @@ export default function OcioDashboard() {
 
         <div className="flex flex-col gap-2 px-4 pb-6">
           <UniverseNavItem accent={ACCENT} icon={LayoutDashboard} label="Resumen"    isActive={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-          <UniverseNavItem accent={ACCENT} icon={BookOpen}        label="Biblioteca" isActive={activeTab === 'biblioteca'} onClick={() => handleTabChange('biblioteca')} />
+          {/* Biblioteca → externallink to Lebrary */}
+          <motion.a
+            href={LEBRARY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.02, x: 2 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group"
+            style={{ color: ACCENT, background: `${ACCENT}12`, border: `1px solid ${ACCENT}30` }}
+          >
+            <Library size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 6px ${ACCENT}60)` }} />
+            <span className="flex-1">Biblioteca</span>
+            <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+          </motion.a>
           <UniverseNavItem accent={ACCENT} icon={Tv}              label="Pantalla"   isActive={activeTab === 'pantalla'}  onClick={() => handleTabChange('pantalla')} />
           <UniverseNavItem accent={ACCENT} icon={Puzzle}          label="Hobbies"    isActive={activeTab === 'hobbies'}   onClick={() => handleTabChange('hobbies')} />
           <UniverseNavItem accent={ACCENT} icon={Star}            label="Bucket List" isActive={activeTab === 'bucket'}   onClick={() => handleTabChange('bucket')} />
@@ -373,16 +389,28 @@ export default function OcioDashboard() {
                 </motion.div>
               ))}
 
-              {/* Recent books */}
-              <motion.div variants={itemVariants} className="sm:col-span-2 neo-card neo-card-lg">
+              {/* Recent books — links to Lebrary */}
+              <motion.div variants={itemVariants} className="sm:col-span-2 neo-card neo-card-lg flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-serif text-lg text-white tracking-tight">Lectura reciente</h3>
-                  <motion.button whileTap={tapPhysics} onClick={() => handleTabChange('biblioteca')} className="text-[10px] font-black tracking-[0.2em] uppercase" style={{ color: ACCENT }}>Ver todo</motion.button>
+                  <div className="flex items-center gap-2.5">
+                    <Library size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 6px ${ACCENT}60)` }} />
+                    <h3 className="font-serif text-lg text-white tracking-tight">Biblioteca · Lebrary</h3>
+                  </div>
+                  <motion.a
+                    href={LEBRARY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileTap={tapPhysics}
+                    className="flex items-center gap-1 text-[10px] font-black tracking-[0.2em] uppercase"
+                    style={{ color: ACCENT }}
+                  >
+                    Abrir <ExternalLink size={11} />
+                  </motion.a>
                 </div>
                 {books.slice(0, 4).length === 0 ? (
-                  <p className="text-sm text-zinc-500">Sin libros registrados aún.</p>
+                  <p className="text-sm text-zinc-500 mb-4">Sin libros registrados aún.</p>
                 ) : (
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 mb-5">
                     {books.slice(0, 4).map(book => (
                       <div key={book.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
                         <div className="min-w-0">
@@ -396,6 +424,19 @@ export default function OcioDashboard() {
                     ))}
                   </div>
                 )}
+                {/* Lebrary CTA */}
+                <motion.a
+                  href={LEBRARY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={tapPhysics}
+                  className="mt-auto flex items-center justify-between px-5 py-3.5 rounded-2xl font-bold text-sm group"
+                  style={{ background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, color: ACCENT }}
+                >
+                  <span>Ir a Lebrary — tu biblioteca virtual</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </motion.a>
               </motion.div>
 
               {/* Bucket progress */}
@@ -739,13 +780,19 @@ export default function OcioDashboard() {
       <UniverseBottomNav
         tabs={[
           { id: 'dashboard',  label: 'Resumen',    icon: LayoutDashboard },
-          { id: 'biblioteca', label: 'Libros',     icon: BookOpen        },
+          { id: 'biblioteca', label: 'Libros',     icon: Library         },
           { id: 'pantalla',   label: 'Pantalla',   icon: Tv              },
           { id: 'hobbies',    label: 'Hobbies',    icon: Puzzle          },
           { id: 'bucket',     label: 'Bucket',     icon: Star            },
         ]}
         activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab as TabType)}
+        onTabChange={(tab) => {
+          if (tab === 'biblioteca') {
+            window.open(LEBRARY_URL, '_blank', 'noopener,noreferrer');
+          } else {
+            handleTabChange(tab as TabType);
+          }
+        }}
         activeColor={ACCENT}
         bgColor="#0A0A0A"
       />
