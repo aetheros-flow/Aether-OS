@@ -9,6 +9,7 @@ import { motion, type Variants } from 'framer-motion';
 import { toast } from 'sonner';
 
 import { useOcioData } from '../hooks/useOcioData';
+import { useAuth } from '../../../core/contexts/AuthContext';
 import type {
   NewBookInput, NewWatchInput, NewHobbyInput, NewBucketInput,
   BookStatus, WatchStatus, BucketStatus, OcioBook, OcioWatchlistItem,
@@ -40,19 +41,19 @@ const LEBRARY_URL = 'https://lebrary.netlify.app/';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PLATFORMS = ['Netflix', 'HBO Max', 'Disney+', 'Amazon Prime', 'Apple TV+', 'Crunchyroll', 'Otro'];
-const BOOK_STATUSES: BookStatus[]   = ['Por leer', 'Leyendo', 'Leído'];
+const BOOK_STATUSES: BookStatus[] = ['Por leer', 'Leyendo', 'Leído'];
 const WATCH_STATUSES: WatchStatus[] = ['Pendiente', 'Viendo', 'Visto'];
 const BUCKET_STATUSES: BucketStatus[] = ['Pendiente', 'En progreso', 'Completado'];
 
 const STATUS_COLORS: Record<string, string> = {
-  'Por leer':    '#71717A',
-  'Leyendo':     '#00E5FF',
-  'Leído':       '#34D399',
-  'Pendiente':   '#71717A',
-  'Viendo':      '#00E5FF',
-  'Visto':       '#34D399',
+  'Por leer': '#71717A',
+  'Leyendo': '#00E5FF',
+  'Leído': '#34D399',
+  'Pendiente': '#71717A',
+  'Viendo': '#00E5FF',
+  'Visto': '#34D399',
   'En progreso': '#FBBF24',
-  'Completado':  '#34D399',
+  'Completado': '#34D399',
 };
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
@@ -96,30 +97,35 @@ export default function OcioDashboard() {
     createBucketItem, updateBucketItem, deleteBucketItem,
   } = useOcioData();
 
-  const [activeTab,        setActiveTab]        = useState<TabType>('dashboard');
-  const [isSubmitting,     setIsSubmitting]     = useState(false);
+  const { session } = useAuth();
+  const authLebraryUrl = session?.access_token
+    ? `${LEBRARY_URL}#access_token=${session.access_token}&refresh_token=${session.refresh_token}&expires_in=3600&token_type=bearer&type=magiclink`
+    : LEBRARY_URL;
+
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ── Modal states ──────────────────────────────────────────────────────────
-  const [bookModalOpen,   setBookModalOpen]   = useState(false);
-  const [watchModalOpen,  setWatchModalOpen]  = useState(false);
-  const [hobbyModalOpen,  setHobbyModalOpen]  = useState(false);
+  const [bookModalOpen, setBookModalOpen] = useState(false);
+  const [watchModalOpen, setWatchModalOpen] = useState(false);
+  const [hobbyModalOpen, setHobbyModalOpen] = useState(false);
   const [bucketModalOpen, setBucketModalOpen] = useState(false);
 
   // ── Edit states ───────────────────────────────────────────────────────────
-  const [editingBook,  setEditingBook]  = useState<OcioBook | null>(null);
+  const [editingBook, setEditingBook] = useState<OcioBook | null>(null);
   const [editingWatch, setEditingWatch] = useState<OcioWatchlistItem | null>(null);
 
   // ── Form drafts ───────────────────────────────────────────────────────────
-  const [newBook,   setNewBook]   = useState<NewBookInput>(DEFAULT_BOOK);
-  const [newWatch,  setNewWatch]  = useState<NewWatchInput>(DEFAULT_WATCH);
-  const [newHobby,  setNewHobby]  = useState<NewHobbyInput>(DEFAULT_HOBBY);
+  const [newBook, setNewBook] = useState<NewBookInput>(DEFAULT_BOOK);
+  const [newWatch, setNewWatch] = useState<NewWatchInput>(DEFAULT_WATCH);
+  const [newHobby, setNewHobby] = useState<NewHobbyInput>(DEFAULT_HOBBY);
   const [newBucket, setNewBucket] = useState<NewBucketInput>(DEFAULT_BUCKET);
 
   // ── Derived KPIs ─────────────────────────────────────────────────────────
-  const booksRead      = books.filter(b => b.status === 'Leído').length;
-  const watchedCount   = watchlist.filter(w => w.status === 'Visto').length;
-  const activeHobbies  = hobbies.length;
-  const bucketDone     = bucket.filter(b => b.status === 'Completado').length;
+  const booksRead = books.filter(b => b.status === 'Leído').length;
+  const watchedCount = watchlist.filter(w => w.status === 'Visto').length;
+  const activeHobbies = hobbies.length;
+  const bucketDone = bucket.filter(b => b.status === 'Completado').length;
 
   // ── AI Insight heuristic ──────────────────────────────────────────────────
   const aiInsight = useMemo(() => {
@@ -297,10 +303,10 @@ export default function OcioDashboard() {
         </div>
 
         <div className="flex flex-col gap-2 px-4 pb-6">
-          <UniverseNavItem accent={ACCENT} icon={LayoutDashboard} label="Resumen"    isActive={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+          <UniverseNavItem accent={ACCENT} icon={LayoutDashboard} label="Resumen" isActive={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
           {/* Biblioteca → externallink to Lebrary */}
           <motion.a
-            href={LEBRARY_URL}
+            href={authLebraryUrl}
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.02, x: 2 }}
@@ -312,9 +318,9 @@ export default function OcioDashboard() {
             <span className="flex-1">Biblioteca</span>
             <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
           </motion.a>
-          <UniverseNavItem accent={ACCENT} icon={Tv}              label="Pantalla"   isActive={activeTab === 'pantalla'}  onClick={() => handleTabChange('pantalla')} />
-          <UniverseNavItem accent={ACCENT} icon={Puzzle}          label="Hobbies"    isActive={activeTab === 'hobbies'}   onClick={() => handleTabChange('hobbies')} />
-          <UniverseNavItem accent={ACCENT} icon={Star}            label="Bucket List" isActive={activeTab === 'bucket'}   onClick={() => handleTabChange('bucket')} />
+          <UniverseNavItem accent={ACCENT} icon={Tv} label="Pantalla" isActive={activeTab === 'pantalla'} onClick={() => handleTabChange('pantalla')} />
+          <UniverseNavItem accent={ACCENT} icon={Puzzle} label="Hobbies" isActive={activeTab === 'hobbies'} onClick={() => handleTabChange('hobbies')} />
+          <UniverseNavItem accent={ACCENT} icon={Star} label="Bucket List" isActive={activeTab === 'bucket'} onClick={() => handleTabChange('bucket')} />
         </div>
       </nav>
 
@@ -348,11 +354,11 @@ export default function OcioDashboard() {
               )}
             </div>
             <h2 className="font-serif font-medium mb-5 text-white tracking-tight" style={{ fontSize: 'clamp(1.8rem, 6vw, 3rem)', lineHeight: 1.05 }}>
-              {activeTab === 'dashboard'   ? 'Tu universo de ocio' :
-               activeTab === 'biblioteca' ? 'Biblioteca personal' :
-               activeTab === 'pantalla'   ? 'Series & Películas' :
-               activeTab === 'hobbies'    ? 'Hobbies activos' :
-               'Bucket List'}
+              {activeTab === 'dashboard' ? 'Tu universo de ocio' :
+                activeTab === 'biblioteca' ? 'Biblioteca personal' :
+                  activeTab === 'pantalla' ? 'Series & Películas' :
+                    activeTab === 'hobbies' ? 'Hobbies activos' :
+                      'Bucket List'}
             </h2>
 
             {/* AI Insight strip */}
@@ -372,10 +378,10 @@ export default function OcioDashboard() {
             <motion.div variants={containerVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {/* KPI Cards */}
               {[
-                { label: 'Libros leídos',         value: booksRead,     icon: BookOpen, sub: `de ${books.length} en biblioteca` },
-                { label: 'Series/Películas vistas', value: watchedCount, icon: Tv,       sub: `de ${watchlist.length} en watchlist` },
-                { label: 'Hobbies activos',        value: activeHobbies, icon: Puzzle,   sub: 'registrados' },
-                { label: 'Bucket completado',      value: bucketDone,    icon: Star,     sub: `de ${bucket.length} experiencias` },
+                { label: 'Libros leídos', value: booksRead, icon: BookOpen, sub: `de ${books.length} en biblioteca` },
+                { label: 'Series/Películas vistas', value: watchedCount, icon: Tv, sub: `de ${watchlist.length} en watchlist` },
+                { label: 'Hobbies activos', value: activeHobbies, icon: Puzzle, sub: 'registrados' },
+                { label: 'Bucket completado', value: bucketDone, icon: Star, sub: `de ${bucket.length} experiencias` },
               ].map(({ label, value, icon: Icon, sub }) => (
                 <motion.div key={label} variants={itemVariants} whileHover={hoverPhysics} className="neo-card neo-card-lg flex flex-col gap-4">
                   <div className="flex items-center gap-2.5">
@@ -397,7 +403,7 @@ export default function OcioDashboard() {
                     <h3 className="font-serif text-lg text-white tracking-tight">Biblioteca · Lebrary</h3>
                   </div>
                   <motion.a
-                    href={LEBRARY_URL}
+                    href={authLebraryUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     whileTap={tapPhysics}
@@ -426,7 +432,7 @@ export default function OcioDashboard() {
                 )}
                 {/* Lebrary CTA */}
                 <motion.a
-                  href={LEBRARY_URL}
+                  href={authLebraryUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.01 }}
@@ -493,7 +499,7 @@ export default function OcioDashboard() {
                   </div>
                   {book.rating && (
                     <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(n => (
+                      {[1, 2, 3, 4, 5].map(n => (
                         <Star key={n} size={14} fill={n <= book.rating! ? ACCENT : 'none'} stroke={n <= book.rating! ? ACCENT : '#3F3F46'} />
                       ))}
                     </div>
@@ -542,7 +548,7 @@ export default function OcioDashboard() {
                   </div>
                   {item.rating && (
                     <div className="flex gap-0.5">
-                      {[1,2,3,4,5].map(n => (
+                      {[1, 2, 3, 4, 5].map(n => (
                         <Star key={n} size={14} fill={n <= item.rating! ? ACCENT : 'none'} stroke={n <= item.rating! ? ACCENT : '#3F3F46'} />
                       ))}
                     </div>
@@ -779,16 +785,16 @@ export default function OcioDashboard() {
 
       <UniverseBottomNav
         tabs={[
-          { id: 'dashboard',  label: 'Resumen',    icon: LayoutDashboard },
-          { id: 'biblioteca', label: 'Libros',     icon: Library         },
-          { id: 'pantalla',   label: 'Pantalla',   icon: Tv              },
-          { id: 'hobbies',    label: 'Hobbies',    icon: Puzzle          },
-          { id: 'bucket',     label: 'Bucket',     icon: Star            },
+          { id: 'dashboard', label: 'Resumen', icon: LayoutDashboard },
+          { id: 'biblioteca', label: 'Libros', icon: Library },
+          { id: 'pantalla', label: 'Pantalla', icon: Tv },
+          { id: 'hobbies', label: 'Hobbies', icon: Puzzle },
+          { id: 'bucket', label: 'Bucket', icon: Star },
         ]}
         activeTab={activeTab}
         onTabChange={(tab) => {
           if (tab === 'biblioteca') {
-            window.open(LEBRARY_URL, '_blank', 'noopener,noreferrer');
+            window.open(authLebraryUrl, '_blank', 'noopener,noreferrer');
           } else {
             handleTabChange(tab as TabType);
           }
