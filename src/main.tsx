@@ -6,13 +6,16 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './core/router';
 import './index.css';
 import { AuthProvider } from './core/contexts/AuthContext';
+import { ThemeProvider } from './core/contexts/ThemeContext';
 import { Toaster } from 'sonner';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-      <Toaster position="bottom-center" richColors />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+        <Toaster position="bottom-center" richColors />
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

@@ -15,7 +15,10 @@ Environment variables required in `.env.local`:
 ```
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
+VITE_TMDB_API_KEY=...   # Required by the Ocio → Pantalla module (TMDB v3 API)
 ```
+
+Get a free TMDB key at https://www.themoviedb.org/settings/api (Developer → personal use).
 
 Path alias: `@` → `./src` (configured in vite.config.ts and tsconfig).
 
@@ -40,7 +43,20 @@ src/
     social/
     familia/
     ocio/
+      pages/OcioDashboard.tsx   # Shell with Resumen / Biblioteca (→ Lebrary) / Hobbies / Bucket
+      hooks/useOcioData.ts      # Books + hobbies + bucket list (legacy Ocio_watchlist is unused)
+      pantalla/                 # Moviebase-style Movies & TV tracker (TMDB-backed)
+        pages/                  # PantallaShell, HomeView, MoviesView, ShowsView, TitleDetailView, ProfileView
+        components/             # TitleCard, UpcomingCard, ProviderFilter, SearchBar, etc.
+        hooks/                  # usePantallaData, usePantallaActions, useTmdb, useTmdbDetails
+        lib/tmdb.ts             # TMDB v3 client with 5-min in-memory cache
+        lib/tmdb-constants.ts   # Provider/network IDs + default region (AR)
+        types/                  # TMDB response subsets + Supabase row shapes
 ```
+
+### Ocio → Pantalla (Movies & TV tracker)
+
+Routed at `/ocio/pantalla/*` as a nested shell with bottom-nav tabs (Home, Movies, TV Shows, Profile) plus `/:mediaType/:tmdbId` for title detail. All user-scoped state lives in `Ocio_pantalla_*` tables (see `supabase/schema-pantalla.sql`) — catalog data (title, poster, cast, providers) is fetched live from TMDB. Legacy manual watchlist `Ocio_watchlist` is deprecated; tab removed from `OcioDashboard`.
 
 ### Core layer (`src/core/`)
 
@@ -87,6 +103,13 @@ universes/dinero/
 | `Finanzas_investments`, `Finanzas_projects` | Dinero |
 | `Finanzas_crypto_radar` | Dinero — crypto trade journal |
 | `Finanzas_categories`, `Finanzas_budgets`, `Finanzas_subscriptions` | Dinero |
+| `Ocio_books`, `Ocio_hobbies`, `Ocio_bucket_list` | Ocio — manual trackers |
+| `Ocio_pantalla_watchlist` | Pantalla — `{ user_id, tmdb_id, media_type, added_at }` |
+| `Ocio_pantalla_history` | Pantalla — whole-title watched timestamp |
+| `Ocio_pantalla_show_progress` | Pantalla — current season + episode per show |
+| `Ocio_pantalla_episode_history` | Pantalla — audit trail of watched episodes |
+| `Ocio_pantalla_ratings` | Pantalla — 1–10 stars per title |
+| `Ocio_pantalla_hidden` | Pantalla — titles to exclude from discover |
 
 ### Wheel of Life (DashboardPage)
 

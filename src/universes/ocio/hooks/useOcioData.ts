@@ -2,18 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../core/contexts/AuthContext';
 import type {
-  OcioBook, OcioWatchlistItem, OcioHobby, OcioBucketItem,
-  NewBookInput, NewWatchInput, NewHobbyInput, NewBucketInput,
+  OcioBook, OcioHobby, OcioBucketItem,
+  NewBookInput, NewHobbyInput, NewBucketInput,
 } from '../types';
+
+// NOTE: legacy `Ocio_watchlist` table is no longer read/written here. The
+// Pantalla module under `ocio/pantalla/` replaces it with TMDB-backed state
+// in `Ocio_pantalla_*` tables. The old table is preserved in the DB as dead
+// weight for now; drop it manually once there are definitely no rows.
 
 export function useOcioData() {
   const { user } = useAuth();
 
-  const [books,     setBooks]     = useState<OcioBook[]>([]);
-  const [watchlist, setWatchlist] = useState<OcioWatchlistItem[]>([]);
-  const [hobbies,   setHobbies]   = useState<OcioHobby[]>([]);
-  const [bucket,    setBucket]    = useState<OcioBucketItem[]>([]);
-  const [loading,   setLoading]   = useState(true);
+  const [books,   setBooks]   = useState<OcioBook[]>([]);
+  const [hobbies, setHobbies] = useState<OcioHobby[]>([]);
+  const [bucket,  setBucket]  = useState<OcioBucketItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -21,17 +25,14 @@ export function useOcioData() {
     try {
       const [
         { data: b },
-        { data: w },
         { data: h },
         { data: bl },
       ] = await Promise.all([
         supabase.from('Ocio_books').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('Ocio_watchlist').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('Ocio_hobbies').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('Ocio_bucket_list').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
       if (b)  setBooks(b);
-      if (w)  setWatchlist(w);
       if (h)  setHobbies(h);
       if (bl) setBucket(bl);
     } catch (err) {
@@ -75,40 +76,6 @@ export function useOcioData() {
   const deleteBook = async (id: string): Promise<void> => {
     if (!user) throw new Error('No autenticado');
     const { error } = await supabase.from('Ocio_books').delete().eq('id', id).eq('user_id', user.id);
-    if (error) throw error;
-    await fetchData();
-  };
-
-  const createWatchItem = async (input: NewWatchInput): Promise<void> => {
-    if (!user) throw new Error('No autenticado');
-    const { error } = await supabase.from('Ocio_watchlist').insert([{
-      user_id:  user.id,
-      title:    input.title.trim(),
-      platform: input.platform,
-      status:   input.status,
-      genre:    input.genre.trim() || null,
-      rating:   input.rating ? Number(input.rating) : null,
-    }]);
-    if (error) throw error;
-    await fetchData();
-  };
-
-  const updateWatchItem = async (id: string, input: Partial<NewWatchInput>): Promise<void> => {
-    if (!user) throw new Error('No autenticado');
-    const { error } = await supabase.from('Ocio_watchlist').update({
-      ...(input.title    !== undefined && { title:    input.title.trim() }),
-      ...(input.platform !== undefined && { platform: input.platform }),
-      ...(input.status   !== undefined && { status:   input.status }),
-      ...(input.genre    !== undefined && { genre:    input.genre.trim() || null }),
-      ...(input.rating   !== undefined && { rating:   input.rating ? Number(input.rating) : null }),
-    }).eq('id', id).eq('user_id', user.id);
-    if (error) throw error;
-    await fetchData();
-  };
-
-  const deleteWatchItem = async (id: string): Promise<void> => {
-    if (!user) throw new Error('No autenticado');
-    const { error } = await supabase.from('Ocio_watchlist').delete().eq('id', id).eq('user_id', user.id);
     if (error) throw error;
     await fetchData();
   };
@@ -160,9 +127,8 @@ export function useOcioData() {
   };
 
   return {
-    books, watchlist, hobbies, bucket, loading, fetchData,
+    books, hobbies, bucket, loading, fetchData,
     createBook, updateBook, deleteBook,
-    createWatchItem, updateWatchItem, deleteWatchItem,
     createHobby, deleteHobby,
     createBucketItem, updateBucketItem, deleteBucketItem,
   };

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { Loader2, BrainCircuit, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from '../../../core/components/ThemeToggle';
 
 const TOTAL_SEGMENTS = 8;
 const RADIUS = 300;
@@ -268,6 +269,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen font-sans text-white relative overflow-x-hidden flex flex-col bg-[#0A0A0A] selection:bg-white/20 selection:text-white">
+
+      <ThemeToggle variant="floating" />
 
       {/* ── GLOWS DE FONDO REACTIVOS ── */}
       <div

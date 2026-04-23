@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { Target, Activity, TrendingUp, TrendingDown, Bitcoin, RefreshCw, Sparkles } from 'lucide-react';
+import { Target, Activity, TrendingUp, TrendingDown, Bitcoin, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
 import {
   resolveCoinId,
   fetchPrices,
@@ -43,9 +43,10 @@ interface CryptoRadarTrade {
 
 interface DineroRadarProps {
   cryptoTrades: CryptoRadarTrade[];
+  onDeleteTrade?: (id: string) => void | Promise<void>;
 }
 
-export function DineroRadar({ cryptoTrades }: DineroRadarProps) {
+export function DineroRadar({ cryptoTrades, onDeleteTrade }: DineroRadarProps) {
   const [prices, setPrices] = useState<Record<string, CoinPrice>>({});
   const [markets, setMarkets] = useState<CoinMarket[]>([]);
   const [loading, setLoading] = useState(false);
@@ -332,7 +333,7 @@ export function DineroRadar({ cryptoTrades }: DineroRadarProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 text-right pl-3 md:pl-0">
+                <div className="flex items-center gap-4 text-right pl-3 md:pl-0">
                   <div className="flex flex-col items-end">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-1">
                       {isOpen ? 'Live P&L' : 'Result'}
@@ -352,6 +353,15 @@ export function DineroRadar({ cryptoTrades }: DineroRadarProps) {
                       </p>
                     )}
                   </div>
+                  {onDeleteTrade && (
+                    <button
+                      onClick={() => onDeleteTrade(trade.id)}
+                      className="p-2.5 rounded-xl text-white/25 hover:text-rose-400 hover:bg-rose-400/10 active:scale-90 transition-all"
+                      aria-label={`Delete ${trade.pair} trade`}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
               </div>
             );

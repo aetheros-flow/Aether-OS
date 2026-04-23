@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Wallet, ArrowLeft, Loader2, Upload, Target, Trophy, Plus, LayoutDashboard, Receipt, Tag, Bitcoin, CalendarClock, PieChart, Sparkles, Zap
+  Wallet, ArrowLeft, Loader2, Upload, Target, Plus, LayoutDashboard, Receipt, Tag, Bitcoin, CalendarClock, PieChart, Sparkles, Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
@@ -14,11 +14,9 @@ import { DineroRadar } from '../components/views/DineroRadar';
 import { DineroModals } from '../components/modals/DineroModals';
 import { DineroSubscriptions } from '../components/views/DineroSubscriptions';
 
-export type TabType = 'dashboard' | 'transactions' | 'categories' | 'calendar' | 'budget' | 'reports' | 'radar';
+export type TabType = 'dashboard' | 'transactions' | 'categories' | 'calendar' | 'budget' | 'radar';
 
 interface Account { id: string; name: string; type: string; currency: string; balance: number; is_debt: boolean; }
-interface Investment { id: string; asset_name: string; symbol: string; holdings: number; avg_buy_price: number; }
-interface Project { id: string; name: string; status: string; allocated_budget: number; monthly_burn: number; tech_stack: string; }
 interface CryptoRadarTrade { id: string; user_id: string; pair: string; direction: string; entry_price: number; exit_price: number | null; position_size: number; leverage: number; stop_loss: number | null; take_profit: number | null; commissions: number; notes: string; status: string; pnl_neto: number | null; trade_date: string; }
 interface Budget { id: string; category_name: string; limit_amount: number; }
 
@@ -43,8 +41,6 @@ export default function DineroDashboard() {
   const [onboardingStep, setOnboardingStep] = useState<number>(0);
 
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [_investments, setInvestments] = useState<Investment[]>([]);
-  const [_projects, setProjects] = useState<Project[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [cryptoTrades, setCryptoTrades] = useState<CryptoRadarTrade[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -87,7 +83,6 @@ export default function DineroDashboard() {
     { id: 'calendar',     label: 'Subscriptions', mobileLabel: 'Subs',   icon: <CalendarClock size={18} /> },
     { id: 'budget',       label: 'Budget',        mobileLabel: 'Budget', icon: <PieChart size={18} /> },
     { id: 'radar',        label: 'Radar Crypto',  mobileLabel: 'Crypto', icon: <Bitcoin size={18} /> },
-    { id: 'reports',      label: 'Reports',       mobileLabel: 'Reports',icon: <Trophy size={18} /> },
   ];
 
   const fetchData = async () => {
@@ -95,8 +90,6 @@ export default function DineroDashboard() {
     try {
       const [
         { data: accs },
-        { data: invs },
-        { data: projs },
         { data: trans },
         { data: trades },
         { data: cats },
@@ -104,8 +97,6 @@ export default function DineroDashboard() {
         { data: subs }
       ] = await Promise.all([
         supabase.from('Finanzas_accounts').select('*'),
-        supabase.from('Finanzas_investments').select('*'),
-        supabase.from('Finanzas_projects').select('*'),
         supabase.from('Finanzas_transactions').select('*, Finanzas_accounts(name)').order('date', { ascending: false }),
         supabase.from('Finanzas_crypto_radar').select('*').order('trade_date', { ascending: false }),
         supabase.from('Finanzas_categories').select('*'),
@@ -119,8 +110,6 @@ export default function DineroDashboard() {
           setNewTransaction(prev => ({ ...prev, account_id: accs[0].id }));
         }
       }
-      if (invs) setInvestments(invs);
-      if (projs) setProjects(projs);
       if (trans) setTransactions(trans);
       if (trades) setCryptoTrades(trades);
       if (cats) setCategories(cats);
@@ -128,7 +117,7 @@ export default function DineroDashboard() {
       if (subs) setSubscriptions(subs);
 
     } catch (error) {
-      console.error("Error cargando finanzas:", error);
+      console.error("Error loading finances:", error);
     } finally {
       setLoading(false);
     }
@@ -258,9 +247,36 @@ export default function DineroDashboard() {
     if (!editTransaction) return;
     setIsSubmitting(true);
     try {
-      const numericAmount = Number(editTransaction.amount);
-      const { error } = await supabase.from('Finanzas_transactions').update({ category: editTransaction.category, description: editTransaction.description, amount: numericAmount, type: editTransaction.type }).eq('id', editTransaction.id);
+      const newAmount = Number(editTransaction.amount);
+      const newType: 'income' | 'expense' = editTransaction.type;
+
+      // IMPORTANT: always compute the balance delta from the ORIGINAL row (not the
+      // edited draft), otherwise if the user changes type/amount we lose the old
+      // values and the balance drifts. Pull the untouched original from state.
+      const original = transactions.find(t => t.id === editTransaction.id);
+      if (!original) throw new Error('Original transaction not found');
+      const oldAmount = Number(original.amount);
+      const oldType: 'income' | 'expense' = original.type;
+      const accountId: string | undefined = original.account_id;
+
+      const { error } = await supabase.from('Finanzas_transactions').update({
+        category:    editTransaction.category,
+        description: editTransaction.description,
+        amount:      newAmount,
+        type:        newType,
+      }).eq('id', editTransaction.id);
       if (error) throw error;
+
+      // Reconcile the account balance: reverse the old effect, apply the new one.
+      if (accountId) {
+        const account = accounts.find(a => a.id === accountId);
+        if (account) {
+          const reversedOld = oldType === 'income' ? account.balance - oldAmount : account.balance + oldAmount;
+          const applyNew    = newType === 'income' ? reversedOld + newAmount     : reversedOld - newAmount;
+          await supabase.from('Finanzas_accounts').update({ balance: applyNew }).eq('id', account.id);
+        }
+      }
+
       setIsEditModalOpen(false);
       setEditTransaction(null);
       await fetchData();
@@ -269,18 +285,41 @@ export default function DineroDashboard() {
   };
 
   const handleDeleteTransaction = async () => {
-    const id = editTransaction?.id;
-    if (!id) return;
-    if (!window.confirm("Are you sure you want to delete this transaction? This action cannot be undone.")) return;
+    const tx = editTransaction ? transactions.find(t => t.id === editTransaction.id) : null;
+    if (!tx) return;
+    if (!window.confirm("Are you sure you want to delete this transaction? The account balance will be adjusted.")) return;
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('Finanzas_transactions').delete().eq('id', id);
+      const { error } = await supabase.from('Finanzas_transactions').delete().eq('id', tx.id);
       if (error) throw error;
+
+      // Reverse the transaction's effect on account balance
+      if (tx.account_id) {
+        const account = accounts.find(a => a.id === tx.account_id);
+        if (account) {
+          const amt = Number(tx.amount);
+          const reversed = tx.type === 'income' ? account.balance - amt : account.balance + amt;
+          await supabase.from('Finanzas_accounts').update({ balance: reversed }).eq('id', account.id);
+        }
+      }
+
       setEditTransaction(null);
       setIsEditModalOpen(false);
       await fetchData();
     } catch (e: any) { alert("Error deleting: " + e.message); }
     finally { setIsSubmitting(false); }
+  };
+
+  // ── Crypto trade delete (was missing) ────────────────────────────────────
+  const handleDeleteCryptoTrade = async (tradeId: string) => {
+    if (!window.confirm('Delete this trade? This cannot be undone.')) return;
+    try {
+      const { error } = await supabase.from('Finanzas_crypto_radar').delete().eq('id', tradeId);
+      if (error) throw error;
+      await fetchData();
+    } catch (e: any) {
+      alert('Error deleting trade: ' + e.message);
+    }
   };
 
   const handleCsvImport = async (e: React.FormEvent) => {
@@ -510,7 +549,7 @@ export default function DineroDashboard() {
         )}
         {activeTab === 'transactions' && <DineroTransactions accounts={accounts} transactions={transactions} setEditTransaction={setEditTransaction} setIsEditModalOpen={setIsEditModalOpen} setIsTransactionModalOpen={setIsTransactionModalOpen} onImportClick={() => setIsCsvModalOpen(true)} onExportClick={() => setIsExportModalOpen(true)} />}
         {activeTab === 'categories' && <DineroCategories transactions={transactions} categories={categories} setIsCategoryModalOpen={setIsCategoryModalOpen} />}
-        {activeTab === 'radar' && <DineroRadar cryptoTrades={cryptoTrades} />}
+        {activeTab === 'radar' && <DineroRadar cryptoTrades={cryptoTrades} onDeleteTrade={handleDeleteCryptoTrade} />}
 
         {activeTab === 'calendar' && (
           <DineroSubscriptions subscriptions={subscriptions} setIsSubscriptionModalOpen={setIsSubscriptionModalOpen} />
@@ -590,25 +629,6 @@ export default function DineroDashboard() {
           </motion.div>
         )}
 
-        {activeTab === 'reports' && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col gap-6 w-full max-w-7xl"
-          >
-            <motion.div variants={itemVariants} className="rounded-3xl bg-zinc-900/60 border border-white/5 backdrop-blur-xl flex flex-col justify-center items-center py-10 relative overflow-hidden">
-              <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}22, transparent 70%)`, filter: 'blur(80px)' }} />
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="p-4 rounded-2xl mb-4" style={{ backgroundColor: `${ACCENT}1F` }}>
-                  <Trophy size={32} style={{ color: ACCENT }} />
-                </div>
-                <h3 className="font-serif text-2xl font-medium text-white mb-2">Reports</h3>
-                <p className="text-sm text-zinc-400 max-w-md text-center font-medium">Insights and analytics coming soon.</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
       </main>
 
       <DineroModals

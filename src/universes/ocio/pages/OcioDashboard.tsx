@@ -1,18 +1,19 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   ArrowLeft, LayoutDashboard, BookOpen, Tv, Puzzle, Star, Plus,
   Loader2, Trash2, CheckCircle2, Circle, Clock, Edit3, Sparkles,
-  ExternalLink, Library, ArrowRight,
+  ExternalLink, Library, ArrowRight, Play,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import { toast } from 'sonner';
 
 import { useOcioData } from '../hooks/useOcioData';
+import { useOcioInsight } from '../hooks/useOcioInsight';
 import { useAuth } from '../../../core/contexts/AuthContext';
 import type {
-  NewBookInput, NewWatchInput, NewHobbyInput, NewBucketInput,
-  BookStatus, WatchStatus, BucketStatus, OcioBook, OcioWatchlistItem,
+  NewBookInput, NewHobbyInput, NewBucketInput,
+  BookStatus, BucketStatus, OcioBook,
 } from '../types';
 import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
@@ -20,7 +21,7 @@ import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
 import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type TabType = 'dashboard' | 'biblioteca' | 'pantalla' | 'hobbies' | 'bucket';
+type TabType = 'dashboard' | 'biblioteca' | 'hobbies' | 'bucket';
 
 // ── Neo-Dark accent ───────────────────────────────────────────────────────────
 const ACCENT = '#00E5FF';
@@ -40,9 +41,7 @@ const hoverPhysics = { scale: 1.01 };
 const LEBRARY_URL = 'https://lebrary.netlify.app/';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const PLATFORMS = ['Netflix', 'HBO Max', 'Disney+', 'Amazon Prime', 'Apple TV+', 'Crunchyroll', 'Otro'];
 const BOOK_STATUSES: BookStatus[] = ['Por leer', 'Leyendo', 'Leído'];
-const WATCH_STATUSES: WatchStatus[] = ['Pendiente', 'Viendo', 'Visto'];
 const BUCKET_STATUSES: BucketStatus[] = ['Pendiente', 'En progreso', 'Completado'];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -50,15 +49,12 @@ const STATUS_COLORS: Record<string, string> = {
   'Leyendo': '#00E5FF',
   'Leído': '#34D399',
   'Pendiente': '#71717A',
-  'Viendo': '#00E5FF',
-  'Visto': '#34D399',
   'En progreso': '#FBBF24',
   'Completado': '#34D399',
 };
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const DEFAULT_BOOK: NewBookInput = { title: '', author: '', status: 'Por leer', rating: '', notes: '' };
-const DEFAULT_WATCH: NewWatchInput = { title: '', platform: 'Netflix', status: 'Pendiente', genre: '', rating: '' };
 const DEFAULT_HOBBY: NewHobbyInput = { name: '', frequency: '', last_practiced: '', notes: '' };
 const DEFAULT_BUCKET: NewBucketInput = { description: '', category: '', status: 'Pendiente' };
 
@@ -86,13 +82,37 @@ function StarRating({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
+// ── Signal Bar (used inside the Aether Insight card) ──────────────────────────
+function SignalBar({ label, weight, score, tooltip, color }: {
+  label: string; weight: string; score: number; tooltip: string; color: string;
+}) {
+  const pct = Math.min(100, Math.max(0, (score / 10) * 100));
+  return (
+    <div className="flex flex-col gap-1.5" title={tooltip}>
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-black tracking-[0.15em] uppercase text-zinc-400">{label}</span>
+        <span className="text-[9px] font-bold text-zinc-600 tabular-nums">{weight}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ background: color, boxShadow: `0 0 8px ${color}60` }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        />
+      </div>
+      <span className="text-[11px] font-bold text-white tabular-nums">{score.toFixed(1)}</span>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function OcioDashboard() {
   const navigate = useNavigate();
   const {
-    books, watchlist, hobbies, bucket, loading,
+    books, hobbies, bucket, loading,
     createBook, updateBook, deleteBook,
-    createWatchItem, updateWatchItem, deleteWatchItem,
     createHobby, deleteHobby,
     createBucketItem, updateBucketItem, deleteBucketItem,
   } = useOcioData();
@@ -107,41 +127,25 @@ export default function OcioDashboard() {
 
   // ── Modal states ──────────────────────────────────────────────────────────
   const [bookModalOpen, setBookModalOpen] = useState(false);
-  const [watchModalOpen, setWatchModalOpen] = useState(false);
   const [hobbyModalOpen, setHobbyModalOpen] = useState(false);
   const [bucketModalOpen, setBucketModalOpen] = useState(false);
 
   // ── Edit states ───────────────────────────────────────────────────────────
   const [editingBook, setEditingBook] = useState<OcioBook | null>(null);
-  const [editingWatch, setEditingWatch] = useState<OcioWatchlistItem | null>(null);
 
   // ── Form drafts ───────────────────────────────────────────────────────────
   const [newBook, setNewBook] = useState<NewBookInput>(DEFAULT_BOOK);
-  const [newWatch, setNewWatch] = useState<NewWatchInput>(DEFAULT_WATCH);
   const [newHobby, setNewHobby] = useState<NewHobbyInput>(DEFAULT_HOBBY);
   const [newBucket, setNewBucket] = useState<NewBucketInput>(DEFAULT_BUCKET);
 
   // ── Derived KPIs ─────────────────────────────────────────────────────────
   const booksRead = books.filter(b => b.status === 'Leído').length;
-  const watchedCount = watchlist.filter(w => w.status === 'Visto').length;
   const activeHobbies = hobbies.length;
   const bucketDone = bucket.filter(b => b.status === 'Completado').length;
 
-  // ── AI Insight heuristic ──────────────────────────────────────────────────
-  const aiInsight = useMemo(() => {
-    if (booksRead === 0 && watchedCount === 0 && activeHobbies === 0 && bucket.length === 0) {
-      return 'Empieza por sembrar: agrega un libro, una serie o una experiencia que quieras vivir.';
-    }
-    const inProgressBooks = books.filter(b => b.status === 'Leyendo').length;
-    const watchingNow = watchlist.filter(w => w.status === 'Viendo').length;
-    if (inProgressBooks >= 3) return `Tienes ${inProgressBooks} libros en curso. Termina uno antes de empezar otro.`;
-    if (watchingNow >= 4) return `${watchingNow} series en simultáneo. Tu mente agradecerá enfoque.`;
-    if (bucketDone > 0 && bucketDone / Math.max(bucket.length, 1) > 0.5) {
-      return `${bucketDone} de ${bucket.length} experiencias completadas. Estás viviendo, no solo planeando.`;
-    }
-    if (activeHobbies >= 3) return `${activeHobbies} hobbies activos: el cerebro creativo prospera con variedad.`;
-    return `${booksRead} libros, ${watchedCount} títulos vistos. El ocio consciente es nutrición mental.`;
-  }, [booksRead, watchedCount, activeHobbies, bucket, books, watchlist, bucketDone]);
+  // ── AI Insight: pulls signals from all Ocio sub-modules (books/hobbies/
+  //    bucket/Pantalla/Videos) and suggests a wheel score for this universe.
+  const insight = useOcioInsight();
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const handleTabChange = (tab: TabType) => { setActiveTab(tab); };
@@ -152,14 +156,7 @@ export default function OcioDashboard() {
     setBookModalOpen(true);
   };
 
-  const openEditWatch = (item: OcioWatchlistItem) => {
-    setEditingWatch(item);
-    setNewWatch({ title: item.title, platform: item.platform, status: item.status, genre: item.genre ?? '', rating: item.rating ? String(item.rating) : '' });
-    setWatchModalOpen(true);
-  };
-
   const closeBookModal = () => { setBookModalOpen(false); setEditingBook(null); setNewBook(DEFAULT_BOOK); };
-  const closeWatchModal = () => { setWatchModalOpen(false); setEditingWatch(null); setNewWatch(DEFAULT_WATCH); };
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleBookSubmit = async (e: { preventDefault(): void }) => {
@@ -175,26 +172,6 @@ export default function OcioDashboard() {
         toast.success('Libro agregado a la biblioteca');
       }
       closeBookModal();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al guardar');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleWatchSubmit = async (e: { preventDefault(): void }) => {
-    e.preventDefault();
-    if (!newWatch.title.trim()) return;
-    setIsSubmitting(true);
-    try {
-      if (editingWatch) {
-        await updateWatchItem(editingWatch.id, newWatch);
-        toast.success('Título actualizado');
-      } else {
-        await createWatchItem(newWatch);
-        toast.success('Agregado a tu pantalla');
-      }
-      closeWatchModal();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Error al guardar');
     } finally {
@@ -239,11 +216,6 @@ export default function OcioDashboard() {
     catch { toast.error('Error al eliminar'); }
   };
 
-  const handleDeleteWatch = async (id: string) => {
-    try { await deleteWatchItem(id); toast.success('Título eliminado'); }
-    catch { toast.error('Error al eliminar'); }
-  };
-
   const handleDeleteHobby = async (id: string) => {
     try { await deleteHobby(id); toast.success('Hobby eliminado'); }
     catch { toast.error('Error al eliminar'); }
@@ -260,7 +232,7 @@ export default function OcioDashboard() {
   };
 
   // ── Loading ───────────────────────────────────────────────────────────────
-  if (loading && books.length === 0 && watchlist.length === 0) {
+  if (loading && books.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <Loader2 className="w-12 h-12 animate-spin" style={{ color: ACCENT }} />
@@ -304,7 +276,7 @@ export default function OcioDashboard() {
 
         <div className="flex flex-col gap-2 px-4 pb-6">
           <UniverseNavItem accent={ACCENT} icon={LayoutDashboard} label="Resumen" isActive={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-          {/* Biblioteca → externallink to Lebrary */}
+          {/* Biblioteca → external link to Lebrary */}
           <motion.a
             href={authLebraryUrl}
             target="_blank"
@@ -318,7 +290,30 @@ export default function OcioDashboard() {
             <span className="flex-1">Biblioteca</span>
             <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
           </motion.a>
-          <UniverseNavItem accent={ACCENT} icon={Tv} label="Pantalla" isActive={activeTab === 'pantalla'} onClick={() => handleTabChange('pantalla')} />
+          {/* Pantalla → internal link to the new Moviebase-style module */}
+          <motion.div whileHover={{ scale: 1.02, x: 2 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              to="/ocio/pantalla"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group"
+              style={{ color: ACCENT, background: `${ACCENT}12`, border: `1px solid ${ACCENT}30` }}
+            >
+              <Tv size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 6px ${ACCENT}60)` }} />
+              <span className="flex-1">Pantalla</span>
+              <ArrowRight size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+            </Link>
+          </motion.div>
+          {/* Videos → YouTube/multi-platform tracker */}
+          <motion.div whileHover={{ scale: 1.02, x: 2 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              to="/ocio/videos"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors group"
+              style={{ color: ACCENT, background: `${ACCENT}12`, border: `1px solid ${ACCENT}30` }}
+            >
+              <Play size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 6px ${ACCENT}60)` }} />
+              <span className="flex-1">Videos</span>
+              <ArrowRight size={12} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+            </Link>
+          </motion.div>
           <UniverseNavItem accent={ACCENT} icon={Puzzle} label="Hobbies" isActive={activeTab === 'hobbies'} onClick={() => handleTabChange('hobbies')} />
           <UniverseNavItem accent={ACCENT} icon={Star} label="Bucket List" isActive={activeTab === 'bucket'} onClick={() => handleTabChange('bucket')} />
         </div>
@@ -341,7 +336,6 @@ export default function OcioDashboard() {
                   whileTap={tapPhysics}
                   onClick={() => {
                     if (activeTab === 'biblioteca') setBookModalOpen(true);
-                    else if (activeTab === 'pantalla') setWatchModalOpen(true);
                     else if (activeTab === 'hobbies') setHobbyModalOpen(true);
                     else if (activeTab === 'bucket') setBucketModalOpen(true);
                   }}
@@ -349,27 +343,70 @@ export default function OcioDashboard() {
                   style={{ backgroundColor: ACCENT, color: '#000', boxShadow: `0 0 24px ${ACCENT}60` }}
                 >
                   <Plus size={13} strokeWidth={3} />
-                  {activeTab === 'biblioteca' ? 'Agregar Libro' : activeTab === 'pantalla' ? 'Agregar Título' : activeTab === 'hobbies' ? 'Agregar Hobby' : 'Agregar Experiencia'}
+                  {activeTab === 'biblioteca' ? 'Agregar Libro' : activeTab === 'hobbies' ? 'Agregar Hobby' : 'Agregar Experiencia'}
                 </motion.button>
               )}
             </div>
             <h2 className="font-serif font-medium mb-5 text-white tracking-tight" style={{ fontSize: 'clamp(1.8rem, 6vw, 3rem)', lineHeight: 1.05 }}>
               {activeTab === 'dashboard' ? 'Tu universo de ocio' :
                 activeTab === 'biblioteca' ? 'Biblioteca personal' :
-                  activeTab === 'pantalla' ? 'Series & Películas' :
-                    activeTab === 'hobbies' ? 'Hobbies activos' :
-                      'Bucket List'}
+                  activeTab === 'hobbies' ? 'Hobbies activos' :
+                    'Bucket List'}
             </h2>
 
-            {/* AI Insight strip */}
-            <div className="neo-card neo-card-lg flex items-start gap-4">
-              <div className="p-2.5 rounded-2xl shrink-0" style={{ background: `${ACCENT}1A`, border: `1px solid ${ACCENT}40` }}>
-                <Sparkles size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 8px ${ACCENT}80)` }} />
+            {/* AI Insight strip — data-driven via useOcioInsight */}
+            <div className="neo-card neo-card-lg flex flex-col gap-4">
+              <div className="flex items-start gap-4">
+                <div className="p-2.5 rounded-2xl shrink-0" style={{ background: `${ACCENT}1A`, border: `1px solid ${ACCENT}40` }}>
+                  <Sparkles size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 8px ${ACCENT}80)` }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500">Aether Insight</p>
+                    {!insight.loading && (
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[10px] font-black tabular-nums"
+                        style={{ background: `${ACCENT}20`, color: ACCENT, border: `1px solid ${ACCENT}45` }}
+                      >
+                        Sugerido {insight.suggestedScore.toFixed(1)}
+                        {insight.delta != null && insight.delta !== 0 && (
+                          <span className="ml-1 opacity-80">
+                            ({insight.delta > 0 ? '+' : ''}{insight.delta.toFixed(1)})
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[15px] leading-relaxed text-white/90">{insight.reasoning}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1.5">Aether Insight</p>
-                <p className="text-[15px] leading-relaxed text-white/90">{aiInsight}</p>
-              </div>
+
+              {/* Signal bars */}
+              {!insight.loading && (
+                <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/5">
+                  <SignalBar
+                    label="Consistencia"
+                    weight="40%"
+                    score={insight.signals.consistency.score}
+                    tooltip={insight.signals.consistency.label}
+                    color={ACCENT}
+                  />
+                  <SignalBar
+                    label="Diversidad"
+                    weight="30%"
+                    score={insight.signals.diversity.score}
+                    tooltip={insight.signals.diversity.label}
+                    color={ACCENT}
+                  />
+                  <SignalBar
+                    label="Calidad"
+                    weight="30%"
+                    score={insight.signals.quality.score}
+                    tooltip={insight.signals.quality.label}
+                    color={ACCENT}
+                  />
+                </div>
+              )}
             </div>
           </motion.header>
 
@@ -379,7 +416,6 @@ export default function OcioDashboard() {
               {/* KPI Cards */}
               {[
                 { label: 'Libros leídos', value: booksRead, icon: BookOpen, sub: `de ${books.length} en biblioteca` },
-                { label: 'Series/Películas vistas', value: watchedCount, icon: Tv, sub: `de ${watchlist.length} en watchlist` },
                 { label: 'Hobbies activos', value: activeHobbies, icon: Puzzle, sub: 'registrados' },
                 { label: 'Bucket completado', value: bucketDone, icon: Star, sub: `de ${bucket.length} experiencias` },
               ].map(({ label, value, icon: Icon, sub }) => (
@@ -394,6 +430,46 @@ export default function OcioDashboard() {
                   <span className="text-sm font-medium text-zinc-400">{sub}</span>
                 </motion.div>
               ))}
+
+              {/* Pantalla CTA card */}
+              <motion.div variants={itemVariants} whileHover={hoverPhysics} className="neo-card neo-card-lg flex flex-col gap-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-2xl" style={{ background: `${ACCENT}1A`, border: `1px solid ${ACCENT}30` }}>
+                    <Tv size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 6px ${ACCENT}80)` }} />
+                  </div>
+                  <span className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500">Pantalla</span>
+                </div>
+                <span className="font-serif text-2xl font-semibold text-white leading-tight">Series &amp; Películas</span>
+                <span className="text-sm text-zinc-400">Descubrí, trackeá y calificá — con datos en vivo de TMDB.</span>
+                <Link
+                  to="/ocio/pantalla"
+                  className="mt-auto flex items-center justify-between px-5 py-3.5 rounded-2xl font-bold text-sm group"
+                  style={{ background: `${ACCENT}12`, border: `1px solid ${ACCENT}30`, color: ACCENT }}
+                >
+                  <span>Abrir Pantalla</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
+
+              {/* Videos CTA card */}
+              <motion.div variants={itemVariants} whileHover={hoverPhysics} className="neo-card neo-card-lg flex flex-col gap-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-2xl" style={{ background: '#A855F71A', border: '1px solid #A855F745' }}>
+                    <Play size={18} style={{ color: '#A855F7', filter: 'drop-shadow(0 0 6px #A855F788)' }} fill="#A855F7" />
+                  </div>
+                  <span className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500">Videos</span>
+                </div>
+                <span className="font-serif text-2xl font-semibold text-white leading-tight">YouTube &amp; más</span>
+                <span className="text-sm text-zinc-400">Guardá y organizá videos de cualquier plataforma en listas custom.</span>
+                <Link
+                  to="/ocio/videos"
+                  className="mt-auto flex items-center justify-between px-5 py-3.5 rounded-2xl font-bold text-sm group"
+                  style={{ background: '#A855F712', border: '1px solid #A855F745', color: '#A855F7' }}
+                >
+                  <span>Abrir Videos</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
 
               {/* Recent books — links to Lebrary */}
               <motion.div variants={itemVariants} className="sm:col-span-2 neo-card neo-card-lg flex flex-col">
@@ -512,52 +588,6 @@ export default function OcioDashboard() {
                       <Edit3 size={14} /> Editar
                     </motion.button>
                     <motion.button whileTap={tapPhysics} onClick={() => handleDeleteBook(book.id)} className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-white/5 hover:bg-red-500/10 transition-colors text-red-400">
-                      <Trash2 size={14} /> Eliminar
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-
-          {/* ── PANTALLA ── */}
-          {activeTab === 'pantalla' && (
-            <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {watchlist.length === 0 ? (
-                <motion.div variants={itemVariants} className="col-span-full flex flex-col items-center justify-center h-48 rounded-[32px] border-2 border-dashed border-white/10 bg-white/[0.02]">
-                  <Tv size={40} className="text-zinc-600" />
-                  <p className="mt-4 font-bold text-base text-zinc-400">Watchlist vacía</p>
-                  <p className="text-sm mt-1 text-zinc-500">Agrega series y películas para ver.</p>
-                </motion.div>
-              ) : watchlist.map(item => (
-                <motion.div key={item.id} variants={itemVariants} whileHover={hoverPhysics} className="neo-card neo-card-lg flex flex-col gap-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2.5 rounded-2xl" style={{ background: `${ACCENT}1A`, border: `1px solid ${ACCENT}30` }}>
-                        <Tv size={18} style={{ color: ACCENT, filter: `drop-shadow(0 0 6px ${ACCENT}80)` }} />
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400">{item.platform}</span>
-                    </div>
-                    <span className="text-[10px] font-bold px-3 py-1 rounded-full" style={{ backgroundColor: `${STATUS_COLORS[item.status]}22`, color: STATUS_COLORS[item.status], border: `1px solid ${STATUS_COLORS[item.status]}40` }}>
-                      {item.status}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base leading-snug text-white">{item.title}</h3>
-                    {item.genre && <p className="text-sm mt-1 text-zinc-400">{item.genre}</p>}
-                  </div>
-                  {item.rating && (
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <Star key={n} size={14} fill={n <= item.rating! ? ACCENT : 'none'} stroke={n <= item.rating! ? ACCENT : '#3F3F46'} />
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex gap-2 mt-auto pt-3 border-t border-white/5">
-                    <motion.button whileTap={tapPhysics} onClick={() => openEditWatch(item)} className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors" style={{ color: ACCENT }}>
-                      <Edit3 size={14} /> Editar
-                    </motion.button>
-                    <motion.button whileTap={tapPhysics} onClick={() => handleDeleteWatch(item.id)} className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-white/5 hover:bg-red-500/10 transition-colors text-red-400">
                       <Trash2 size={14} /> Eliminar
                     </motion.button>
                   </div>
@@ -700,41 +730,6 @@ export default function OcioDashboard() {
         </form>
       </AetherModal>
 
-      {/* ── MODAL: WATCHLIST ─────────────────────────────────────────────── */}
-      <AetherModal isOpen={watchModalOpen} onClose={closeWatchModal} title={editingWatch ? 'Editar Título' : 'Nuevo Título'}>
-        <form onSubmit={handleWatchSubmit} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <label className="neo-eyebrow">Título</label>
-            <input type="text" required value={newWatch.title} onChange={e => setNewWatch({ ...newWatch, title: e.target.value })} className="neo-input" placeholder="Nombre de la serie o película" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Plataforma</label>
-              <select value={newWatch.platform} onChange={e => setNewWatch({ ...newWatch, platform: e.target.value })} className="neo-input appearance-none">
-                {PLATFORMS.map(p => <option key={p} value={p} className="bg-zinc-900">{p}</option>)}
-              </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Estado</label>
-              <select value={newWatch.status} onChange={e => setNewWatch({ ...newWatch, status: e.target.value as WatchStatus })} className="neo-input appearance-none">
-                {WATCH_STATUSES.map(s => <option key={s} value={s} className="bg-zinc-900">{s}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="neo-eyebrow">Género</label>
-            <input type="text" value={newWatch.genre} onChange={e => setNewWatch({ ...newWatch, genre: e.target.value })} className="neo-input" placeholder="Drama, Comedia, Thriller..." />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="neo-eyebrow">Valoración</label>
-            <StarRating value={newWatch.rating} onChange={v => setNewWatch({ ...newWatch, rating: v })} />
-          </div>
-          <motion.button whileTap={tapPhysics} type="submit" disabled={isSubmitting} className="mt-2 px-6 py-3.5 rounded-full font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2" style={{ backgroundColor: ACCENT, color: '#000', boxShadow: `0 0 32px ${ACCENT}50` }}>
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : editingWatch ? 'Guardar Cambios' : 'Agregar a Pantalla'}
-          </motion.button>
-        </form>
-      </AetherModal>
-
       {/* ── MODAL: HOBBY ─────────────────────────────────────────────────── */}
       <AetherModal isOpen={hobbyModalOpen} onClose={() => { setHobbyModalOpen(false); setNewHobby(DEFAULT_HOBBY); }} title="Nuevo Hobby">
         <form onSubmit={handleHobbySubmit} className="flex flex-col gap-5">
@@ -786,15 +781,17 @@ export default function OcioDashboard() {
       <UniverseBottomNav
         tabs={[
           { id: 'dashboard', label: 'Resumen', icon: LayoutDashboard },
-          { id: 'biblioteca', label: 'Libros', icon: Library },
-          { id: 'pantalla', label: 'Pantalla', icon: Tv },
-          { id: 'hobbies', label: 'Hobbies', icon: Puzzle },
-          { id: 'bucket', label: 'Bucket', icon: Star },
+          { id: 'pantalla',  label: 'Pantalla', icon: Tv },
+          { id: 'videos',    label: 'Videos',   icon: Play },
+          { id: 'hobbies',   label: 'Hobbies',  icon: Puzzle },
+          { id: 'bucket',    label: 'Bucket',   icon: Star },
         ]}
         activeTab={activeTab}
         onTabChange={(tab) => {
-          if (tab === 'biblioteca') {
-            window.open(authLebraryUrl, '_blank', 'noopener,noreferrer');
+          if (tab === 'pantalla') {
+            navigate('/ocio/pantalla');
+          } else if (tab === 'videos') {
+            navigate('/ocio/videos');
           } else {
             handleTabChange(tab as TabType);
           }
