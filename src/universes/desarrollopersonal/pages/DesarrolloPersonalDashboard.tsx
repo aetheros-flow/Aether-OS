@@ -26,8 +26,8 @@ import { useAuth } from '../../../core/contexts/AuthContext';
 
 type TabType = 'overview' | 'identity' | 'shadow' | 'habits';
 
-const ACCENT      = '#3B82F6'; // Blue, aligned with --desarrollopersonal (evolved from #113DC0 for dark-bg contrast)
-const ACCENT_SOFT = '#93C5FD';
+const ACCENT      = '#6B8FC4'; // Dusty blue — Soft Cosmos desaturated palette
+const ACCENT_SOFT = '#94B1D8';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -150,13 +150,13 @@ export default function DesarrolloPersonalDashboard() {
   }, [birthData, chartLoading, numerology.lifePath, lifePathArchetype.title]);
 
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#0A0A0A] text-white overflow-x-hidden selection:bg-blue-500/30">
+    <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#1B1714] text-white overflow-x-hidden selection:bg-blue-500/30">
       <div className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)' }} />
       <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, #34D39922 0%, transparent 70%)`, filter: 'blur(100px)' }} />
 
-      <UniverseMobileHeader title="Personal" subtitle="Conscious Expansion" color="#0A0A0A" />
+      <UniverseMobileHeader title="Personal" subtitle="Conscious Expansion" color="#1B1714" />
 
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-white/5 bg-zinc-950/80 backdrop-blur-xl">
+      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-[rgba(232,221,204,0.08)] bg-[#1B1714]/80 backdrop-blur-xl">
         <div className="flex items-center gap-4 p-6 mb-4">
           <motion.button
             whileTap={tapPhysics} whileHover={hoverPhysics}
@@ -469,7 +469,7 @@ export default function DesarrolloPersonalDashboard() {
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab as TabType)}
         activeColor={ACCENT_SOFT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
 
       {/* Birth data onboarding */}

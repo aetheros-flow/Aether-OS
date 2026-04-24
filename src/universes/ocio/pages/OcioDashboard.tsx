@@ -24,7 +24,7 @@ import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader'
 type TabType = 'dashboard' | 'biblioteca' | 'hobbies' | 'bucket';
 
 // ── Neo-Dark accent ───────────────────────────────────────────────────────────
-const ACCENT = '#00E5FF';
+const ACCENT = '#D97265';
 
 // ── Motion physics ────────────────────────────────────────────────────────────
 const containerVariants: Variants = {
@@ -254,7 +254,7 @@ export default function OcioDashboard() {
         />
       </div>
 
-      <UniverseMobileHeader title="Ocio & Hobbies" subtitle="Entretenimiento & Pasatiempos" color="#0A0A0A" />
+      <UniverseMobileHeader title="Ocio & Hobbies" subtitle="Entretenimiento & Pasatiempos" color="#1B1714" />
 
       {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
       <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 bg-black/40 backdrop-blur-xl border-r border-white/5 relative">
@@ -797,7 +797,7 @@ export default function OcioDashboard() {
           }
         }}
         activeColor={ACCENT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
     </div>
   );

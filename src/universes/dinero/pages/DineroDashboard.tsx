@@ -5,7 +5,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
-import { parseFile, exportRecords, autoCategorize } from '../lib/dinero-io';
+import { exportRecords } from '../lib/dinero-io';
+import { analyzeImport, commitImport, type PreparedRow, type AnalysisResult } from '../lib/import-pipeline';
+import { toast } from 'sonner';
 
 import { DineroOverview } from '../components/views/DineroOverview';
 import { DineroTransactions } from '../components/views/DineroTransactions';
@@ -13,6 +15,8 @@ import { DineroCategories } from '../components/views/DineroCategories';
 import { DineroRadar } from '../components/views/DineroRadar';
 import { DineroModals } from '../components/modals/DineroModals';
 import { DineroSubscriptions } from '../components/views/DineroSubscriptions';
+import ImportPreviewSheet from '../components/modals/ImportPreviewSheet';
+import { SURFACE, UNIVERSE_ACCENT, alpha } from '../../../lib/universe-palette';
 
 export type TabType = 'dashboard' | 'transactions' | 'categories' | 'calendar' | 'budget' | 'radar';
 
@@ -20,8 +24,9 @@ interface Account { id: string; name: string; type: string; currency: string; ba
 interface CryptoRadarTrade { id: string; user_id: string; pair: string; direction: string; entry_price: number; exit_price: number | null; position_size: number; leverage: number; stop_loss: number | null; take_profit: number | null; commissions: number; notes: string; status: string; pnl_neto: number | null; trade_date: string; }
 interface Budget { id: string; category_name: string; limit_amount: number; }
 
-const ACCENT = '#05DF72';
-const ACCENT_SOFT = '#86EFAC';
+// Dinero identity — desaturated sage green (was neon #05DF72).
+const ACCENT = UNIVERSE_ACCENT.dinero;
+const ACCENT_SOFT = '#A8D9B3';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -70,6 +75,10 @@ export default function DineroDashboard() {
 
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importAccountId, setImportAccountId] = useState<string>('');
+
+  // Import preview state: results of `analyzeImport`, shown in ImportPreviewSheet.
+  const [importPreview, setImportPreview] = useState<AnalysisResult | null>(null);
+  const [importPreviewOpen, setImportPreviewOpen] = useState(false);
 
   const [newCrypto, setNewCrypto] = useState({
     pair: '', date: new Date().toISOString().split('T')[0], time: '12:00', direction: 'Long',
@@ -322,38 +331,86 @@ export default function DineroDashboard() {
     }
   };
 
+  // ── Two-phase import: analyze (parse + categorize via AI + dedupe) → preview → commit
   const handleCsvImport = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!csvFile || !importAccountId) { alert("Please select a valid destination account and file."); return; }
+    if (!csvFile || !importAccountId) {
+      toast.error('Please select a valid destination account and file.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const user = await checkUser();
       if (!user) return;
 
-      const rawRecords = await parseFile(csvFile);
-      if (rawRecords.length === 0) throw new Error("No readable transactions found in file.");
+      const result = await analyzeImport({
+        file: csvFile,
+        userId: user.id,
+        categories,
+        existingTransactions: transactions.map(t => ({
+          date: t.date,
+          amount: Number(t.amount),
+          description: String(t.description ?? ''),
+          type: t.type,
+        })),
+      });
 
-      const enrichedRecords = autoCategorize(rawRecords, categories);
-
-      const recordsToInsert = enrichedRecords.map((r: Record<string, unknown>) => ({
-        user_id: user.id,
-        account_id: importAccountId,
-        amount: r.amount,
-        type: r.type,
-        date: r.date,
-        description: r.description,
-        category: r.category,
-      }));
-
-      const { error } = await supabase.from('Finanzas_transactions').insert(recordsToInsert);
-      if (error) throw error;
-
-      alert(`¡IA procesó y categorizó ${recordsToInsert.length} transacciones automáticamente! 🤖✨`);
-      setCsvFile(null);
+      // Close the file-picker modal and open the AI preview sheet
       setIsCsvModalOpen(false);
+      setImportPreview(result);
+      setImportPreviewOpen(true);
+
+      const { total, fromAI, fromMemory, duplicates } = result.counts;
+      toast.success(
+        `Parsed ${total} · ${fromAI} via AI${fromMemory > 0 ? ` · ${fromMemory} from memory` : ''}${duplicates > 0 ? ` · ${duplicates} duplicate${duplicates === 1 ? '' : 's'}` : ''}`,
+        { duration: 4500 },
+      );
+    } catch (error: any) {
+      toast.error('Import error: ' + (error?.message ?? 'Unknown'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCommitImport = async (rows: PreparedRow[], rememberOverrides: boolean) => {
+    const user = await checkUser();
+    if (!user) return;
+    try {
+      const { inserted, remembered } = await commitImport({
+        rows,
+        userId: user.id,
+        accountId: importAccountId,
+        rememberOverrides,
+      });
+
+      // Adjust account balance for the inserted transactions. We do this in one
+      // combined delta to keep account reads minimal.
+      const kept = rows.filter(r => r.selected);
+      if (kept.length > 0) {
+        const netDelta = kept.reduce(
+          (sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount),
+          0,
+        );
+        const account = accounts.find(a => a.id === importAccountId);
+        if (account) {
+          await supabase.from('Finanzas_accounts')
+            .update({ balance: account.balance + netDelta })
+            .eq('id', account.id);
+        }
+      }
+
+      toast.success(
+        remembered > 0
+          ? `Imported ${inserted} · learned ${remembered} new pattern${remembered === 1 ? '' : 's'}`
+          : `Imported ${inserted} transaction${inserted === 1 ? '' : 's'}`,
+      );
+      setCsvFile(null);
+      setImportPreview(null);
       await fetchData();
-    } catch (error: any) { alert("Import error: " + error.message); }
-    finally { setIsSubmitting(false); }
+    } catch (err: any) {
+      toast.error('Commit failed: ' + (err?.message ?? 'Unknown'));
+      throw err;
+    }
   };
 
   const handleExport = (format: 'csv' | 'xlsx' | 'json' | 'pdf') => {
@@ -400,7 +457,10 @@ export default function DineroDashboard() {
 
   if (loading && accounts.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: SURFACE.bg }}
+      >
         <Loader2 className="w-12 h-12 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
@@ -408,7 +468,10 @@ export default function DineroDashboard() {
 
   if (onboardingStep === 1 || onboardingStep === 2) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center font-sans bg-[#0A0A0A] text-white overflow-hidden p-4">
+      <div
+        className="relative min-h-screen flex items-center justify-center font-sans overflow-hidden p-4"
+        style={{ background: SURFACE.bg, color: SURFACE.text }}
+      >
         <div className="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${ACCENT}22 0%, transparent 70%)`, filter: 'blur(120px)' }} />
         {onboardingStep === 1 && (
           <motion.div
@@ -476,11 +539,28 @@ export default function DineroDashboard() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col font-sans bg-[#0A0A0A] text-white overflow-x-hidden">
-      <div className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-40" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)' }} />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, ${ACCENT_SOFT}22 0%, transparent 70%)`, filter: 'blur(100px)' }} />
+    <div
+      className="relative min-h-screen flex flex-col font-sans overflow-x-hidden"
+      style={{ background: SURFACE.bg, color: SURFACE.text }}
+    >
+      <div
+        aria-hidden
+        className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-30"
+        style={{ background: `radial-gradient(circle, ${alpha(ACCENT, 0.2)} 0%, transparent 70%)`, filter: 'blur(120px)' }}
+      />
+      <div
+        aria-hidden
+        className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-25"
+        style={{ background: `radial-gradient(circle, ${alpha(ACCENT_SOFT, 0.14)} 0%, transparent 70%)`, filter: 'blur(100px)' }}
+      />
 
-      <nav className="relative z-30 w-full shrink-0 flex flex-col bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
+      <nav
+        className="relative z-30 w-full shrink-0 flex flex-col backdrop-blur-xl border-b"
+        style={{
+          background: 'rgba(27, 23, 20, 0.72)',
+          borderColor: SURFACE.border,
+        }}
+      >
         <div className="flex items-center justify-between px-4 md:px-6 py-3.5">
           <div className="flex items-center gap-6 min-w-0">
             <motion.button whileTap={tapPhysics} onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center gap-2 shrink-0">
@@ -524,8 +604,17 @@ export default function DineroDashboard() {
           </div>
         </div>
 
-        <div className="hidden md:flex flex-row items-center justify-between px-6 py-2.5 border-t border-white/5 bg-black/40">
-          <h1 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+        <div
+          className="hidden md:flex flex-row items-center justify-between px-6 py-2.5 border-t"
+          style={{
+            borderColor: SURFACE.border,
+            background: 'rgba(22, 19, 16, 0.55)',
+          }}
+        >
+          <h1
+            className="text-[10px] font-black uppercase tracking-[0.2em]"
+            style={{ color: SURFACE.textMuted }}
+          >
             {TABS.find(t => t.id === activeTab)?.label || 'Overview'}
           </h1>
           <div className="flex items-center gap-2">
@@ -670,9 +759,26 @@ export default function DineroDashboard() {
         handleCreateTransaction={handleCreateTransaction}
       />
 
+      {/* ── AI Import preview sheet ──────────────────────────────────── */}
+      {importPreview && (
+        <ImportPreviewSheet
+          open={importPreviewOpen}
+          onClose={() => setImportPreviewOpen(false)}
+          initialRows={importPreview.rows}
+          counts={importPreview.counts}
+          aiWarning={importPreview.aiWarning}
+          categories={categories}
+          onCommit={handleCommitImport}
+        />
+      )}
+
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-zinc-950/90 backdrop-blur-xl border-t border-white/5"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden backdrop-blur-xl border-t"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
+          background: 'rgba(22, 19, 16, 0.88)',
+          borderColor: SURFACE.border,
+        }}
       >
         <div className="flex items-center justify-around px-2 pt-2 pb-1">
           {TABS.slice(0, 6).map(tab => {

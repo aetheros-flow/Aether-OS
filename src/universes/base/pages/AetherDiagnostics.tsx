@@ -4,14 +4,14 @@ import { Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertOctagon, BrainCir
 import { useNavigate } from 'react-router-dom';
 
 const SEGMENT_COLORS: Record<string, string> = {
-  amor: '#FF0040',
-  dinero: '#05DF72',
-  desarrollopersonal: '#8B5CF6',
-  salud: '#FE7F01',
-  desarrolloprofesional: '#FFD700',
-  social: '#1447E6',
-  familia: '#C81CDE',
-  ocio: '#00E5FF'
+  amor: '#E05A7A',
+  dinero: '#7EC28A',
+  desarrollopersonal: '#6B8FC4',
+  salud: '#D97A3A',
+  desarrolloprofesional: '#D9B25E',
+  social: '#9F87C9',
+  familia: '#C090BC',
+  ocio: '#D97265'
 };
 
 const UNIVERSE_NAMES: Record<string, string> = {
@@ -127,7 +127,7 @@ export default function AetherDiagnostics() {
             <div className="bg-white/60 backdrop-blur-xl rounded-[20px] p-6 shadow-sm border border-black/5 flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-[#8A8681] uppercase tracking-widest">Aligned</span>
-                <CheckCircle2 size={18} className="text-[#05DF72]" />
+                <CheckCircle2 size={18} className="text-[#7EC28A]" />
               </div>
               <span className="font-serif text-3xl text-[#2D2A26] font-bold">{alignedCount}</span>
               <p className="text-[10px] font-bold text-[#8A8681] leading-relaxed">Perception matches reality.</p>
@@ -136,7 +136,7 @@ export default function AetherDiagnostics() {
             <div className="bg-white/60 backdrop-blur-xl rounded-[20px] p-6 shadow-sm border border-black/5 flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-[#8A8681] uppercase tracking-widest">Deviation</span>
-                <AlertTriangle size={18} className="text-[#FE7F01]" />
+                <AlertTriangle size={18} className="text-[#D97A3A]" />
               </div>
               <span className="font-serif text-3xl text-[#2D2A26] font-bold">{minorDeviationCount}</span>
               <p className="text-[10px] font-bold text-[#8A8681] leading-relaxed">Slight optimism or pessimism.</p>
@@ -145,10 +145,10 @@ export default function AetherDiagnostics() {
             <div className="bg-white/60 backdrop-blur-xl rounded-[20px] p-6 shadow-sm border border-black/5 flex flex-col gap-2">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-[#8A8681] uppercase tracking-widest">Blind Spots</span>
-                <AlertOctagon size={18} className="text-[#FF0040]" />
+                <AlertOctagon size={18} className="text-[#E05A7A]" />
               </div>
-              <span className="font-serif text-3xl text-[#FF0040] font-bold">{blindspotCount}</span>
-              <p className="text-[10px] font-bold text-[#FF0040]/70 leading-relaxed">Critical disconnection.</p>
+              <span className="font-serif text-3xl text-[#E05A7A] font-bold">{blindspotCount}</span>
+              <p className="text-[10px] font-bold text-[#E05A7A]/70 leading-relaxed">Critical disconnection.</p>
             </div>
           </div>
         )}

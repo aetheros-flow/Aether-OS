@@ -28,7 +28,7 @@ export function DineroReports({
            </div>
            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">Financial Score</span>
            <p className="text-5xl font-mono font-light text-white">840</p>
-           <span className="text-xs text-[#05DF72] font-bold">+12 pts vs Last Month</span>
+           <span className="text-xs text-[#7EC28A] font-bold">+12 pts vs Last Month</span>
         </div>
 
         {/* Kryptonite Card */}

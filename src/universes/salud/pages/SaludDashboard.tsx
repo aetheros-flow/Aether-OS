@@ -18,7 +18,7 @@ type TabType = 'dashboard' | 'entrenamientos' | 'nutricion' | 'medico';
 
 const WORKOUT_TYPES = ['Tenis', 'Pádel', 'Gimnasio', 'Running', 'Ciclismo', 'Yoga', 'Natación', 'Otro'];
 
-const ACCENT = '#FE7F01';
+const ACCENT = '#D97A3A';
 
 const DEFAULT_METRIC: NewMetricInput  = { weight: '', body_fat: '', sleep_hours: '', water_liters: '', date: new Date().toISOString().split('T')[0] };
 const DEFAULT_WORKOUT: NewWorkoutInput = { type: 'Tenis', duration_mins: '', intensity: 'Alta', calories_burned: '', date: new Date().toISOString().split('T')[0], time: '10:00' };
@@ -111,21 +111,21 @@ export default function SaludDashboard() {
   // ── Loading ───────────────────────────────────────
   if (loading && metrics.length === 0 && workouts.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+      <div className="min-h-screen flex items-center justify-center bg-[#1B1714]">
         <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#0A0A0A] selection:bg-white/20">
+    <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#1B1714] selection:bg-white/20">
 
       {/* Glows de fondo */}
       <div aria-hidden className="pointer-events-none fixed -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.18]" style={{ background: ACCENT }} />
       <div aria-hidden className="pointer-events-none fixed -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.10]" style={{ background: ACCENT }} />
       <div aria-hidden className="pointer-events-none fixed inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-      <UniverseMobileHeader title="Salud Física" subtitle="Cuerpo & Energía" color="#0A0A0A" />
+      <UniverseMobileHeader title="Salud Física" subtitle="Cuerpo & Energía" color="#1B1714" />
 
       {/* ── SIDEBAR ─────────────────────────────────── */}
       <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 relative bg-black/40 backdrop-blur-xl border-r border-white/5">
@@ -256,7 +256,7 @@ export default function SaludDashboard() {
                         itemStyle={{ color: '#fff' }}
                         labelStyle={{ color: '#A1A1AA' }}
                       />
-                      <Line type="monotone" name="Peso (KG)" dataKey="peso" stroke={ACCENT} strokeWidth={3} dot={{ r: 4, fill: '#0A0A0A', stroke: ACCENT, strokeWidth: 2 }} activeDot={{ r: 7, fill: ACCENT, stroke: '#fff', strokeWidth: 2 }} />
+                      <Line type="monotone" name="Peso (KG)" dataKey="peso" stroke={ACCENT} strokeWidth={3} dot={{ r: 4, fill: '#1B1714', stroke: ACCENT, strokeWidth: 2 }} activeDot={{ r: 7, fill: ACCENT, stroke: '#fff', strokeWidth: 2 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -420,7 +420,7 @@ export default function SaludDashboard() {
         activeTab={activeTab}
         onTabChange={(tab) => handleTabChange(tab as TabType)}
         activeColor={ACCENT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
     </div>
   );

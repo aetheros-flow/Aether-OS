@@ -9,10 +9,10 @@ import {
   type CoinMarket,
 } from '../../lib/coingecko';
 
-const ACCENT = '#05DF72';
-const ACCENT_SOFT = '#86EFAC';
-const LOSS = '#F87171';
-const NEUTRAL = '#60A5FA';
+const ACCENT = '#7EC28A';
+const ACCENT_SOFT = '#A8D9B3';
+const LOSS = '#E18B8B';
+const NEUTRAL = '#6B8FC4';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },

@@ -15,15 +15,16 @@ interface UniverseMobileHeaderProps {
 export default function UniverseMobileHeader({
   title,
   subtitle,
-  color = '#1447E6',
-  textColor = '#ffffff',
+  color = '#1B1714',
+  textColor = '#F5EFE6',
   rightSlot,
 }: UniverseMobileHeaderProps) {
   const navigate = useNavigate();
 
-  const isDark = textColor === '#ffffff' || textColor === '#fff';
-  const btnBg = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)';
-  const subtitleColor = isDark ? 'rgba(255,255,255,0.52)' : 'rgba(0,0,0,0.42)';
+  // Treat any light text (white or warm off-white #F5EFE6) as "dark context"
+  const isDark = /^#(f{6}|fff|f5efe6)$/i.test(textColor);
+  const btnBg = isDark ? 'rgba(245,239,230,0.12)' : 'rgba(0,0,0,0.10)';
+  const subtitleColor = isDark ? 'rgba(245,239,230,0.52)' : 'rgba(0,0,0,0.42)';
 
   return (
     <header

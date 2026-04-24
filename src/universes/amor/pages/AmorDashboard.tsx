@@ -39,8 +39,8 @@ import type {
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 
-const ACCENT = '#FF0040';
-const ACCENT_SOFT = '#FF6B8A';
+const ACCENT = '#E05A7A';
+const ACCENT_SOFT = '#F08DA4';
 
 type TabType = 'dashboard' | 'fechas' | 'lenguajes' | 'reflexiones';
 
@@ -287,21 +287,21 @@ export default function AmorDashboard() {
 
   if (loading && !specialDates.length && !reflections.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+      <div className="min-h-screen flex items-center justify-center bg-[#1B1714]">
         <Loader2 className="w-10 h-10 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#0A0A0A] selection:bg-white/20">
+    <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#1B1714] selection:bg-white/20">
 
       {/* Glows */}
       <div aria-hidden className="pointer-events-none fixed -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.20]" style={{ background: ACCENT }} />
       <div aria-hidden className="pointer-events-none fixed -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.10]" style={{ background: ACCENT_SOFT }} />
       <div aria-hidden className="pointer-events-none fixed inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-      <UniverseMobileHeader title="Vida Amorosa" subtitle="Conexión & Relaciones" color="#0A0A0A" />
+      <UniverseMobileHeader title="Vida Amorosa" subtitle="Conexión & Relaciones" color="#1B1714" />
 
       {/* ══ SIDEBAR ════════════════════════════════════════════════════════ */}
       <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 relative bg-black/40 backdrop-blur-xl border-r border-white/5">
@@ -1026,7 +1026,7 @@ export default function AmorDashboard() {
         activeTab={activeTab}
         onTabChange={(tab) => handleTabChange(tab as TabType)}
         activeColor={ACCENT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
     </div>
   );

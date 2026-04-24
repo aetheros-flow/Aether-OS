@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, LayoutDashboard, Menu, X, Sparkles, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UniverseNavItem from './UniverseNavItem';
+import { SURFACE } from '../../lib/universe-palette';
 
 export interface UniverseShellConfig {
   /** Color identitario del universo (HEX). Se usa solo como acento/glow. */
@@ -54,31 +55,33 @@ export default function UniverseDashboardShell({
 
   return (
     <div
-      className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#0A0A0A] selection:bg-white/20 selection:text-white"
+      className="min-h-screen flex flex-col md:flex-row font-sans relative overflow-hidden"
+      style={{
+        background: SURFACE.bg,
+        color: SURFACE.text,
+      }}
     >
-      {/* ── GLOWS DE FONDO (color del universo, sutil) ── */}
+      {/* ── GLOWS DE FONDO (color del universo, aún más sutil con paper-dark) ── */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.18]"
+        className="pointer-events-none absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.14]"
         style={{ background: color }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.10]"
+        className="pointer-events-none absolute -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.08]"
         style={{ background: color }}
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)',
-          backgroundSize: '32px 32px',
-        }}
-      />
+      <div aria-hidden className="aether-grain" />
 
       {/* ── SIDEBAR ── */}
-      <nav className="w-full md:w-64 flex flex-col z-30 shrink-0 relative bg-black/40 backdrop-blur-xl border-b md:border-b-0 md:border-r border-white/5">
+      <nav
+        className="w-full md:w-64 flex flex-col z-30 shrink-0 relative backdrop-blur-xl border-b md:border-b-0 md:border-r"
+        style={{
+          background: 'rgba(27, 23, 20, 0.55)',
+          borderColor: SURFACE.border,
+        }}
+      >
         <div className="flex items-center justify-between p-4 md:p-6 md:mb-2">
           <div className="flex items-center gap-3 min-w-0">
             <motion.button
@@ -86,14 +89,20 @@ export default function UniverseDashboardShell({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 420, damping: 24 }}
-              className="p-2 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-full transition-colors"
+              style={{
+                background: 'rgba(245,239,230,0.05)',
+                border: `1px solid ${SURFACE.border}`,
+                color: SURFACE.text,
+              }}
               aria-label="Back to home"
             >
               <ArrowLeft size={18} />
             </motion.button>
             <div className="min-w-0">
               <h1
-                className="font-serif text-2xl md:text-[26px] font-medium tracking-tight text-white leading-tight truncate"
+                className="font-serif text-2xl md:text-[26px] font-medium tracking-tight leading-tight truncate"
+                style={{ color: SURFACE.text }}
               >
                 {title}
               </h1>
@@ -109,7 +118,12 @@ export default function UniverseDashboardShell({
           <motion.button
             onClick={() => setIsMobileMenuOpen(v => !v)}
             whileTap={{ scale: 0.92 }}
-            className="md:hidden p-2 rounded-xl bg-white/5 border border-white/10 text-white/80"
+            className="md:hidden p-2 rounded-xl"
+            style={{
+              background: 'rgba(245,239,230,0.05)',
+              border: `1px solid ${SURFACE.border}`,
+              color: SURFACE.text,
+            }}
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -153,12 +167,19 @@ export default function UniverseDashboardShell({
               General status
             </p>
             <div className="flex items-center gap-4">
-              <h2 className="font-sans text-5xl md:text-6xl font-bold tracking-tight text-white leading-none">
+              <h2
+                className="font-sans text-5xl md:text-6xl font-bold tracking-tight leading-none"
+                style={{ color: SURFACE.text }}
+              >
                 Calibrating
               </h2>
               <span
-                className="hidden md:inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5 border border-white/10"
-                style={{ boxShadow: `inset 0 0 24px ${color}25` }}
+                className="hidden md:inline-flex items-center justify-center w-12 h-12 rounded-2xl"
+                style={{
+                  background: 'rgba(245,239,230,0.05)',
+                  border: `1px solid ${SURFACE.border}`,
+                  boxShadow: `inset 0 0 24px ${color}25`,
+                }}
               >
                 <HeaderIcon size={22} strokeWidth={2.4} style={{ color }} />
               </span>
@@ -172,7 +193,7 @@ export default function UniverseDashboardShell({
             variants={itemVariants}
             whileHover={{ scale: 1.005 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-            className="relative mb-8 rounded-[28px] p-5 md:p-7 bg-zinc-900/70 backdrop-blur-xl border border-white/5 overflow-hidden"
+            className="neo-card mb-8"
           >
             <div
               aria-hidden
@@ -193,11 +214,15 @@ export default function UniverseDashboardShell({
               </span>
               <div className="min-w-0 flex-1">
                 <p
-                  className="text-[10px] uppercase font-black tracking-[0.22em] mb-1.5 text-zinc-500"
+                  className="text-[10px] uppercase font-black tracking-[0.22em] mb-1.5"
+                  style={{ color: SURFACE.textMuted }}
                 >
                   Aether AI · Insight
                 </p>
-                <p className="text-[15px] md:text-base font-medium text-white/90 leading-relaxed">
+                <p
+                  className="text-[15px] md:text-base font-medium leading-relaxed"
+                  style={{ color: SURFACE.text, opacity: 0.9 }}
+                >
                   Preparing your {moduleLabel} reading. Once you log your first
                   signal, a contextual verdict and prioritised recommendations
                   will appear here.
@@ -213,7 +238,7 @@ export default function UniverseDashboardShell({
               whileHover={{ scale: 1.005, y: -2 }}
               whileTap={{ scale: 0.99 }}
               transition={{ type: 'spring', stiffness: 280, damping: 24 }}
-              className="relative rounded-[32px] p-10 md:p-14 bg-zinc-900/70 backdrop-blur-xl border border-white/5 overflow-hidden flex flex-col items-center justify-center text-center min-h-[280px]"
+              className="neo-card rounded-[32px] p-10 md:p-14 flex flex-col items-center justify-center text-center min-h-[280px]"
             >
               <div
                 aria-hidden
@@ -232,10 +257,16 @@ export default function UniverseDashboardShell({
               >
                 <HeaderIcon size={26} strokeWidth={2.2} style={{ color }} />
               </span>
-              <h3 className="relative font-serif text-3xl md:text-4xl font-medium tracking-tight text-white mb-3">
+              <h3
+                className="relative font-serif text-3xl md:text-4xl font-medium tracking-tight mb-3"
+                style={{ color: SURFACE.text }}
+              >
                 Module under construction
               </h3>
-              <p className="relative text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500 max-w-md">
+              <p
+                className="relative text-[10px] font-black uppercase tracking-[0.22em] max-w-md"
+                style={{ color: SURFACE.textMuted }}
+              >
                 Coming soon: the data matrix for {moduleLabel}.
               </p>
             </motion.div>

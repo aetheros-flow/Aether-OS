@@ -21,8 +21,8 @@ import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader'
 
 type TabType = 'dashboard' | 'proyectos' | 'aprendizaje' | 'certificaciones' | 'red';
 
-const ACCENT = '#FFD700';
-const ACCENT_SOFT = '#FDE68A';
+const ACCENT = '#D9B25E';
+const ACCENT_SOFT = '#E8C988';
 
 const PROJECT_STATUSES: ProjectStatus[] = ['Activo', 'En pausa', 'Completado'];
 const LEARNING_TYPES: LearningType[]   = ['Curso', 'Libro', 'Podcast', 'Workshop'];
@@ -265,20 +265,20 @@ export default function DesarrolloProfesionalDashboard() {
 
   if (loading && projects.length === 0 && learning.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+      <div className="min-h-screen flex items-center justify-center bg-[#1B1714]">
         <Loader2 className="w-12 h-12 animate-spin" style={{ color: ACCENT }} />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#0A0A0A] text-white overflow-x-hidden">
+    <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#1B1714] text-white overflow-x-hidden">
       <div className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-40" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)' }} />
       <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, ${ACCENT_SOFT}22 0%, transparent 70%)`, filter: 'blur(100px)' }} />
 
-      <UniverseMobileHeader title="Carrera Pro" subtitle="Crecimiento Profesional" color="#0A0A0A" />
+      <UniverseMobileHeader title="Carrera Pro" subtitle="Crecimiento Profesional" color="#1B1714" />
 
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-white/5 bg-zinc-950/80 backdrop-blur-xl">
+      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-[rgba(232,221,204,0.08)] bg-[#1B1714]/80 backdrop-blur-xl">
         <div className="flex items-center gap-4 p-6 mb-4">
           <motion.button
             whileTap={tapPhysics}
@@ -862,7 +862,7 @@ export default function DesarrolloProfesionalDashboard() {
         activeTab={activeTab}
         onTabChange={(tab) => handleTabChange(tab as TabType)}
         activeColor={ACCENT_SOFT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
     </div>
   );

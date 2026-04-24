@@ -38,8 +38,8 @@ import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader'
 type TabType = 'dashboard' | 'arbol' | 'fechas' | 'notas';
 
 // ── Neo-Dark accent ───────────────────────────────────────────────────────────
-const ACCENT = '#C81CDE';
-const ACCENT_SOFT = '#E879F9';
+const ACCENT = '#C090BC';
+const ACCENT_SOFT = '#D5AED3';
 
 // ── Motion physics ────────────────────────────────────────────────────────────
 const containerVariants: Variants = {
@@ -354,7 +354,7 @@ export default function FamiliaDashboard() {
         />
       </div>
 
-      <UniverseMobileHeader title="Familia" subtitle="Raíces & Vínculos" color="#0A0A0A" />
+      <UniverseMobileHeader title="Familia" subtitle="Raíces & Vínculos" color="#1B1714" />
 
       {/* ── SIDEBAR ───────────────────────────────────────────────────────────── */}
       <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 bg-black/40 backdrop-blur-xl border-r border-white/5 relative">
@@ -1121,7 +1121,7 @@ export default function FamiliaDashboard() {
         activeTab={activeTab}
         onTabChange={(tab) => handleTabChange(tab as TabType)}
         activeColor={ACCENT_SOFT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
     </div>
   );

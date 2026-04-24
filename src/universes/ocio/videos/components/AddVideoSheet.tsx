@@ -72,7 +72,7 @@ export default function AddVideoSheet({ open, onClose, defaultListId }: AddVideo
             onDragEnd={(_, info: PanInfo) => {
               if (info.offset.y > 100 || info.velocity.y > 500) onClose();
             }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] rounded-t-[28px] bg-zinc-950 border-t border-white/8 flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+8px)] touch-pan-y"
+            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] rounded-t-[28px] bg-[#241E1A] border-t border-[rgba(232,221,204,0.08)] flex flex-col pb-[calc(env(safe-area-inset-bottom,0px)+8px)] touch-pan-y"
           >
             <div className="pt-3 pb-2 flex justify-center shrink-0">
               <div className="w-10 h-1 rounded-full bg-white/20" />

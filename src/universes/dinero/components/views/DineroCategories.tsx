@@ -3,7 +3,7 @@ import { motion, type Variants } from 'framer-motion';
 import { Plus, ArrowLeft, Receipt } from 'lucide-react';
 import { resolveCategoryIcon } from '../../lib/category-icons';
 
-const ACCENT = '#05DF72';
+const ACCENT = '#7EC28A';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -80,7 +80,7 @@ export function DineroCategories({ transactions, categories, setIsCategoryModalO
             whileTap={{ scale: 0.96 }}
             onClick={() => setIsCategoryModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold"
-            style={{ backgroundColor: ACCENT, color: '#0A0A0A' }}
+            style={{ backgroundColor: ACCENT, color: '#1B1714' }}
           >
             <Plus size={15} strokeWidth={2.5} /> New category
           </motion.button>

@@ -3,8 +3,8 @@ import { motion, type Variants } from 'framer-motion';
 import { Search, Plus, Filter, Download, Upload, Pencil, Sparkles } from 'lucide-react';
 import { resolveCategoryIcon } from '../../lib/category-icons';
 
-const ACCENT = '#05DF72';
-const ACCENT_SOFT = '#86EFAC';
+const ACCENT = '#7EC28A';
+const ACCENT_SOFT = '#A8D9B3';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -68,7 +68,7 @@ export function DineroTransactions({
             whileTap={{ scale: 0.96 }}
             onClick={() => setIsTransactionModalOpen(true)}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold"
-            style={{ backgroundColor: ACCENT, color: '#0A0A0A' }}
+            style={{ backgroundColor: ACCENT, color: '#1B1714' }}
           >
             <Plus size={15} strokeWidth={2.5} /> New
           </motion.button>

@@ -9,14 +9,14 @@ import type { TabType } from '../../pages/DineroDashboard';
 import type { Transaction } from '../../types';
 import { resolveCategoryIcon } from '../../lib/category-icons';
 
-// ─── Neo-Dark tokens ─────────────────────────────────────────────────────────
-const ACCENT = '#05DF72';
-const ACCENT_SOFT = '#86EFAC';
+// ─── Soft Cosmos tokens (warm-dark + desaturated sage) ─────────────────────
+const ACCENT = '#7EC28A';
+const ACCENT_SOFT = '#A8D9B3';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// Palette for donut slices — keeps green identity but varies hue for readability.
-const PIE_COLORS = ['#05DF72', '#22D3EE', '#A78BFA', '#F472B6', '#FBBF24', '#F97316', '#60A5FA', '#34D399'];
+// Palette for donut slices — sage identity + muted variations that sit on warm-dark.
+const PIE_COLORS = ['#7EC28A', '#7AB8C4', '#9F87C9', '#C090BC', '#D9B25E', '#D97A3A', '#6B8FC4', '#A8D9B3'];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -131,7 +131,7 @@ export function DineroOverview({
           whileTap={{ scale: 0.96 }}
           onClick={() => setIsTransactionModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
-          style={{ backgroundColor: ACCENT, color: '#0A0A0A' }}
+          style={{ backgroundColor: ACCENT, color: '#1B1714' }}
         >
           <Plus size={15} strokeWidth={2.5} /> Add
         </motion.button>
@@ -220,12 +220,12 @@ export function DineroOverview({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={3}>
                 <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                  cursor={{ fill: 'rgba(245,239,230,0.04)' }}
                   contentStyle={{
-                    backgroundColor: '#0A0A0A',
+                    backgroundColor: '#1B1714',
                     borderRadius: '14px',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: '#fff',
+                    border: '1px solid rgba(232,221,204,0.08)',
+                    color: '#F5EFE6',
                     fontSize: 12,
                   }}
                   formatter={(value: any) => `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
@@ -278,10 +278,10 @@ export function DineroOverview({
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#0A0A0A',
+                        backgroundColor: '#1B1714',
                         borderRadius: '14px',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: '#fff',
+                        border: '1px solid rgba(232,221,204,0.08)',
+                        color: '#F5EFE6',
                         fontSize: 12,
                       }}
                       formatter={(value: any) => `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}

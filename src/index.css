@@ -14,15 +14,24 @@
     --text-muted: #8A8681;
     --text-light: #FAF9F6; /* Para texto sobre fondos inmersivos */
 
-    /* Universos - Identidad Inmersiva */
-    --amor: #FF0040;
-    --dinero: #05DF72;
-    --desarrollopersonal: #113DC0;
-    --salud: #FE7F01;
-    --desarrolloprofesional: #1D293D;
-    --social: #1447E6;
-    --familia: #C81CDE;
-    --ocio: #1D293D;
+    /* ── Soft Cosmos warm surfaces (paper-dark, not pure black) ── */
+    --aether-bg: #1B1714;
+    --aether-card: #221D19;
+    --aether-panel: #241E1A;
+    --aether-text: #F5EFE6;
+    --aether-text-muted: #A8A096;
+    --aether-border: rgba(232, 221, 204, 0.08);
+    --aether-border-strong: rgba(232, 221, 204, 0.16);
+
+    /* Universos — Desaturated identity (Soft Cosmos) */
+    --amor: #E05A7A;
+    --dinero: #7EC28A;
+    --desarrollopersonal: #6B8FC4;
+    --salud: #D97A3A;
+    --desarrolloprofesional: #D9B25E;
+    --social: #9F87C9;
+    --familia: #C090BC;
+    --ocio: #D97265;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -347,11 +356,11 @@
      NEO-DARK PREMIUM SYSTEM
      ========================================== */
 
-  /* Card base: zinc-900 con backdrop blur y borde casi invisible */
+  /* Card base: warm paper-dark con backdrop blur y borde cálido casi invisible */
   .neo-card {
     @apply relative rounded-[28px] p-5 md:p-6 transition-all duration-300 overflow-hidden;
-    background: rgba(28, 28, 30, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(36, 30, 26, 0.78); /* warm #241E1A @ 78% */
+    border: 1px solid var(--aether-border);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
@@ -359,8 +368,8 @@
     cursor: pointer;
   }
   .neo-card-interactive:hover {
-    background: rgba(34, 34, 38, 0.78);
-    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(44, 36, 31, 0.82);
+    border-color: var(--aether-border-strong);
   }
 
   /* Card más grande para heroes */
@@ -370,44 +379,55 @@
 
   /* Tipografía */
   .neo-title {
-    @apply font-sans text-3xl md:text-4xl font-bold tracking-tight text-white;
+    @apply font-sans text-3xl md:text-4xl font-bold tracking-tight;
+    color: var(--aether-text);
   }
   .neo-title-hero {
-    @apply font-sans text-5xl md:text-6xl font-bold tracking-tight text-white leading-none;
+    @apply font-sans text-5xl md:text-6xl font-bold tracking-tight leading-none;
+    color: var(--aether-text);
   }
   .neo-eyebrow {
-    @apply text-[10px] uppercase font-black tracking-[0.22em] text-zinc-500;
+    @apply text-[10px] uppercase font-black tracking-[0.22em];
+    color: var(--aether-text-muted);
+    opacity: 0.75;
   }
   .neo-metric {
-    @apply font-sans font-bold tracking-tight text-white;
+    @apply font-sans font-bold tracking-tight;
+    color: var(--aether-text);
     font-size: clamp(2.25rem, 7vw, 3.75rem);
     line-height: 1;
   }
   .neo-label {
-    @apply text-[10px] uppercase font-black tracking-[0.18em] text-zinc-400;
+    @apply text-[10px] uppercase font-black tracking-[0.18em];
+    color: var(--aether-text-muted);
   }
 
   /* Inputs */
   .neo-input {
     @apply w-full px-5 py-3.5 rounded-2xl outline-none transition-all duration-200;
-    @apply text-sm font-medium text-white placeholder:text-zinc-600;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    @apply text-sm font-medium;
+    color: var(--aether-text);
+    background: rgba(245, 239, 230, 0.04);
+    border: 1px solid var(--aether-border);
+  }
+  .neo-input::placeholder {
+    color: var(--aether-text-muted);
+    opacity: 0.5;
   }
   .neo-input:focus {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.20);
+    background: rgba(245, 239, 230, 0.06);
+    border-color: var(--aether-border-strong);
   }
 
   /* Botones */
   .neo-btn {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-all duration-200;
-    @apply text-white;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: var(--aether-text);
+    background: rgba(245, 239, 230, 0.06);
+    border: 1px solid var(--aether-border);
   }
   .neo-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(245, 239, 230, 0.10);
   }
   .neo-btn:active {
     transform: scale(0.96);
@@ -425,11 +445,11 @@
     filter: brightness(1.15);
   }
 
-  /* Modal panel oscuro */
+  /* Modal panel cálido — warm paper-dark bottom sheet */
   .neo-modal-panel {
     @apply w-full rounded-t-[32px] md:rounded-[32px] p-6 md:p-8 shadow-2xl;
-    background: rgba(20, 20, 22, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(36, 30, 26, 0.94); /* warm #241E1A @ 94% */
+    border: 1px solid var(--aether-border);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
   }
@@ -437,13 +457,31 @@
   /* Stat chip oscuro */
   .neo-chip {
     @apply flex items-center gap-2 px-3.5 py-2.5 rounded-2xl;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(245, 239, 230, 0.05);
+    border: 1px solid var(--aether-border);
   }
 
-  /* Background base de universo Neo-Dark */
+  /* Background base de universo — paper-dark (no longer pure black) */
   .neo-bg {
-    background-color: #0A0A0A;
-    color: #FFFFFF;
+    background-color: var(--aether-bg);
+    color: var(--aether-text);
+  }
+
+  /* ==========================================
+     AMBIENT — grain + subtle glow helpers
+     ========================================== */
+
+  /* Subtle film grain overlay (fixed, low opacity). Usage: on a parent
+     with `relative`, add a `<div class="aether-grain" aria-hidden />` */
+  .aether-grain {
+    @apply pointer-events-none absolute inset-0 opacity-[0.025];
+    background-image: radial-gradient(circle at 1px 1px, rgba(245,239,230,0.6) 1px, transparent 0);
+    background-size: 32px 32px;
+  }
+
+  /* Drag handle — grabber for bottom sheets */
+  .aether-grabber {
+    @apply w-10 h-1 rounded-full mx-auto;
+    background: rgba(245, 239, 230, 0.18);
   }
 }

@@ -21,8 +21,8 @@ import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader'
 type TabType = 'dashboard' | 'contactos' | 'eventos' | 'comunidades';
 
 // ── Neo-Dark accent ───────────────────────────────────────────────────────────
-const ACCENT = '#1447E6';
-const ACCENT_SOFT = '#3B82F6';
+const ACCENT = '#9F87C9';
+const ACCENT_SOFT = '#B5A3D5';
 
 // ── Motion physics ────────────────────────────────────────────────────────────
 const containerVariants: Variants = {
@@ -221,7 +221,7 @@ export default function SocialDashboard() {
         />
       </div>
 
-      <UniverseMobileHeader title="Vida Social" subtitle="Comunidad & Entorno" color="#0A0A0A" />
+      <UniverseMobileHeader title="Vida Social" subtitle="Comunidad & Entorno" color="#1B1714" />
 
       {/* ── SIDEBAR ───────────────────────────────────────────────────────── */}
       <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 bg-black/40 backdrop-blur-xl border-r border-white/5 relative">
@@ -906,7 +906,7 @@ export default function SocialDashboard() {
         activeTab={activeTab}
         onTabChange={(tab) => handleTabChange(tab as TabType)}
         activeColor={ACCENT_SOFT}
-        bgColor="#0A0A0A"
+        bgColor="#1B1714"
       />
     </div>
   );

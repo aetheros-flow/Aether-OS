@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Upload, Trash2, Sparkles } from 'lucide-react';
 import { CANONICAL_CATEGORIES, resolveCategoryIcon } from '../../lib/category-icons';
 
-const ACCENT = '#05DF72';
-const ACCENT_SOFT = '#86EFAC';
-const LOSS = '#F87171';
+const ACCENT = '#7EC28A';
+const ACCENT_SOFT = '#A8D9B3';
+const LOSS = '#E18B8B';
 
 interface DineroModalsProps {
   isCryptoModalOpen: boolean;
@@ -159,7 +159,7 @@ function PrimaryButton({
   className?: string;
 }) {
   const styles: Record<string, React.CSSProperties> = {
-    primary: { backgroundColor: ACCENT, color: '#0A0A0A' },
+    primary: { backgroundColor: ACCENT, color: '#1B1714' },
     danger: { backgroundColor: 'rgba(244,63,94,0.12)', color: LOSS, border: '1px solid rgba(244,63,94,0.25)' },
     ghost: { backgroundColor: 'rgba(255,255,255,0.04)', color: '#fff', border: '1px solid rgba(255,255,255,0.08)' },
   };
