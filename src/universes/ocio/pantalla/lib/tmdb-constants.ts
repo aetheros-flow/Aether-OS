@@ -2,7 +2,7 @@
 // Provider IDs come from /watch/providers/movie. Network IDs from TMDB itself
 // (Netflix=213, Disney+=2739, Prime=1024, Apple TV+=2552).
 
-export const PANTALLA_ACCENT = '#E11D1D';
+export const PANTALLA_ACCENT = '#D97265';
 
 /** Default watch region used for discover + watch/providers. */
 export const DEFAULT_REGION = 'AR';

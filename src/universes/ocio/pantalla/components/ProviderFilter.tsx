@@ -17,9 +17,9 @@ export default function ProviderFilter({ active, onChange }: ProviderFilterProps
               onClick={() => onChange(p.key)}
               className="relative flex items-center gap-1.5 px-4 h-9 rounded-full text-[13px] font-semibold transition-colors whitespace-nowrap shrink-0 active:scale-95"
               style={{
-                background: isActive ? `${PANTALLA_ACCENT}18` : 'rgba(255,255,255,0.045)',
-                border: `1px solid ${isActive ? `${PANTALLA_ACCENT}55` : 'rgba(255,255,255,0.08)'}`,
-                color: isActive ? PANTALLA_ACCENT : '#d4d4d8',
+                background: isActive ? `${PANTALLA_ACCENT}18` : 'rgba(232,221,204,0.05)',
+                border: `1px solid ${isActive ? `${PANTALLA_ACCENT}55` : 'rgba(232,221,204,0.09)'}`,
+                color: isActive ? PANTALLA_ACCENT : '#A8A096',
               }}
             >
               <span

@@ -34,7 +34,7 @@ export default function TitleCard({
         transition={{ type: 'spring', stiffness: 400, damping: 28 }}
         className="flex flex-col gap-2.5"
       >
-        <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-900 ring-1 ring-white/5 shadow-lg shadow-black/50">
+        <div className="relative aspect-[2/3] rounded-2xl overflow-hidden ring-1 shadow-lg shadow-black/50" style={{ background: '#221D19', boxShadow: 'none', outline: '1px solid rgba(232,221,204,0.06)' }}>
           {poster ? (
             <img
               src={poster}
@@ -45,7 +45,7 @@ export default function TitleCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center p-3 text-center">
-              <span className="text-[11px] font-semibold text-zinc-500 line-clamp-4">{title}</span>
+              <span className="text-[11px] font-semibold line-clamp-4" style={{ color: '#A8A096' }}>{title}</span>
             </div>
           )}
 
@@ -56,24 +56,21 @@ export default function TitleCard({
 
           {/* Rating chip */}
           {rating && (
-            <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md ring-1 ring-white/10">
+            <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(27,23,20,0.80)', border: '1px solid rgba(232,221,204,0.10)' }}>
               <Star size={10} fill={PANTALLA_ACCENT} stroke={PANTALLA_ACCENT} />
-              <span className="text-[10px] font-bold text-white tabular-nums">{rating}</span>
+              <span className="text-[10px] font-bold tabular-nums" style={{ color: '#F5EFE6' }}>{rating}</span>
             </div>
           )}
 
           {/* State badges */}
           {(watched || inWatchlist) && (
             <div className="absolute top-2 left-2">
-              {watched ? (
-                <div className="p-1 rounded-full bg-black/70 backdrop-blur-md ring-1 ring-white/10">
-                  <CheckCircle2 size={13} style={{ color: PANTALLA_ACCENT }} />
-                </div>
-              ) : (
-                <div className="p-1 rounded-full bg-black/70 backdrop-blur-md ring-1 ring-white/10">
-                  <Bookmark size={13} style={{ color: PANTALLA_ACCENT }} fill={PANTALLA_ACCENT} />
-                </div>
-              )}
+              <div className="p-1 rounded-full backdrop-blur-md" style={{ background: 'rgba(27,23,20,0.80)', border: '1px solid rgba(232,221,204,0.10)' }}>
+                {watched
+                  ? <CheckCircle2 size={13} style={{ color: PANTALLA_ACCENT }} />
+                  : <Bookmark size={13} style={{ color: PANTALLA_ACCENT }} fill={PANTALLA_ACCENT} />
+                }
+              </div>
             </div>
           )}
 
@@ -86,7 +83,7 @@ export default function TitleCard({
         </div>
 
         {!overlayLabel && (
-          <p className="text-[13px] font-semibold text-white/90 leading-tight line-clamp-2 px-0.5">
+          <p className="text-[13px] font-semibold leading-tight line-clamp-2 px-0.5" style={{ color: 'rgba(245,239,230,0.90)' }}>
             {title}
           </p>
         )}

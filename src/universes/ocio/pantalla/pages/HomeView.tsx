@@ -154,7 +154,7 @@ export default function HomeView() {
             <section className="flex flex-col gap-4">
               <SectionHeader title="Upcoming" eyebrow="From Your Shows" />
               {upcomingLoading ? <SpinnerBlock /> : upcoming.length === 0 ? (
-                <p className="text-sm text-zinc-500">No upcoming episodes.</p>
+                <p className="text-sm" style={{ color: '#A8A096' }}>No upcoming episodes.</p>
               ) : (
                 <HorizontalScroller>
                   {upcoming.map(u => (
@@ -177,7 +177,7 @@ export default function HomeView() {
           <section className="flex flex-col gap-4">
             <SectionHeader title="Your Watchlist" eyebrow="Saved" to="/ocio/pantalla/movies" />
             {watchlistPreview.length === 0 ? (
-              <div className="rounded-3xl bg-white/[0.03] border border-white/5 py-10">
+              <div className="rounded-3xl py-10" style={{ background: 'rgba(232,221,204,0.03)', border: '1px solid rgba(232,221,204,0.06)' }}>
                 <EmptyState icon={Bookmark} title="Nothing saved yet" subtitle="Tap the bookmark on any title to add it here." />
               </div>
             ) : (
@@ -287,8 +287,8 @@ function FeaturedHero({ item, mediaType }: { item: TmdbMediaItem; mediaType: Med
             decoding="async"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1B1714] via-[#1B1714]/60 to-[#1B1714]/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1B1714]/70 via-transparent to-transparent" />
 
         {/* Eyebrow */}
         <div className="absolute top-3 left-4 md:left-6 px-2.5 py-1 rounded-full text-[10px] font-black tracking-[0.22em] uppercase backdrop-blur-md"
@@ -311,16 +311,16 @@ function FeaturedHero({ item, mediaType }: { item: TmdbMediaItem; mediaType: Med
             <h1 className="font-serif text-2xl md:text-4xl font-semibold text-white tracking-tight leading-tight line-clamp-2">
               {title}
             </h1>
-            <div className="flex items-center gap-2 mt-2 text-[12px] md:text-sm text-zinc-300">
+            <div className="flex items-center gap-2 mt-2 text-[12px] md:text-sm" style={{ color: '#C8BFB4' }}>
               {rating && (
-                <span className="flex items-center gap-1 font-bold text-white tabular-nums">
+                <span className="flex items-center gap-1 font-bold tabular-nums" style={{ color: '#F5EFE6' }}>
                   <span className="text-[10px]" style={{ color: PANTALLA_ACCENT }}>★</span>
                   {rating}
                 </span>
               )}
-              {year && <><span className="text-zinc-600">·</span><span>{year}</span></>}
-              <span className="text-zinc-600">·</span>
-              <span className="uppercase tracking-wider text-[10px] font-bold text-zinc-400">
+              {year && <><span style={{ color: '#6B6059' }}>·</span><span>{year}</span></>}
+              <span style={{ color: '#6B6059' }}>·</span>
+              <span className="uppercase tracking-wider text-[10px] font-bold" style={{ color: '#A8A096' }}>
                 {mediaType === 'movie' ? 'Movie' : 'TV Show'}
               </span>
             </div>
@@ -336,10 +336,11 @@ function FeaturedHero({ item, mediaType }: { item: TmdbMediaItem; mediaType: Med
               </button>
               <button
                 onClick={toggle}
-                className="flex items-center gap-1.5 px-4 h-10 rounded-full font-semibold text-[13px] text-white active:scale-95 transition-transform"
+                className="flex items-center gap-1.5 px-4 h-10 rounded-full font-semibold text-[13px] active:scale-95 transition-transform"
                 style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.18)',
+                  background: 'rgba(232,221,204,0.12)',
+                  border: '1px solid rgba(232,221,204,0.18)',
+                  color: '#F5EFE6',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                 }}
@@ -358,7 +359,7 @@ function FeaturedHero({ item, mediaType }: { item: TmdbMediaItem; mediaType: Med
 // ── Trending toggle (Movies / TV) ────────────────────────────────────────────
 function TrendingToggle({ value, onChange }: { value: MediaType; onChange: (v: MediaType) => void }) {
   return (
-    <div className="flex items-center gap-0.5 p-1 rounded-full bg-white/[0.06] border border-white/8">
+    <div className="flex items-center gap-0.5 p-1 rounded-full" style={{ background: 'rgba(232,221,204,0.06)', border: '1px solid rgba(232,221,204,0.08)' }}>
       {([
         { key: 'movie' as MediaType, icon: Clapperboard, label: 'Movies' },
         { key: 'tv' as MediaType,    icon: Tv,           label: 'TV' },
@@ -371,7 +372,7 @@ function TrendingToggle({ value, onChange }: { value: MediaType; onChange: (v: M
             className="flex items-center gap-1 px-3 h-9 rounded-full text-[12px] font-semibold transition-colors active:scale-95"
             style={{
               background: isActive ? PANTALLA_ACCENT : 'transparent',
-              color: isActive ? '#000' : '#a1a1aa',
+              color: isActive ? '#1B1714' : '#A8A096',
             }}
           >
             <Icon size={12} strokeWidth={2.5} />
@@ -399,7 +400,7 @@ function SearchResults({
   const filtered = results.filter(r => r.media_type === 'movie' || r.media_type === 'tv');
   return (
     <section>
-      <p className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500 mb-4">
+      <p className="text-[10px] font-black tracking-[0.22em] uppercase mb-4" style={{ color: '#A8A096' }}>
         {filtered.length} {filtered.length === 1 ? 'Result' : 'Results'}
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-5">
@@ -438,7 +439,8 @@ function WatchlistPosterLink({ tmdbId, mediaType }: { tmdbId: number; mediaType:
     return (
       <Link
         to={`/ocio/pantalla/${mediaType}/${tmdbId}`}
-        className="block w-[132px] md:w-[148px] shrink-0 snap-start aspect-[2/3] rounded-2xl bg-zinc-900 animate-pulse"
+        className="block w-[132px] md:w-[148px] shrink-0 snap-start aspect-[2/3] rounded-2xl animate-pulse"
+        style={{ background: '#221D19' }}
       />
     );
   }

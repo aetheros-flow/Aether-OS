@@ -241,21 +241,10 @@ export default function OcioDashboard() {
             animate="visible"
             className="flex flex-col gap-6 w-full max-w-7xl"
           >
-            {/* Hero header (mirrors Dinero's "OVERVIEW / Financial pulse") */}
-            <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1" style={{ color: SURFACE.textMuted }}>Overview</p>
-                <h1 className="font-serif text-2xl md:text-3xl font-medium tracking-tight" style={{ color: SURFACE.text }}>Tu universo de ocio</h1>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={tapPhysics}
-                onClick={primaryAddForTab}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold self-start md:self-auto"
-                style={{ backgroundColor: ACCENT, color: '#1B1714' }}
-              >
-                <Plus size={15} strokeWidth={2.5} /> Add
-              </motion.button>
+            {/* Hero header */}
+            <motion.div variants={itemVariants}>
+              <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1" style={{ color: SURFACE.textMuted }}>Overview</p>
+              <h1 className="font-serif text-2xl md:text-3xl font-medium tracking-tight" style={{ color: SURFACE.text }}>Tu universo de ocio</h1>
             </motion.div>
 
             {/* AI Insight card (Dinero-style) */}

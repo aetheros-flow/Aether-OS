@@ -13,14 +13,14 @@ export default function SectionHeader({ title, eyebrow, to, onClick }: SectionHe
     <div className="flex items-center justify-between">
       <div className="flex flex-col gap-1">
         {eyebrow && (
-          <span className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">{eyebrow}</span>
+          <span className="text-[10px] font-black tracking-[0.22em] uppercase" style={{ color: '#A8A096' }}>{eyebrow}</span>
         )}
-        <h2 className="font-serif text-[22px] md:text-2xl font-semibold text-white tracking-tight leading-none">
+        <h2 className="font-serif text-[22px] md:text-2xl font-semibold tracking-tight leading-none" style={{ color: '#F5EFE6' }}>
           {title}
         </h2>
       </div>
       {(to || onClick) && (
-        <ChevronRight size={20} className="text-zinc-500 shrink-0" />
+        <ChevronRight size={20} className="shrink-0" style={{ color: '#A8A096' }} />
       )}
     </div>
   );
