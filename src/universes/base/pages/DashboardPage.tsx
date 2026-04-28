@@ -166,10 +166,23 @@ export default function DashboardPage() {
       isDashboard
       onTuneClick={() => setTuneOpen(true)}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {universes.map(universe => (
-          <UniverseCard key={universe.id} universe={universe} />
-        ))}
+      <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
+        {/* Page header */}
+        <div className="flex flex-col gap-2">
+          <h2 className="font-serif text-3xl md:text-[32px] font-semibold tracking-tight text-white/95 leading-tight">
+            Explore Universes
+          </h2>
+          <p className="text-[15px] leading-relaxed text-white/55 max-w-lg">
+            Discover curated realms of focus, meditation, and kinetic energy tailored to your current vibrational state.
+          </p>
+        </div>
+
+        {/* Condensed list */}
+        <div className="flex flex-col gap-3">
+          {universes.map(universe => (
+            <UniverseCard key={universe.id} universe={universe} />
+          ))}
+        </div>
       </div>
 
       <FrequencyTuningSheet

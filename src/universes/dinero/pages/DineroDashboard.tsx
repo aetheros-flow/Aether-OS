@@ -59,6 +59,7 @@ export default function DineroDashboard() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [isEditSubscriptionModalOpen, setIsEditSubscriptionModalOpen] = useState(false);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -73,6 +74,7 @@ export default function DineroDashboard() {
   });
   const [customCategoryInput, setCustomCategoryInput] = useState('');
   const [editTransaction, setEditTransaction] = useState<any>(null);
+  const [editSubscription, setEditSubscription] = useState<any>(null);
 
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importAccountId, setImportAccountId] = useState<string>('');
@@ -172,6 +174,52 @@ export default function DineroDashboard() {
       await fetchData();
     } catch (error: any) { alert("Error: " + error.message); }
     finally { setIsSubmitting(false); }
+  };
+
+  const handleUpdateSubscription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editSubscription) return;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('Finanzas_subscriptions').update({
+        name: editSubscription.name,
+        amount: Number(editSubscription.amount),
+        frequency: editSubscription.frequency,
+        next_billing_date: editSubscription.next_billing_date,
+      }).eq('id', editSubscription.id);
+      if (error) throw error;
+      setIsEditSubscriptionModalOpen(false);
+      setEditSubscription(null);
+      await fetchData();
+    } catch (error: any) { alert("Update error: " + error.message); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleDeleteSubscription = async () => {
+    if (!editSubscription) return;
+    if (!window.confirm(`Delete the "${editSubscription.name}" subscription?`)) return;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('Finanzas_subscriptions').delete().eq('id', editSubscription.id);
+      if (error) throw error;
+      setIsEditSubscriptionModalOpen(false);
+      setEditSubscription(null);
+      await fetchData();
+    } catch (e: any) { alert("Error deleting: " + e.message); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const openEditSubscription = (sub: any) => {
+    // Normalize the date for the date input (yyyy-mm-dd).
+    const dateStr = sub.next_billing_date
+      ? new Date(sub.next_billing_date).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
+    setEditSubscription({
+      ...sub,
+      amount: String(sub.amount),
+      next_billing_date: dateStr,
+    });
+    setIsEditSubscriptionModalOpen(true);
   };
 
   const handleSetBudget = async (e: React.FormEvent) => {
@@ -579,7 +627,11 @@ export default function DineroDashboard() {
         {activeTab === 'radar' && <DineroRadar cryptoTrades={cryptoTrades} onDeleteTrade={handleDeleteCryptoTrade} />}
 
         {activeTab === 'calendar' && (
-          <DineroSubscriptions subscriptions={subscriptions} setIsSubscriptionModalOpen={setIsSubscriptionModalOpen} />
+          <DineroSubscriptions
+            subscriptions={subscriptions}
+            setIsSubscriptionModalOpen={setIsSubscriptionModalOpen}
+            onEditSubscription={openEditSubscription}
+          />
         )}
 
         {activeTab === 'budget' && (
@@ -677,6 +729,11 @@ export default function DineroDashboard() {
         isSubscriptionModalOpen={isSubscriptionModalOpen} setIsSubscriptionModalOpen={setIsSubscriptionModalOpen}
         newSubscription={newSubscription} setNewSubscription={setNewSubscription}
         handleCreateSubscription={handleCreateSubscription}
+
+        isEditSubscriptionModalOpen={isEditSubscriptionModalOpen} setIsEditSubscriptionModalOpen={setIsEditSubscriptionModalOpen}
+        editSubscription={editSubscription} setEditSubscription={setEditSubscription}
+        handleUpdateSubscription={handleUpdateSubscription}
+        handleDeleteSubscription={handleDeleteSubscription}
 
         newCrypto={newCrypto} setNewCrypto={setNewCrypto}
         newAccount={newAccount} setNewAccount={setNewAccount}

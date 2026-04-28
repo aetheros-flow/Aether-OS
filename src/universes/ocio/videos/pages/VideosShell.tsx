@@ -31,23 +31,24 @@ export default function VideosShell() {
 
   return (
     <VideosProvider>
-      <div className="min-h-screen flex flex-col bg-black text-white relative">
+      <div className="min-h-screen flex flex-col text-white relative" style={{ background: '#1B1714' }}>
         {/* Ambient glow */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
           <div
-            className="absolute -top-48 left-1/2 -translate-x-1/2 w-[640px] h-[640px] rounded-full opacity-[0.08] blur-[140px]"
+            className="absolute -top-48 left-1/2 -translate-x-1/2 w-[640px] h-[640px] rounded-full opacity-[0.10] blur-[140px]"
             style={{ background: `radial-gradient(circle, ${VIDEOS_ACCENT}, transparent 65%)` }}
           />
         </div>
 
         {/* Top header */}
         <header
-          className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-b border-white/5"
+          className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-b"
           style={{
-            background: 'rgba(0,0,0,0.72)',
+            background: 'rgba(27,23,20,0.78)',
             backdropFilter: 'blur(18px)',
             WebkitBackdropFilter: 'blur(18px)',
             paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+            borderBottomColor: 'rgba(232,221,204,0.06)',
           }}
         >
           <div className="flex items-center gap-3">
@@ -72,7 +73,7 @@ export default function VideosShell() {
               className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-bold active:scale-95 transition-transform"
               style={{
                 background: VIDEOS_ACCENT,
-                color: '#0A0012',
+                color: '#1B1714',
                 boxShadow: `0 4px 14px ${VIDEOS_ACCENT}45`,
               }}
             >
@@ -121,7 +122,7 @@ export default function VideosShell() {
               if (tab) navigate(tab.path);
             }}
             activeColor={VIDEOS_ACCENT}
-            bgColor="#000000"
+            bgColor="#1B1714"
           />
         </div>
 

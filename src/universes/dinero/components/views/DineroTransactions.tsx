@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { Search, Plus, Filter, Download, Upload, Pencil, Sparkles } from 'lucide-react';
+import { Search, Plus, Download, Upload, Pencil } from 'lucide-react';
 import { resolveCategoryIcon } from '../../lib/category-icons';
 
 const ACCENT = '#7EC28A';
-const ACCENT_SOFT = '#A8D9B3';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -91,23 +90,18 @@ export function DineroTransactions({
         </div>
       </motion.div>
 
-      <div className="flex flex-col md:flex-row gap-5 items-start">
-        {/* Filters */}
-        <motion.div variants={itemVariants} className="w-full md:w-64 shrink-0">
-          <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 flex flex-col gap-5">
-            <div className="flex items-center gap-2">
-              <Filter size={14} className="text-zinc-500" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Filters</span>
-            </div>
-
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+      <div className="flex flex-col gap-3 items-start">
+        {/* Filters — compact horizontal toolbar */}
+        <motion.div variants={itemVariants} className="w-full">
+          <div className="rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-2.5 flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[160px]">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-full text-sm font-medium outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2 rounded-full text-xs font-medium outline-none transition-colors"
                 style={{
                   backgroundColor: 'rgba(255,255,255,0.04)',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -116,56 +110,43 @@ export function DineroTransactions({
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Account</label>
-              <select
-                value={filterAccount}
-                onChange={(e) => setFilterAccount(e.target.value)}
-                className="w-full py-2 px-3 rounded-full text-sm font-medium outline-none appearance-none cursor-pointer"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#fff',
-                }}
-              >
-                <option value="all" style={{ backgroundColor: '#111' }}>All accounts</option>
-                {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id} style={{ backgroundColor: '#111' }}>{acc.name}</option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={filterAccount}
+              onChange={(e) => setFilterAccount(e.target.value)}
+              className="py-2 px-3 rounded-full text-xs font-medium outline-none appearance-none cursor-pointer max-w-[160px]"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#fff',
+              }}
+            >
+              <option value="all" style={{ backgroundColor: '#111' }}>All accounts</option>
+              {accounts.map(acc => (
+                <option key={acc.id} value={acc.id} style={{ backgroundColor: '#111' }}>{acc.name}</option>
+              ))}
+            </select>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Type</label>
-              <div className="flex p-1 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                {[
-                  { key: 'all', label: 'All', color: '#fff' },
-                  { key: 'income', label: 'In', color: ACCENT },
-                  { key: 'expense', label: 'Out', color: '#F87171' },
-                ].map(opt => {
-                  const active = filterType === opt.key;
-                  return (
-                    <button
-                      key={opt.key}
-                      onClick={() => setFilterType(opt.key)}
-                      className="flex-1 py-1.5 text-xs font-semibold rounded-full transition-all"
-                      style={{
-                        backgroundColor: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                        color: active ? opt.color : 'rgba(255,255,255,0.45)',
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-2 pt-4 border-t border-white/5 flex items-start gap-2">
-              <Sparkles size={13} style={{ color: ACCENT_SOFT }} className="mt-0.5 flex-shrink-0" />
-              <p className="text-[11px] leading-relaxed text-zinc-400">
-                Tap any transaction to edit or reassign the category.
-              </p>
+            <div className="flex p-0.5 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              {[
+                { key: 'all', label: 'All', color: '#fff' },
+                { key: 'income', label: 'In', color: ACCENT },
+                { key: 'expense', label: 'Out', color: '#F87171' },
+              ].map(opt => {
+                const active = filterType === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => setFilterType(opt.key)}
+                    className="px-3 py-1.5 text-[11px] font-semibold rounded-full transition-all"
+                    style={{
+                      backgroundColor: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                      color: active ? opt.color : 'rgba(255,255,255,0.45)',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </motion.div>

@@ -40,7 +40,7 @@ export default function VideosProfileView() {
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="font-serif text-2xl md:text-3xl font-semibold text-white tracking-tight leading-tight">
+          <h1 className="font-sans text-2xl md:text-[32px] font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
             Videos · Profile
           </h1>
           <p className="text-xs text-zinc-400 mt-1 truncate">

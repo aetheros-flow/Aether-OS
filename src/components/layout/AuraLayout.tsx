@@ -21,6 +21,7 @@ interface AuraLayoutProps {
   headerActions?: ReactNode;
   isDashboard?: boolean;
   onTuneClick?: () => void;
+  hideHomeButton?: boolean;
 }
 
 // ── Reusable bottom nav button ────────────────────────────────────────────────
@@ -80,6 +81,7 @@ export default function AuraLayout({
   headerActions,
   isDashboard = false,
   onTuneClick,
+  hideHomeButton = false,
 }: AuraLayoutProps) {
   const navigate = useNavigate();
 
@@ -194,11 +196,13 @@ export default function AuraLayout({
           </>
         ) : (
           <>
-            <NavBtn
-              icon={<Home size={20} />}
-              label="Home"
-              onClick={() => navigate('/')}
-            />
+            {!hideHomeButton && (
+              <NavBtn
+                icon={<Home size={20} />}
+                label="Home"
+                onClick={() => navigate('/')}
+              />
+            )}
             {tabs?.map(tab => {
               const isActive = activeTab === tab.id;
               return (

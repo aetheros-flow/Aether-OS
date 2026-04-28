@@ -13,14 +13,14 @@ interface NewListSheetProps {
 }
 
 const PALETTE = [
-  '#A855F7', // violet (default)
-  '#EC4899', // pink
-  '#F59E0B', // amber
-  '#10B981', // emerald
-  '#3B82F6', // blue
-  '#EF4444', // red
-  '#14B8A6', // teal
-  '#F97316', // orange
+  '#D97265', // coral (Ocio default)
+  '#E89588', // rose
+  '#D9B25E', // amber
+  '#7EC28A', // sage
+  '#7AB8C4', // teal
+  '#9F87C9', // lavender
+  '#C090BC', // plum
+  '#6B8FC4', // dusty blue
 ];
 
 export default function NewListSheet({ open, onClose, onCreated }: NewListSheetProps) {
@@ -44,11 +44,11 @@ export default function NewListSheet({ open, onClose, onCreated }: NewListSheetP
     setBusy(true);
     try {
       const id = await createList({ name: name.trim(), description: description.trim(), color });
-      toast.success('Lista creada');
+      toast.success('List created');
       onClose();
       onCreated?.(id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'No se pudo crear');
+      toast.error(err instanceof Error ? err.message : 'Could not create');
     } finally {
       setBusy(false);
     }
@@ -78,20 +78,20 @@ export default function NewListSheet({ open, onClose, onCreated }: NewListSheetP
               <div className="w-10 h-1 rounded-full bg-white/20" />
             </div>
             <div className="px-5 pb-3 flex items-center justify-between shrink-0">
-              <h3 className="font-serif text-xl text-white tracking-tight">Nueva Lista</h3>
-              <button onClick={onClose} className="p-2 rounded-full bg-white/5 text-zinc-400 active:scale-90 transition-transform" aria-label="Cerrar">
+              <h3 className="font-sans text-xl font-bold text-white tracking-tight" style={{ letterSpacing: '-0.01em' }}>New List</h3>
+              <button onClick={onClose} className="p-2 rounded-full bg-white/5 text-zinc-400 active:scale-90 transition-transform" aria-label="Close">
                 <X size={14} />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="px-5 pb-6 pt-2 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">Nombre</label>
+                <label className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Tutoriales de React"
+                  placeholder="React tutorials"
                   autoCapitalize="sentences"
                   required
                   className="w-full h-11 px-4 rounded-xl text-[14px] font-medium text-white placeholder:text-zinc-500 outline-none focus:ring-1 focus:ring-white/15"
@@ -100,12 +100,12 @@ export default function NewListSheet({ open, onClose, onCreated }: NewListSheetP
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">Descripción (opcional)</label>
+                <label className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">Description (optional)</label>
                 <input
                   type="text"
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  placeholder="De qué trata esta lista"
+                  placeholder="What this list is about"
                   className="w-full h-11 px-4 rounded-xl text-[14px] font-medium text-white placeholder:text-zinc-500 outline-none focus:ring-1 focus:ring-white/15"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                 />
@@ -139,10 +139,10 @@ export default function NewListSheet({ open, onClose, onCreated }: NewListSheetP
                 type="submit"
                 disabled={!canSubmit}
                 className="mt-2 h-12 rounded-full font-bold text-[14px] flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98] transition-transform"
-                style={{ background: color, color: '#0A0012', boxShadow: `0 6px 20px ${color}50` }}
+                style={{ background: color, color: '#1B1714', boxShadow: `0 6px 20px ${color}50` }}
               >
                 {busy ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} strokeWidth={2.5} />}
-                {busy ? 'Creando…' : 'Crear lista'}
+                {busy ? 'Creating…' : 'Create list'}
               </button>
             </form>
           </motion.div>

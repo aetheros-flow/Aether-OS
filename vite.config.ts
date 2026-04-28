@@ -4,7 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 export default defineConfig({
-  base: './',
+  // Absolute base — required for PWA installability. With './' the manifest
+  // link in <head> resolves relative to the current route, so loading the app
+  // at /dinero or /ocio breaks the manifest fetch and Chrome never offers
+  // "Install app". Netlify deploys at root, so '/' is correct.
+  base: '/',
   plugins: [
     react(),
     VitePWA({

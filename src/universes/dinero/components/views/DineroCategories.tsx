@@ -28,6 +28,8 @@ interface DineroCategoriesProps {
 
 export function DineroCategories({ transactions, categories, setIsCategoryModalOpen }: DineroCategoriesProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  // 'all' = no month filter; otherwise an ISO yyyy-mm key.
+  const [monthFilter, setMonthFilter] = useState<string>('all');
 
   const categoriesMap = useMemo(() => {
     const expenses = transactions.filter(t => t.type === 'expense');
@@ -48,12 +50,38 @@ export function DineroCategories({ transactions, categories, setIsCategoryModalO
 
   const totalExpenses = sortedCategories.reduce((acc, curr) => acc + curr[1].total, 0);
 
+  // Available months with at least one expense in the selected category.
+  const availableMonths = useMemo(() => {
+    if (!selectedCategory) return [];
+    const set = new Set<string>();
+    transactions.forEach(t => {
+      if (t.category === selectedCategory && t.type === 'expense') {
+        const d = new Date(t.date);
+        set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
+    });
+    return Array.from(set).sort((a, b) => b.localeCompare(a));
+  }, [transactions, selectedCategory]);
+
   const categoryTransactions = useMemo(() => {
     if (!selectedCategory) return [];
     return transactions
-      .filter(t => t.category === selectedCategory && t.type === 'expense')
+      .filter(t => {
+        if (t.category !== selectedCategory || t.type !== 'expense') return false;
+        if (monthFilter === 'all') return true;
+        const d = new Date(t.date);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return key === monthFilter;
+      })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, selectedCategory]);
+  }, [transactions, selectedCategory, monthFilter]);
+
+  const monthTotal = categoryTransactions.reduce((acc, t) => acc + Number(t.amount), 0);
+
+  const formatMonthLabel = (key: string) => {
+    const [y, m] = key.split('-').map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
 
   const selectedIcon = selectedCategory ? resolveCategoryIcon(selectedCategory) : null;
 
@@ -90,30 +118,49 @@ export function DineroCategories({ transactions, categories, setIsCategoryModalO
       {selectedCategory ? (
         // DETAIL VIEW
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors self-start px-4 py-2 rounded-full"
-            style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <ArrowLeft size={14} /> Back
-          </button>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <button
+              onClick={() => { setSelectedCategory(null); setMonthFilter('all'); }}
+              className="flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors px-4 py-2 rounded-full"
+              style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <ArrowLeft size={14} /> Back
+            </button>
+
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="appearance-none py-2 pl-4 pr-8 rounded-full text-xs font-semibold outline-none border cursor-pointer"
+              style={{ backgroundColor: 'rgba(255,255,255,0.04)', color: '#fff', borderColor: 'rgba(255,255,255,0.08)' }}
+            >
+              <option value="all" style={{ backgroundColor: '#111' }}>All months</option>
+              {availableMonths.map(key => (
+                <option key={key} value={key} style={{ backgroundColor: '#111' }}>{formatMonthLabel(key)}</option>
+              ))}
+            </select>
+          </div>
 
           <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 overflow-hidden">
-            <div className="p-5 border-b border-white/5 flex justify-between items-center">
-              <div className="flex items-center gap-3">
+            <div className="p-5 border-b border-white/5 flex justify-between items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 {selectedIcon && (
                   <div
-                    className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: `${selectedIcon.color}18`, border: `1px solid ${selectedIcon.color}30` }}
                   >
                     <selectedIcon.icon size={16} color={selectedIcon.color} />
                   </div>
                 )}
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Transactions</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                    {monthFilter === 'all' ? 'Transactions' : formatMonthLabel(monthFilter)}
+                  </p>
                   <p className="text-sm font-medium text-white">{categoryTransactions.length} records</p>
                 </div>
               </div>
+              <span className="text-sm font-bold tabular-nums flex-shrink-0" style={{ color: '#F87171' }}>
+                −${monthTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
 
             <div className="flex flex-col divide-y divide-white/5">

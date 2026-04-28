@@ -22,12 +22,12 @@ export default function ListDetailView() {
   if (!list) {
     return (
       <div className="py-20 text-center">
-        <p className="text-base font-bold text-zinc-300">Lista no encontrada</p>
+        <p className="text-base font-bold text-zinc-300">List not found</p>
         <button
           onClick={() => navigate('/ocio/videos/lists')}
           className="mt-4 px-5 h-10 rounded-full text-[13px] font-semibold text-white bg-white/8 active:scale-95 transition-transform"
         >
-          Volver a Lists
+          Back to Lists
         </button>
       </div>
     );
@@ -38,14 +38,14 @@ export default function ListDetailView() {
   const progress = items.length > 0 ? Math.round((watched / items.length) * 100) : 0;
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar la lista "${list.name}"? Los videos que contenga van a quedar sin lista.`)) return;
+    if (!confirm(`Delete the list "${list.name}"? The videos inside will be left without a list.`)) return;
     setDeleting(true);
     try {
       await deleteList(list.id);
-      toast.success('Lista eliminada');
+      toast.success('List deleted');
       navigate('/ocio/videos/lists');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'No se pudo eliminar');
+      toast.error(err instanceof Error ? err.message : 'Could not delete');
       setDeleting(false);
     }
   };
@@ -65,7 +65,7 @@ export default function ListDetailView() {
           <p className="text-[10px] font-black tracking-[0.22em] uppercase" style={{ color }}>
             Playlist
           </p>
-          <h1 className="font-serif text-2xl md:text-4xl font-semibold text-white tracking-tight mt-2 leading-tight">
+          <h1 className="font-sans text-2xl md:text-[32px] font-bold text-white tracking-tight mt-2 leading-tight" style={{ letterSpacing: '-0.02em' }}>
             {list.name}
           </h1>
           {list.description && (
@@ -93,10 +93,10 @@ export default function ListDetailView() {
             <button
               onClick={() => setAddOpen(true)}
               className="flex items-center gap-1.5 px-4 h-10 rounded-full text-[13px] font-bold active:scale-95 transition-transform"
-              style={{ background: color, color: '#0A0012', boxShadow: `0 4px 14px ${color}55` }}
+              style={{ background: color, color: '#1B1714', boxShadow: `0 4px 14px ${color}55` }}
             >
               <Plus size={14} strokeWidth={2.75} />
-              Agregar video
+              Add video
             </button>
             <button
               onClick={handleDelete}
@@ -104,7 +104,7 @@ export default function ListDetailView() {
               className="flex items-center gap-1.5 px-3.5 h-10 rounded-full text-[12px] font-semibold text-red-400 bg-red-500/10 border border-red-500/20 active:scale-95 transition-transform disabled:opacity-50"
             >
               <Trash2 size={13} />
-              Eliminar lista
+              Delete list
             </button>
           </div>
         </div>
@@ -114,8 +114,8 @@ export default function ListDetailView() {
       {items.length === 0 ? (
         <div className="rounded-3xl bg-white/[0.03] border border-dashed border-white/10 p-10 flex flex-col items-center justify-center text-center">
           <Film size={32} className="text-zinc-600 mb-3" />
-          <p className="text-base font-bold text-white">Lista vacía</p>
-          <p className="text-sm text-zinc-400 mt-1">Agregá el primer video con el botón de arriba.</p>
+          <p className="text-base font-bold text-white">Empty list</p>
+          <p className="text-sm text-zinc-400 mt-1">Add the first video using the button above.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">

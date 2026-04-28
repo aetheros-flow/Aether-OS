@@ -9,7 +9,7 @@ export interface UniverseData {
   path: string;
   icon: ReactNode;
   imageUrl: string;
-  color: string;       // hex accent
+  color: string;       // hex accent — universe identity
   textColorClass: string;
   bgIconClass: string;
   glowClass: string;
@@ -22,77 +22,80 @@ interface UniverseCardProps {
 export default function UniverseCard({ universe }: UniverseCardProps) {
   const navigate = useNavigate();
   const pct = Math.max(0, Math.min(100, universe.value * 10));
+  const accent = universe.color;
 
   return (
-    <article
+    <button
+      type="button"
       onClick={() => navigate(universe.path)}
-      className="glass-panel rounded-2xl overflow-hidden relative group flex flex-col cursor-pointer transition-all duration-500 hover:-translate-y-1.5 active:scale-[0.98]"
+      className="group w-full flex items-center gap-4 p-2 pr-4 rounded-xl text-left transition-all duration-300 active:scale-[0.99]"
       style={{
-        minHeight: 380,
-        boxShadow: `0 0 0 1px rgba(255,255,255,0.06), 0 4px 32px rgba(0,0,0,0.4)`,
+        background: 'rgba(33,30,39,0.30)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255,255,255,0.05)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.05)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'rgba(33,30,39,0.60)';
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'rgba(33,30,39,0.30)';
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
       }}
     >
-      {/* Background image + gradient overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      {/* Thumbnail with gradient + colored glow */}
+      <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden relative">
         <img
           src={universe.imageUrl}
           alt={universe.name}
-          className="w-full h-full object-cover opacity-35 mix-blend-screen group-hover:opacity-52 transition-opacity duration-700"
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#15121b] via-[#15121b]/75 to-transparent" />
-        {/* Colored glow at center on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
         <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-          style={{ background: `radial-gradient(circle at 50% 80%, ${universe.color}18 0%, transparent 65%)` }}
+          aria-hidden
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{ background: `radial-gradient(circle at 50% 100%, ${accent}33 0%, transparent 70%)` }}
         />
       </div>
 
-      <div className="relative z-10 p-5 flex flex-col h-full">
-        {/* Icon badge — top left only, no menu button */}
-        <header className="flex items-start mb-auto">
+      {/* Title + one-line description */}
+      <div className="flex flex-col flex-1 min-w-0 gap-1">
+        <h3
+          className="font-sans text-[18px] md:text-[20px] font-semibold tracking-tight leading-tight truncate"
+          style={{ color: accent }}
+        >
+          {universe.name}
+        </h3>
+        <p className="text-[13px] leading-snug text-white/55 line-clamp-1">
+          {universe.description}
+        </p>
+      </div>
+
+      {/* Percentage + mini progress bar — keeps universe color */}
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <span
+          className="text-[11px] font-bold uppercase tracking-[0.1em] tabular-nums"
+          style={{ color: accent }}
+        >
+          {pct.toFixed(0)}%
+        </span>
+        <div
+          className="w-12 h-1 rounded-full overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.08)' }}
+        >
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center border border-white/10 backdrop-blur-md"
-            style={{ background: `${universe.color}1A` }}
-          >
-            <span style={{ color: universe.color }}>{universe.icon}</span>
-          </div>
-        </header>
-
-        {/* Bottom content */}
-        <div className="mt-8">
-          <h3
-            className="font-sans text-[22px] font-bold tracking-tight leading-tight mb-1.5"
-            style={{ color: universe.color }}
-          >
-            {universe.name}
-          </h3>
-          <p className="text-[13px] leading-relaxed text-white/50 mb-5 line-clamp-2">
-            {universe.description}
-          </p>
-
-          {/* Alignment bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-[9px] font-black uppercase tracking-[0.22em] text-white/30">
-                Alignment
-              </span>
-              <span className="text-[12px] font-bold tabular-nums" style={{ color: universe.color }}>
-                {pct.toFixed(0)}%
-              </span>
-            </div>
-            <div className="h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <div
-                className="h-full rounded-full transition-all duration-1000 ease-out"
-                style={{
-                  width: `${pct}%`,
-                  background: `linear-gradient(90deg, ${universe.color}80, ${universe.color})`,
-                  boxShadow: `0 0 8px ${universe.color}60`,
-                }}
-              />
-            </div>
-          </div>
+            className="h-full rounded-full transition-all duration-700 ease-out"
+            style={{
+              width: `${pct}%`,
+              background: accent,
+              boxShadow: `0 0 8px ${accent}80`,
+            }}
+          />
         </div>
       </div>
-    </article>
+    </button>
   );
 }

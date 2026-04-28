@@ -36,6 +36,12 @@ interface DineroModalsProps {
   newSubscription?: { name: string; amount: string; frequency: string; next_billing_date: string };
   setNewSubscription?: (val: any) => void;
   handleCreateSubscription?: (e: React.FormEvent) => void;
+  isEditSubscriptionModalOpen?: boolean;
+  setIsEditSubscriptionModalOpen?: (val: boolean) => void;
+  editSubscription?: any;
+  setEditSubscription?: (val: any) => void;
+  handleUpdateSubscription?: (e: React.FormEvent) => void;
+  handleDeleteSubscription?: () => void;
 
   newCrypto: any;
   setNewCrypto: (val: any) => void;
@@ -90,15 +96,15 @@ function ModalShell({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/70 backdrop-blur-md"
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.98 }}
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.98 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className={`w-full ${maxWidth} rounded-t-[32px] md:rounded-[32px] p-6 md:p-7 max-h-[92vh] overflow-y-auto custom-scrollbar`}
+            exit={{ opacity: 0, y: 15, scale: 0.97 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className={`w-full ${maxWidth} rounded-[28px] md:rounded-[32px] p-5 md:p-7 max-h-[88vh] overflow-y-auto custom-scrollbar`}
             style={{
               backgroundColor: '#0E0E10',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -190,6 +196,9 @@ export function DineroModals({
   isCategoryModalOpen, setIsCategoryModalOpen,
   isBudgetModalOpen, setIsBudgetModalOpen,
   isSubscriptionModalOpen, setIsSubscriptionModalOpen,
+  isEditSubscriptionModalOpen, setIsEditSubscriptionModalOpen,
+  editSubscription, setEditSubscription,
+  handleUpdateSubscription, handleDeleteSubscription,
   newCrypto, setNewCrypto,
   newAccount, setNewAccount,
   newTransaction, setNewTransaction,
@@ -599,6 +608,71 @@ export function DineroModals({
             <PrimaryButton type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save subscription'}
             </PrimaryButton>
+          </form>
+        </ModalShell>
+      )}
+
+      {/* Edit Subscription */}
+      {editSubscription && setEditSubscription && setIsEditSubscriptionModalOpen && handleUpdateSubscription && handleDeleteSubscription && (
+        <ModalShell
+          open={!!isEditSubscriptionModalOpen}
+          onClose={() => { setIsEditSubscriptionModalOpen(false); setEditSubscription(null); }}
+          title="Edit subscription"
+          subtitle="Recurring"
+        >
+          <form onSubmit={handleUpdateSubscription} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <FieldLabel>Service name</FieldLabel>
+              <input
+                type="text" required placeholder="Netflix, Gym, Rent…"
+                value={editSubscription.name || ''}
+                onChange={e => setEditSubscription({ ...editSubscription, name: e.target.value })}
+                className={inputClass}
+                style={baseInputStyle}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-2">
+                <FieldLabel>Amount</FieldLabel>
+                <input
+                  type="number" step="0.01" required placeholder="0.00"
+                  value={editSubscription.amount ?? ''}
+                  onChange={e => setEditSubscription({ ...editSubscription, amount: e.target.value })}
+                  className={`${inputClass} font-bold tabular-nums`}
+                  style={baseInputStyle}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <FieldLabel>Billing</FieldLabel>
+                <select
+                  value={editSubscription.frequency || 'Monthly'}
+                  onChange={e => setEditSubscription({ ...editSubscription, frequency: e.target.value })}
+                  className={selectClass}
+                  style={baseInputStyle}
+                >
+                  <option value="Monthly" style={{ backgroundColor: '#111' }}>Monthly</option>
+                  <option value="Yearly" style={{ backgroundColor: '#111' }}>Yearly</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <FieldLabel>Next billing date</FieldLabel>
+              <input
+                type="date" required
+                value={editSubscription.next_billing_date || ''}
+                onChange={e => setEditSubscription({ ...editSubscription, next_billing_date: e.target.value })}
+                className={inputClass}
+                style={{ ...baseInputStyle, colorScheme: 'dark' }}
+              />
+            </div>
+            <div className="flex gap-3 mt-2">
+              <PrimaryButton type="button" onClick={handleDeleteSubscription} disabled={isSubmitting} variant="danger">
+                <Trash2 size={14} /> Delete
+              </PrimaryButton>
+              <PrimaryButton type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Update'}
+              </PrimaryButton>
+            </div>
           </form>
         </ModalShell>
       )}

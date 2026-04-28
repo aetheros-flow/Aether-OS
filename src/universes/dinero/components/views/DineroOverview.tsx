@@ -118,63 +118,66 @@ export function DineroOverview({
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="w-full max-w-6xl mx-auto px-1 md:px-0 pb-8 font-sans"
+      className="w-full max-w-6xl mx-auto px-1 md:px-0 pb-6 font-sans"
     >
       {/* HEADER */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between mb-6">
+      <motion.div variants={itemVariants} className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">Overview</p>
-          <h1 className="font-serif text-2xl md:text-3xl font-medium tracking-tight text-white">Financial pulse</h1>
+          <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500">Overview</p>
+          <h1 className="font-serif text-xl md:text-2xl font-medium tracking-tight text-white">Financial pulse</h1>
         </div>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
           onClick={() => setIsTransactionModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-colors"
           style={{ backgroundColor: ACCENT, color: '#1B1714' }}
         >
-          <Plus size={15} strokeWidth={2.5} /> Add
+          <Plus size={13} strokeWidth={2.5} /> Add
         </motion.button>
       </motion.div>
 
       {/* AI INSIGHT */}
       <motion.div
         variants={itemVariants}
-        className="mb-5 rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 flex items-start gap-3"
+        className="mb-3 rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-3.5 flex items-start gap-2.5"
       >
         <div
-          className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0"
+          className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ backgroundColor: `${ACCENT}15`, border: `1px solid ${ACCENT}30` }}
         >
-          <Sparkles size={16} style={{ color: ACCENT }} />
+          <Sparkles size={13} style={{ color: ACCENT }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black tracking-[0.2em] uppercase mb-1" style={{ color: ACCENT_SOFT }}>
+          <p className="text-[9px] font-black tracking-[0.2em] uppercase mb-0.5" style={{ color: ACCENT_SOFT }}>
             AI insight
           </p>
-          <p className="text-sm text-zinc-200 leading-relaxed">{aiInsight}</p>
+          <p className="text-[12px] text-zinc-200 leading-relaxed">{aiInsight}</p>
         </div>
       </motion.div>
 
-      {/* SUMMARY STATS */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+      {/* SUMMARY STATS — single card with 3 columns to save vertical space */}
+      <motion.div
+        variants={itemVariants}
+        className="grid grid-cols-3 gap-2 mb-3 rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-3"
+      >
         {[
           { label: 'Net worth', value: netWorthCalculated, positive: netWorthCalculated >= 0, accent: ACCENT },
-          { label: 'Income (month)', value: monthlyIncome, positive: true, accent: ACCENT_SOFT },
-          { label: 'Expenses (month)', value: monthlyExpense, positive: false, accent: '#F87171' },
-        ].map(stat => (
+          { label: 'Income', value: monthlyIncome, positive: true, accent: ACCENT_SOFT },
+          { label: 'Expenses', value: monthlyExpense, positive: false, accent: '#F87171' },
+        ].map((stat, i) => (
           <div
             key={stat.label}
-            className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 flex flex-col gap-2"
+            className={`flex flex-col gap-1 px-1.5 ${i > 0 ? 'border-l border-white/5' : ''}`}
           >
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+            <span className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500 truncate">
               {stat.label}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {stat.positive
-                ? <ArrowUpRight size={16} style={{ color: stat.accent }} strokeWidth={2.5} />
-                : <ArrowDownRight size={16} style={{ color: stat.accent }} strokeWidth={2.5} />}
-              <span className="text-2xl font-bold tabular-nums text-white tracking-tight">
+                ? <ArrowUpRight size={12} style={{ color: stat.accent }} strokeWidth={2.5} />
+                : <ArrowDownRight size={12} style={{ color: stat.accent }} strokeWidth={2.5} />}
+              <span className="text-[15px] md:text-base font-bold tabular-nums text-white tracking-tight truncate">
                 {formatMoney(stat.value)}
               </span>
             </div>
@@ -185,17 +188,17 @@ export function DineroOverview({
       {/* CASHFLOW CHART */}
       <motion.div
         variants={itemVariants}
-        className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 md:p-6 mb-5"
+        className="rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-4 mb-3"
       >
-        <div className="flex justify-between items-center mb-5">
+        <div className="flex justify-between items-center mb-3">
           <div>
-            <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">Cashflow</p>
-            <h2 className="font-serif text-xl font-medium text-white tracking-tight">By month</h2>
+            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500">Cashflow</p>
+            <h2 className="font-serif text-base font-medium text-white tracking-tight">By month</h2>
           </div>
           <select
             value={selectedYear}
             onChange={e => setSelectedYear(Number(e.target.value))}
-            className="appearance-none py-2 pl-4 pr-8 rounded-full text-xs font-semibold outline-none border cursor-pointer"
+            className="appearance-none py-1.5 pl-3 pr-7 rounded-full text-[11px] font-semibold outline-none border cursor-pointer"
             style={{ backgroundColor: 'rgba(255,255,255,0.04)', color: '#fff', borderColor: 'rgba(255,255,255,0.08)' }}
           >
             {availableYears.map(y => (
@@ -204,19 +207,19 @@ export function DineroOverview({
           </select>
         </div>
 
-        <div className="flex gap-5 mb-4 text-xs">
+        <div className="flex gap-4 mb-2 text-[11px]">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: ACCENT }} />
+            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: ACCENT }} />
             <span className="text-zinc-400">Income</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#F87171' }} />
+            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#F87171' }} />
             <span className="text-zinc-400">Expense</span>
           </div>
         </div>
 
         {hasTransactions ? (
-          <div className="h-[220px] w-full">
+          <div className="h-[170px] md:h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barGap={3}>
                 <Tooltip
@@ -243,9 +246,9 @@ export function DineroOverview({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-[220px] flex flex-col items-center justify-center gap-3">
-            <TrendingUp size={36} className="text-zinc-600" />
-            <p className="text-sm text-zinc-500">No transactions yet.</p>
+          <div className="h-[170px] flex flex-col items-center justify-center gap-2">
+            <TrendingUp size={28} className="text-zinc-600" />
+            <p className="text-xs text-zinc-500">No transactions yet.</p>
           </div>
         )}
       </motion.div>
@@ -253,15 +256,15 @@ export function DineroOverview({
       {/* BOTTOM GRID */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* SPENDING BREAKDOWN */}
-        <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 md:p-6 flex flex-col">
-          <div className="mb-4">
-            <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">This month</p>
-            <h2 className="font-serif text-xl font-medium text-white tracking-tight">Spending</h2>
+        <div className="rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-4 flex flex-col">
+          <div className="mb-3">
+            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500">This month</p>
+            <h2 className="font-serif text-base font-medium text-white tracking-tight">Spending</h2>
           </div>
 
           {hasMonthlyExpenses ? (
             <>
-              <div className="relative w-full h-[200px] flex items-center justify-center mb-4">
+              <div className="relative w-full h-[160px] flex items-center justify-center mb-3">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -289,30 +292,30 @@ export function DineroOverview({
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-white font-bold text-2xl tracking-tight tabular-nums">{donutCenter}</span>
+                  <span className="text-white font-bold text-xl tracking-tight tabular-nums">{donutCenter}</span>
                   {categoryData.length > 0 && (
-                    <span className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500 mt-1 text-center px-2">
+                    <span className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500 mt-0.5 text-center px-2">
                       {categoryData[0].name}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2.5 mt-auto">
+              <div className="flex flex-col gap-1.5 mt-auto">
                 {categoryData.slice(0, 5).map((cat, idx) => {
                   const { icon: Icon, color } = resolveCategoryIcon(cat.name);
                   return (
                     <div key={idx} className="flex justify-between items-center">
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <div
-                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: `${color}18`, border: `1px solid ${color}30` }}
                         >
-                          <Icon size={14} color={color} />
+                          <Icon size={11} color={color} />
                         </div>
-                        <span className="text-sm font-medium text-zinc-200 truncate">{cat.name}</span>
+                        <span className="text-[12px] font-medium text-zinc-200 truncate">{cat.name}</span>
                       </div>
-                      <span className="text-sm font-semibold text-white tabular-nums flex-shrink-0">
+                      <span className="text-[12px] font-semibold text-white tabular-nums flex-shrink-0">
                         {cat.percentage}%
                       </span>
                     </div>
@@ -321,19 +324,19 @@ export function DineroOverview({
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
-              <ShoppingCart size={32} className="text-zinc-600" />
-              <p className="text-sm text-zinc-500 text-center">No expenses this month.</p>
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-8">
+              <ShoppingCart size={24} className="text-zinc-600" />
+              <p className="text-xs text-zinc-500 text-center">No expenses this month.</p>
             </div>
           )}
         </div>
 
         {/* RECENT TRANSACTIONS */}
-        <div className="rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-5 md:p-6 flex flex-col overflow-hidden">
-          <div className="flex justify-between items-center mb-4">
+        <div className="rounded-2xl bg-zinc-900/60 backdrop-blur-xl border border-white/5 p-4 flex flex-col overflow-hidden">
+          <div className="flex justify-between items-center mb-3">
             <div>
-              <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">Activity</p>
-              <h2 className="font-serif text-xl font-medium text-white tracking-tight">Recent</h2>
+              <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500">Activity</p>
+              <h2 className="font-serif text-base font-medium text-white tracking-tight">Recent</h2>
             </div>
             {setActiveTab && (
               <button
@@ -347,30 +350,30 @@ export function DineroOverview({
           </div>
 
           {recentTransactions.length > 0 ? (
-            <div className="flex flex-col gap-3 overflow-y-auto pr-1">
-              {recentTransactions.map(tx => {
+            <div className="flex flex-col gap-2 overflow-y-auto pr-1">
+              {recentTransactions.slice(0, 5).map(tx => {
                 const isIncome = tx.type === 'income';
                 const { icon: Icon, color: catColor } = resolveCategoryIcon(tx.category);
                 const amountColor = isIncome ? ACCENT : '#F87171';
                 return (
-                  <div key={tx.id} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <div key={tx.id} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: `${catColor}18`, border: `1px solid ${catColor}30` }}
                       >
-                        <Icon size={16} color={catColor} />
+                        <Icon size={13} color={catColor} />
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <p className="text-[14px] font-medium text-white truncate">
+                        <p className="text-[12px] font-medium text-white truncate leading-tight">
                           {tx.description || tx.category}
                         </p>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[10px] text-zinc-500">
                           {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                     </div>
-                    <p className="text-[14px] font-bold tabular-nums flex-shrink-0" style={{ color: amountColor }}>
+                    <p className="text-[12px] font-bold tabular-nums flex-shrink-0" style={{ color: amountColor }}>
                       {isIncome ? '+' : '−'}${Number(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -378,13 +381,13 @@ export function DineroOverview({
               })}
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10">
-              <Wallet size={32} className="text-zinc-600" />
-              <p className="text-sm text-zinc-500">No transactions yet.</p>
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-8">
+              <Wallet size={24} className="text-zinc-600" />
+              <p className="text-xs text-zinc-500">No transactions yet.</p>
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={() => setIsTransactionModalOpen(true)}
-                className="text-xs font-semibold px-4 py-2 rounded-full"
+                className="text-[11px] font-semibold px-3 py-1.5 rounded-full"
                 style={{ backgroundColor: `${ACCENT}18`, color: ACCENT, border: `1px solid ${ACCENT}30` }}
               >
                 Add your first

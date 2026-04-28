@@ -32,15 +32,18 @@ export default function VideosHomeView() {
           className="absolute -top-24 -right-24 w-64 h-64 rounded-full opacity-30 blur-[80px]"
           style={{ background: VIDEOS_ACCENT }}
         />
-        <div className="relative">
+        <div className="relative flex flex-col gap-1.5">
           <p className="text-[10px] font-black tracking-[0.22em] uppercase" style={{ color: VIDEOS_ACCENT }}>
             Your library
           </p>
-          <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white tracking-tight mt-2 leading-tight">
+          <h2 className="font-sans text-3xl md:text-[32px] font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
             {items.length === 0
               ? 'Nothing saved yet'
               : `${items.length} video${items.length === 1 ? '' : 's'} saved`}
           </h2>
+          <p className="font-serif italic text-base md:text-[17px] text-zinc-400">
+            Saved &amp; curated across every platform.
+          </p>
           <div className="flex items-center gap-4 mt-3 text-[13px] text-zinc-300">
             <span className="flex items-center gap-1.5">
               <Play size={13} style={{ color: VIDEOS_ACCENT }} fill={VIDEOS_ACCENT} />
@@ -85,7 +88,7 @@ export default function VideosHomeView() {
         <Link to="/ocio/videos/lists" className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">Curated</span>
-            <h2 className="font-serif text-[22px] md:text-2xl font-semibold text-white tracking-tight leading-none">
+            <h2 className="font-sans text-2xl font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.01em' }}>
               Your Lists
             </h2>
           </div>
@@ -95,9 +98,9 @@ export default function VideosHomeView() {
         {topLists.length === 0 ? (
           <div className="rounded-3xl bg-white/[0.03] border border-white/5 p-8 flex flex-col items-center justify-center text-center">
             <Film size={36} className="text-zinc-600 mb-3" />
-            <p className="text-sm font-semibold text-zinc-300">Todavía no tenés listas</p>
+            <p className="text-sm font-semibold text-zinc-300">No lists yet</p>
             <p className="text-xs text-zinc-500 mt-1 max-w-xs">
-              Creá una desde la tab "Lists" para organizar tus videos por tema.
+              Create one from the "Lists" tab to organize your videos by theme.
             </p>
           </div>
         ) : (
@@ -115,7 +118,7 @@ export default function VideosHomeView() {
           <Link to="/ocio/videos/watched" className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">History</span>
-              <h2 className="font-serif text-[22px] md:text-2xl font-semibold text-white tracking-tight leading-none">
+              <h2 className="font-sans text-2xl font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.01em' }}>
                 Recently Watched
               </h2>
             </div>
@@ -140,9 +143,9 @@ export default function VideosHomeView() {
           >
             <Play size={22} style={{ color: VIDEOS_ACCENT }} fill={VIDEOS_ACCENT} />
           </div>
-          <p className="text-base font-bold text-white">Empezá tu biblioteca</p>
+          <p className="text-base font-bold text-white">Start your library</p>
           <p className="text-sm text-zinc-400 mt-1 max-w-sm">
-            Tocá <span style={{ color: VIDEOS_ACCENT }} className="font-bold">Add</span> arriba y pegá una URL de YouTube, Vimeo, Twitch o cualquier otra plataforma.
+            Tap <span style={{ color: VIDEOS_ACCENT }} className="font-bold">Add</span> above and paste a URL from YouTube, Vimeo, Twitch or any other platform.
           </p>
         </div>
       )}
@@ -154,7 +157,7 @@ function SectionHeader({ title, eyebrow }: { title: string; eyebrow: string }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">{eyebrow}</span>
-      <h2 className="font-serif text-[22px] md:text-2xl font-semibold text-white tracking-tight leading-none">
+      <h2 className="font-sans text-2xl font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.01em' }}>
         {title}
       </h2>
     </div>

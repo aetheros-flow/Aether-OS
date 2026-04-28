@@ -19,12 +19,12 @@ export default function VideosWatchedView() {
     );
   }, [watchedItems, search]);
 
-  // Group by month (es-AR)
+  // Group by month (en-US)
   const grouped = useMemo(() => {
     const map = new Map<string, typeof filtered>();
     for (const item of filtered) {
       const when = item.watched_at ? new Date(item.watched_at) : new Date();
-      const key = when.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+      const key = when.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       const bucket = map.get(key) ?? [];
       bucket.push(item);
       map.set(key, bucket);
@@ -35,11 +35,14 @@ export default function VideosWatchedView() {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col gap-5">
       <div className="flex items-end justify-between">
-        <div>
+        <div className="flex flex-col gap-1.5">
           <p className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">History</p>
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white tracking-tight leading-none mt-1">
+          <h1 className="font-sans text-3xl md:text-[32px] font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
             Watched
           </h1>
+          <p className="font-serif italic text-base md:text-[17px] text-zinc-400">
+            Everything you've already pressed play on.
+          </p>
         </div>
         <p className="text-[11px] font-semibold text-zinc-500 pb-1 tabular-nums">
           {watchedItems.length} {watchedItems.length === 1 ? 'video' : 'videos'}
@@ -50,7 +53,7 @@ export default function VideosWatchedView() {
         type="search"
         value={search}
         onChange={e => setSearch(e.target.value)}
-        placeholder="Buscar por título o autor"
+        placeholder="Search by title or author"
         inputMode="search"
         enterKeyHint="search"
         autoCapitalize="off"
@@ -69,10 +72,10 @@ export default function VideosWatchedView() {
             <PlaySquare size={22} style={{ color: VIDEOS_ACCENT }} />
           </div>
           <p className="text-base font-bold text-white">
-            {search ? 'Sin resultados' : 'Todavía no viste ningún video'}
+            {search ? 'No results' : "You haven't watched anything yet"}
           </p>
           <p className="text-sm text-zinc-400 mt-1">
-            {search ? 'Probá otro término' : 'Marcá videos como vistos para verlos acá.'}
+            {search ? 'Try another term' : 'Mark videos as watched to see them here.'}
           </p>
         </div>
       ) : (

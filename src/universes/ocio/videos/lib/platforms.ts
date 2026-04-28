@@ -5,7 +5,9 @@
 
 import type { VideoPlatform } from '../types';
 
-export const VIDEOS_ACCENT = '#A855F7'; // violet-500 — creator/video identity
+// Inherits Ocio universe identity (coral clay, Soft Cosmos desaturated).
+// Mirrors UNIVERSE_ACCENT.ocio in src/lib/universe-palette.ts.
+export const VIDEOS_ACCENT = '#D97265';
 
 export interface ParsedVideoUrl {
   platform: VideoPlatform;

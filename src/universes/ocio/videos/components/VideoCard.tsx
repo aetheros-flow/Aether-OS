@@ -39,7 +39,7 @@ export default function VideoCard({ item, fixedWidth, hideMenu }: VideoCardProps
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     setMenuOpen(false);
-    if (!confirm('¿Eliminar este video?')) return;
+    if (!confirm('Delete this video?')) return;
     await removeVideo(item.id);
   };
 
@@ -145,20 +145,20 @@ export default function VideoCard({ item, fixedWidth, hideMenu }: VideoCardProps
                     className="w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-semibold text-white text-left hover:bg-white/5 transition-colors"
                   >
                     <CheckCircle2 size={13} style={{ color: watched ? VIDEOS_ACCENT : '#a1a1aa' }} />
-                    {watched ? 'Marcar como no visto' : 'Marcar como visto'}
+                    {watched ? 'Mark as unwatched' : 'Mark as watched'}
                   </button>
                   <button
                     onClick={handleOpen}
                     className="w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-semibold text-white text-left hover:bg-white/5 transition-colors border-t border-white/5"
                   >
                     <ExternalLink size={13} className="text-zinc-400" />
-                    Abrir en plataforma
+                    Open on platform
                   </button>
                   <button
                     onClick={handleDelete}
                     className="w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-semibold text-red-400 text-left hover:bg-red-500/10 transition-colors border-t border-white/5"
                   >
-                    Eliminar
+                    Delete
                   </button>
                 </div>
               </>

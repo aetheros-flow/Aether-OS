@@ -26,9 +26,10 @@ interface Subscription {
 interface DineroSubscriptionsProps {
   subscriptions: Subscription[];
   setIsSubscriptionModalOpen: (val: boolean) => void;
+  onEditSubscription?: (sub: Subscription) => void;
 }
 
-export function DineroSubscriptions({ subscriptions, setIsSubscriptionModalOpen }: DineroSubscriptionsProps) {
+export function DineroSubscriptions({ subscriptions, setIsSubscriptionModalOpen, onEditSubscription }: DineroSubscriptionsProps) {
   const monthlyFixedCost = useMemo(() => {
     return subscriptions
       .filter(s => s.status === 'Active')
@@ -138,8 +139,16 @@ export function DineroSubscriptions({ subscriptions, setIsSubscriptionModalOpen 
             upcomingBills.map((sub) => {
               const isUrgent = sub.days_left >= 0 && sub.days_left <= 3;
               const isPastDue = sub.days_left < 0;
+              const clickable = Boolean(onEditSubscription);
               return (
-                <div key={sub.id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-5 hover:bg-white/[0.03] transition-colors">
+                <div
+                  key={sub.id}
+                  onClick={clickable ? () => onEditSubscription!(sub) : undefined}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditSubscription!(sub); } } : undefined}
+                  className={`flex flex-col md:flex-row md:items-center justify-between gap-3 p-5 hover:bg-white/[0.03] transition-colors ${clickable ? 'cursor-pointer' : ''}`}
+                >
                   <div className="flex items-center gap-3">
                     <div
                       className="w-11 h-11 rounded-2xl flex items-center justify-center text-sm font-bold uppercase"

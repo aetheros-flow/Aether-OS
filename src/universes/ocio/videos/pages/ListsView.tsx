@@ -14,18 +14,21 @@ export default function VideosListsView() {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col gap-5">
       <div className="flex items-end justify-between">
-        <div>
+        <div className="flex flex-col gap-1.5">
           <p className="text-[10px] font-black tracking-[0.22em] uppercase text-zinc-500">Library</p>
-          <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white tracking-tight leading-none mt-1">
+          <h1 className="font-sans text-3xl md:text-[32px] font-bold text-white tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
             Lists
           </h1>
+          <p className="font-serif italic text-base md:text-[17px] text-zinc-400">
+            Group videos by theme, format, or project.
+          </p>
         </div>
         <button
           onClick={() => setNewOpen(true)}
           className="flex items-center gap-1.5 px-4 h-10 rounded-full text-[13px] font-bold active:scale-95 transition-transform"
           style={{
             background: VIDEOS_ACCENT,
-            color: '#0A0012',
+            color: '#1B1714',
             boxShadow: `0 4px 14px ${VIDEOS_ACCENT}45`,
           }}
         >
@@ -42,17 +45,17 @@ export default function VideosListsView() {
           >
             <ListVideo size={22} style={{ color: VIDEOS_ACCENT }} />
           </div>
-          <p className="text-base font-bold text-white">Aún no hay listas</p>
+          <p className="text-base font-bold text-white">No lists yet</p>
           <p className="text-sm text-zinc-400 mt-1 max-w-sm">
-            Organizá tus videos por tema, formato o proyecto. Ej: "Tutoriales de React", "Podcasts", "Workout 2026".
+            Group your videos by theme, format, or project. Ex: "React tutorials", "Podcasts", "Workout 2026".
           </p>
           <button
             onClick={() => setNewOpen(true)}
             className="mt-5 flex items-center gap-1.5 px-5 h-10 rounded-full text-[13px] font-bold active:scale-95 transition-transform"
-            style={{ background: VIDEOS_ACCENT, color: '#0A0012', boxShadow: `0 4px 14px ${VIDEOS_ACCENT}45` }}
+            style={{ background: VIDEOS_ACCENT, color: '#1B1714', boxShadow: `0 4px 14px ${VIDEOS_ACCENT}45` }}
           >
             <Plus size={14} strokeWidth={2.75} />
-            Crear primera lista
+            Create first list
           </button>
         </div>
       ) : (
