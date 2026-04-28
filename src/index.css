@@ -485,3 +485,67 @@
     background: rgba(245, 239, 230, 0.18);
   }
 }
+
+/* ============================================================
+   VIEW TRANSITIONS — Wheel → Universe "portal" morph
+   ============================================================
+   Triggered by React Router's navigate(path, { viewTransition: true })
+   + matching viewTransitionName on source (wheel segment <g>) and
+   destination (universe ambient glow <div>). Graceful fallback on
+   browsers without VTA support (Firefox) → instant navigation. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Default root crossfade — a touch longer than the 0.25s default */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.42s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Named "universe-*" transitions — spring-like ease-out quint.
+     The segment's wedge morphs into the universe's hero glow over ~550ms,
+     long enough to read as a deliberate portal, short enough to feel snappy. */
+  ::view-transition-group(universe-amor),
+  ::view-transition-group(universe-dinero),
+  ::view-transition-group(universe-desarrollopersonal),
+  ::view-transition-group(universe-desarrolloprofesional),
+  ::view-transition-group(universe-salud),
+  ::view-transition-group(universe-social),
+  ::view-transition-group(universe-familia),
+  ::view-transition-group(universe-ocio) {
+    animation-duration: 0.58s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  ::view-transition-old(universe-amor),
+  ::view-transition-new(universe-amor),
+  ::view-transition-old(universe-dinero),
+  ::view-transition-new(universe-dinero),
+  ::view-transition-old(universe-desarrollopersonal),
+  ::view-transition-new(universe-desarrollopersonal),
+  ::view-transition-old(universe-desarrolloprofesional),
+  ::view-transition-new(universe-desarrolloprofesional),
+  ::view-transition-old(universe-salud),
+  ::view-transition-new(universe-salud),
+  ::view-transition-old(universe-social),
+  ::view-transition-new(universe-social),
+  ::view-transition-old(universe-familia),
+  ::view-transition-new(universe-familia),
+  ::view-transition-old(universe-ocio),
+  ::view-transition-new(universe-ocio) {
+    animation-duration: 0.58s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    /* mix-blend-mode: screen creates a subtle "glow-merge" where the warm
+       wedge pixels and destination gradient blend instead of cross-fading. */
+    mix-blend-mode: plus-lighter;
+  }
+}
+
+/* Respect reduced-motion — collapse to a near-instant swap */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+  }
+}

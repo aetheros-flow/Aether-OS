@@ -151,7 +151,7 @@ export default function DesarrolloPersonalDashboard() {
 
   return (
     <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#1B1714] text-white overflow-x-hidden selection:bg-blue-500/30">
-      <div className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)' }} />
+      <div aria-hidden className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)', viewTransitionName: 'universe-desarrollopersonal' } as React.CSSProperties} />
       <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, #34D39922 0%, transparent 70%)`, filter: 'blur(100px)' }} />
 
       <UniverseMobileHeader title="Personal" subtitle="Conscious Expansion" color="#1B1714" />

@@ -345,8 +345,9 @@ export default function FamiliaDashboard() {
       {/* ── Background glows ────────────────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
+          aria-hidden
           className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full opacity-[0.20] blur-[120px]"
-          style={{ background: `radial-gradient(circle, ${ACCENT}, transparent 70%)` }}
+          style={{ background: `radial-gradient(circle, ${ACCENT}, transparent 70%)`, viewTransitionName: 'universe-familia' } as React.CSSProperties}
         />
         <div
           className="absolute bottom-0 right-0 w-[480px] h-[480px] rounded-full opacity-[0.14] blur-[140px]"

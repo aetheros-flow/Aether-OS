@@ -546,7 +546,11 @@ export default function DineroDashboard() {
       <div
         aria-hidden
         className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-30"
-        style={{ background: `radial-gradient(circle, ${alpha(ACCENT, 0.2)} 0%, transparent 70%)`, filter: 'blur(120px)' }}
+        style={{
+          background: `radial-gradient(circle, ${alpha(ACCENT, 0.2)} 0%, transparent 70%)`,
+          filter: 'blur(120px)',
+          viewTransitionName: 'universe-dinero',
+        } as React.CSSProperties}
       />
       <div
         aria-hidden

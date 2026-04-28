@@ -109,7 +109,12 @@ export default function LifeWheel({
         const filledLevel = Math.max(0, Math.min(10, Math.round(seg.value)));
 
         return (
-          <g key={seg.id}>
+          // viewTransitionName lets the native View Transitions API morph this
+          // wedge into the destination universe's ambient glow on navigate.
+          <g
+            key={seg.id}
+            style={{ viewTransitionName: `universe-${seg.id}` } as React.CSSProperties}
+          >
             {Array.from({ length: BANDS }, (_, b) => {
               const level = b + 1;
               const isFilled = level <= filledLevel;

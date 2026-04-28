@@ -297,7 +297,7 @@ export default function AmorDashboard() {
     <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#1B1714] selection:bg-white/20">
 
       {/* Glows */}
-      <div aria-hidden className="pointer-events-none fixed -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.20]" style={{ background: ACCENT }} />
+      <div aria-hidden className="pointer-events-none fixed -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.20]" style={{ background: ACCENT, viewTransitionName: 'universe-amor' } as React.CSSProperties} />
       <div aria-hidden className="pointer-events-none fixed -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.10]" style={{ background: ACCENT_SOFT }} />
       <div aria-hidden className="pointer-events-none fixed inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 

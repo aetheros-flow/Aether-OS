@@ -211,7 +211,9 @@ export default function DashboardPage() {
             onHover={setHoveredId}
             onSelectSegment={(s) => {
               const target = segments.find(x => x.id === s.id);
-              if (target?.path) navigate(target.path);
+              // viewTransition triggers document.startViewTransition under the
+              // hood, morphing the tapped segment into the universe hero glow.
+              if (target?.path) navigate(target.path, { viewTransition: true });
             }}
             centerValue={aetherScore}
             centerLabel="BALANCE"
