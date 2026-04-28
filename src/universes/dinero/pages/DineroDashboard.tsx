@@ -17,6 +17,7 @@ import { DineroModals } from '../components/modals/DineroModals';
 import { DineroSubscriptions } from '../components/views/DineroSubscriptions';
 import ImportPreviewSheet from '../components/modals/ImportPreviewSheet';
 import { SURFACE, UNIVERSE_ACCENT, alpha } from '../../../lib/universe-palette';
+import AuraLayout from '../../../components/layout/AuraLayout';
 
 export type TabType = 'dashboard' | 'transactions' | 'categories' | 'calendar' | 'budget' | 'radar';
 
@@ -538,99 +539,32 @@ export default function DineroDashboard() {
     );
   }
 
+  const headerActions = (
+    <div className="flex items-center gap-3">
+      {activeTab === 'radar' && (
+        <motion.button whileTap={tapPhysics} onClick={() => setIsCryptoModalOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest text-black" style={{ backgroundColor: ACCENT, boxShadow: `0 0 24px ${ACCENT}55` }}>
+          <Plus size={14} strokeWidth={3} /> Log Trade
+        </motion.button>
+      )}
+      {(activeTab === 'dashboard' || activeTab === 'transactions') && (
+        <motion.button whileTap={tapPhysics} onClick={() => setIsCsvModalOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-200 hover:bg-white/10 transition-colors">
+          <Upload size={14} /> Quick Import
+        </motion.button>
+      )}
+    </div>
+  );
+
   return (
-    <div
-      className="relative min-h-screen flex flex-col font-sans overflow-x-hidden"
-      style={{ background: SURFACE.bg, color: SURFACE.text }}
+    <AuraLayout
+      title="Financial Hub"
+      subtitle={`Net worth · $${netWorthCalculated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+      accentColor={ACCENT}
+      tabs={TABS}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      headerActions={headerActions}
     >
-      <div
-        aria-hidden
-        className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-30"
-        style={{
-          background: `radial-gradient(circle, ${alpha(ACCENT, 0.2)} 0%, transparent 70%)`,
-          filter: 'blur(120px)',
-          viewTransitionName: 'universe-dinero',
-        } as React.CSSProperties}
-      />
-      <div
-        aria-hidden
-        className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-25"
-        style={{ background: `radial-gradient(circle, ${alpha(ACCENT_SOFT, 0.14)} 0%, transparent 70%)`, filter: 'blur(100px)' }}
-      />
-
-      <nav
-        className="relative z-30 w-full shrink-0 flex flex-col backdrop-blur-xl border-b"
-        style={{
-          background: 'rgba(27, 23, 20, 0.72)',
-          borderColor: SURFACE.border,
-        }}
-      >
-        <div className="flex items-center justify-between px-4 md:px-6 py-3.5">
-          <div className="flex items-center gap-6 min-w-0">
-            <motion.button whileTap={tapPhysics} onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center gap-2 shrink-0">
-              <span className="text-white font-serif text-lg tracking-tight flex items-center gap-2">
-                <Zap size={20} style={{ color: ACCENT, filter: `drop-shadow(0 0 8px ${ACCENT}88)` }} />
-                Financial Hub
-              </span>
-            </motion.button>
-            <div className="hidden md:flex items-center gap-1 overflow-x-auto whitespace-nowrap hide-scrollbar">
-              {TABS.map(t => {
-                const isActive = activeTab === t.id;
-                return (
-                  <motion.button
-                    key={t.id}
-                    whileTap={tapPhysics}
-                    onClick={() => setActiveTab(t.id)}
-                    className="px-4 py-2 text-xs font-black uppercase tracking-widest rounded-full transition-all"
-                    style={{
-                      color: isActive ? '#000' : 'rgba(255,255,255,0.55)',
-                      backgroundColor: isActive ? ACCENT : 'transparent',
-                      boxShadow: isActive ? `0 0 20px ${ACCENT}55` : 'none',
-                    }}
-                  >
-                    {t.label}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-3">
-            {activeTab === 'radar' && (
-              <motion.button whileTap={tapPhysics} onClick={() => setIsCryptoModalOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest text-black" style={{ backgroundColor: ACCENT, boxShadow: `0 0 24px ${ACCENT}55` }}>
-                <Plus size={14} strokeWidth={3} /> Log Trade
-              </motion.button>
-            )}
-            {(activeTab === 'dashboard' || activeTab === 'transactions') && (
-              <motion.button whileTap={tapPhysics} onClick={() => setIsCsvModalOpen(true)} className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-200 hover:bg-white/10 transition-colors">
-                <Upload size={14} /> Quick Import
-              </motion.button>
-            )}
-          </div>
-        </div>
-
-        <div
-          className="hidden md:flex flex-row items-center justify-between px-6 py-2.5 border-t"
-          style={{
-            borderColor: SURFACE.border,
-            background: 'rgba(22, 19, 16, 0.55)',
-          }}
-        >
-          <h1
-            className="text-[10px] font-black uppercase tracking-[0.2em]"
-            style={{ color: SURFACE.textMuted }}
-          >
-            {TABS.find(t => t.id === activeTab)?.label || 'Overview'}
-          </h1>
-          <div className="flex items-center gap-2">
-            <Sparkles size={12} style={{ color: ACCENT }} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: ACCENT_SOFT }}>
-              Net worth · ${netWorthCalculated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-        </div>
-      </nav>
-
-      <main className="relative z-10 flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar pb-32 md:pb-10 w-full flex justify-center">
+      <div className="w-full flex justify-center pb-8">
         {activeTab === 'dashboard' && (
           <DineroOverview
             transactions={transactions}
@@ -722,7 +656,7 @@ export default function DineroDashboard() {
           </motion.div>
         )}
 
-      </main>
+      </div>
 
       <DineroModals
         isCryptoModalOpen={isCryptoModalOpen} setIsCryptoModalOpen={setIsCryptoModalOpen}
@@ -763,7 +697,6 @@ export default function DineroDashboard() {
         handleCreateTransaction={handleCreateTransaction}
       />
 
-      {/* ── AI Import preview sheet ──────────────────────────────────── */}
       {importPreview && (
         <ImportPreviewSheet
           open={importPreviewOpen}
@@ -775,57 +708,6 @@ export default function DineroDashboard() {
           onCommit={handleCommitImport}
         />
       )}
-
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden backdrop-blur-xl border-t"
-        style={{
-          paddingBottom: 'env(safe-area-inset-bottom, 8px)',
-          background: 'rgba(22, 19, 16, 0.88)',
-          borderColor: SURFACE.border,
-        }}
-      >
-        <div className="flex items-center justify-around px-2 pt-2 pb-1">
-          {TABS.slice(0, 6).map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <motion.button
-                key={tab.id}
-                whileTap={tapPhysics}
-                onClick={() => setActiveTab(tab.id)}
-                className="flex flex-col items-center gap-1 select-none outline-none"
-                style={{ minWidth: 52, padding: '4px 4px' }}
-              >
-                <div
-                  className="flex flex-col items-center justify-center transition-all duration-200"
-                  style={{
-                    width: 48, height: 28, borderRadius: 14,
-                    backgroundColor: isActive ? `${ACCENT}24` : 'transparent',
-                  }}
-                >
-                  <span style={{
-                    color: isActive ? ACCENT_SOFT : 'rgba(255,255,255,0.38)',
-                    filter: isActive ? `drop-shadow(0 0 6px ${ACCENT}88)` : 'none',
-                    transition: 'color 0.18s',
-                    display: 'flex',
-                  }}>
-                    {tab.icon}
-                  </span>
-                </div>
-                <span style={{
-                  fontSize: 9,
-                  fontWeight: isActive ? 800 : 500,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: isActive ? ACCENT_SOFT : 'rgba(255,255,255,0.30)',
-                  lineHeight: 1,
-                }}>
-                  {tab.mobileLabel}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </nav>
-    </div>
+    </AuraLayout>
   );
 }

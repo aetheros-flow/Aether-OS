@@ -1,0 +1,18 @@
+{
+  "//": "Scope the Deno language server to the supabase/functions/ folder only.",
+  "//2": "The rest of the repo uses the default TypeScript server (Vite + tsc).",
+  "deno.enable": false,
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.lint": true,
+  "deno.unstable": false,
+  "deno.config": "./supabase/functions/deno.json",
+
+  "//3": "Hide red squigglies on Deno files from the default TS server.",
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

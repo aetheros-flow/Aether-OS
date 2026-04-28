@@ -1,0 +1,44 @@
+node_modules
+dist
+dist-ssr
+.vite
+*.local
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Original book files (PDFs/EPUBs/MOBIs) — copyrighted, not for public repos.
+# Will move to Supabase Storage with signed URLs in Phase 3.
+public/books/
+
+# Converted plain-text of books — regenerated locally with scripts/convert-books.ps1
+public/books-text/
+
+# Ingest tracking — regenerated on each ingest
+scripts/.ingest-log.json
+
+# Saved raw Gemini responses when JSON parsing fails (for debugging)
+scripts/.debug/
+
+# tsc composite output
+.tsbuild-node/
+*.tsbuildinfo
+
+.DS_Store
+Thumbs.db
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+
+# Claude Code local settings
+.claude/
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAmorData } from '../hooks/useAmorData';
 import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
-import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
+import AuraLayout from '../../../components/layout/AuraLayout';
 import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
 import {
   MOOD_EMOJI,
@@ -293,86 +293,40 @@ export default function AmorDashboard() {
     );
   }
 
+  const tabs = [
+    { id: 'dashboard',   label: 'Resumen',     icon: <LayoutDashboard /> },
+    { id: 'fechas',      label: 'Fechas',      icon: <CalendarHeart /> },
+    { id: 'lenguajes',   label: 'Lenguajes',   icon: <Heart /> },
+    { id: 'reflexiones', label: 'Diario',      icon: <BookHeart /> },
+  ];
+
+  const headerActions = (
+    <div className="flex items-center gap-2">
+      {activeTab === 'fechas' && (
+        <motion.button onClick={() => setIsDateModalOpen(true)} whileHover={hoverPhysics} whileTap={tapPhysics} className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white" style={{ background: ACCENT, boxShadow: `0 8px 24px ${ACCENT}40` }}>
+          <Plus size={13} strokeWidth={3} /> Nueva Fecha
+        </motion.button>
+      )}
+      {activeTab === 'reflexiones' && (
+        <motion.button onClick={() => setIsReflectionModalOpen(true)} whileHover={hoverPhysics} whileTap={tapPhysics} className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white" style={{ background: ACCENT, boxShadow: `0 8px 24px ${ACCENT}40` }}>
+          <Plus size={13} strokeWidth={3} /> Nueva Reflexión
+        </motion.button>
+      )}
+    </div>
+  );
+
+  const title = activeTab === 'dashboard' ? 'Tu historia de amor' : activeTab === 'fechas' ? 'Fechas especiales' : activeTab === 'lenguajes' ? 'Lenguajes del amor' : 'Reflexiones';
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#1B1714] selection:bg-white/20">
-
-      {/* Glows */}
-      <div aria-hidden className="pointer-events-none fixed -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.20]" style={{ background: ACCENT, viewTransitionName: 'universe-amor' } as React.CSSProperties} />
-      <div aria-hidden className="pointer-events-none fixed -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.10]" style={{ background: ACCENT_SOFT }} />
-      <div aria-hidden className="pointer-events-none fixed inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-
-      <UniverseMobileHeader title="Vida Amorosa" subtitle="Conexión & Relaciones" color="#1B1714" />
-
-      {/* ══ SIDEBAR ════════════════════════════════════════════════════════ */}
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 relative bg-black/40 backdrop-blur-xl border-r border-white/5">
-        <div className="flex items-center gap-3 p-6 mb-2">
-          <motion.button
-            onClick={() => navigate('/')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.92 }}
-            className="p-2 rounded-full bg-white/5 border border-white/10 text-white"
-            aria-label="Volver al inicio"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          </motion.button>
-          <div className="min-w-0">
-            <h1 className="font-serif text-[26px] text-white font-medium tracking-tight leading-tight truncate">Vida Amorosa</h1>
-            <p className="text-[10px] uppercase font-black tracking-[0.22em]" style={{ color: ACCENT }}>Conexión & Relaciones</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 px-3 pb-6">
-          <UniverseNavItem icon={LayoutDashboard} label="Resumen"           accent={ACCENT} isActive={activeTab === 'dashboard'}   onClick={() => handleTabChange('dashboard')} />
-          <UniverseNavItem icon={CalendarHeart}   label="Fechas Especiales" accent={ACCENT} isActive={activeTab === 'fechas'}      onClick={() => handleTabChange('fechas')} />
-          <UniverseNavItem icon={Heart}           label="Lenguajes"         accent={ACCENT} isActive={activeTab === 'lenguajes'}   onClick={() => handleTabChange('lenguajes')} />
-          <UniverseNavItem icon={BookHeart}       label="Reflexiones"       accent={ACCENT} isActive={activeTab === 'reflexiones'} onClick={() => handleTabChange('reflexiones')} />
-        </div>
-      </nav>
-
-      {/* ══ MAIN AREA ══════════════════════════════════════════════════════ */}
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-20 md:pt-10 pb-24 md:pb-10 relative z-10"
-      >
-        {/* ── Page header ── */}
-        <motion.header variants={itemVariants} className="mb-8 md:mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-            {activeTab === 'fechas' && (
-              <motion.button
-                onClick={() => setIsDateModalOpen(true)}
-                whileHover={hoverPhysics}
-                whileTap={tapPhysics}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white"
-                style={{ background: ACCENT, boxShadow: `0 8px 24px ${ACCENT}40, inset 0 1px 0 rgba(255,255,255,0.15)` }}
-              >
-                <Plus size={13} strokeWidth={3} /> Nueva Fecha
-              </motion.button>
-            )}
-            {activeTab === 'reflexiones' && (
-              <motion.button
-                onClick={() => setIsReflectionModalOpen(true)}
-                whileHover={hoverPhysics}
-                whileTap={tapPhysics}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white"
-                style={{ background: ACCENT, boxShadow: `0 8px 24px ${ACCENT}40, inset 0 1px 0 rgba(255,255,255,0.15)` }}
-              >
-                <Plus size={13} strokeWidth={3} /> Nueva Reflexión
-              </motion.button>
-            )}
-          </div>
-
-          <h2 className="font-sans text-white font-bold tracking-tight" style={{ fontSize: 'clamp(2rem, 7vw, 3.5rem)', letterSpacing: '-0.02em', lineHeight: 1.05 }}>
-            {activeTab === 'dashboard'   ? 'Tu historia de amor' :
-             activeTab === 'fechas'      ? 'Fechas especiales' :
-             activeTab === 'lenguajes'   ? 'Lenguajes del amor' :
-             'Reflexiones'}
-          </h2>
-        </motion.header>
+    <AuraLayout
+      title={title}
+      accentColor={ACCENT}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => handleTabChange(tab as TabType)}
+      headerActions={headerActions}
+    >
+      <div className="flex flex-col gap-8 pb-10">
 
         {/* AI Insights */}
         {activeTab === 'dashboard' && (
@@ -835,7 +789,7 @@ export default function AmorDashboard() {
             )}
           </motion.div>
         )}
-      </motion.main>
+      </div>
 
       {/* ══ MODAL: NUEVA FECHA ESPECIAL ════════════════════════════════════ */}
       <AetherModal
@@ -1015,19 +969,6 @@ export default function AmorDashboard() {
           </motion.button>
         </div>
       </AetherModal>
-
-      <UniverseBottomNav
-        tabs={[
-          { id: 'dashboard',   label: 'Resumen',   icon: LayoutDashboard },
-          { id: 'fechas',      label: 'Fechas',    icon: CalendarHeart   },
-          { id: 'lenguajes',   label: 'Lenguajes', icon: Heart           },
-          { id: 'reflexiones', label: 'Diario',    icon: BookHeart       },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab as TabType)}
-        activeColor={ACCENT}
-        bgColor="#1B1714"
-      />
-    </div>
+    </AuraLayout>
   );
 }

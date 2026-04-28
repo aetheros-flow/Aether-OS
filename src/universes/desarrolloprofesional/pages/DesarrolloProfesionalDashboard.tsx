@@ -14,10 +14,8 @@ import type {
   ProjectStatus, LearningType,
   ProProject, ProLearning, ProNetworkContact,
 } from '../types';
-import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
-import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
-import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
+import AuraLayout, { type TabItem } from '../../../components/layout/AuraLayout';
 
 type TabType = 'dashboard' | 'proyectos' | 'aprendizaje' | 'certificaciones' | 'red';
 
@@ -271,40 +269,24 @@ export default function DesarrolloProfesionalDashboard() {
     );
   }
 
+  const auraTabs: TabItem[] = [
+    { id: 'dashboard',       label: 'Resumen',       icon: <LayoutDashboard size={16} />, mobileLabel: 'Inicio'   },
+    { id: 'proyectos',       label: 'Proyectos',     icon: <FolderKanban    size={16} />, mobileLabel: 'Proyectos'},
+    { id: 'aprendizaje',     label: 'Aprendizaje',   icon: <GraduationCap   size={16} />, mobileLabel: 'Aprendo'  },
+    { id: 'certificaciones', label: 'Certificaciones',icon: <Award           size={16} />, mobileLabel: 'Certs'    },
+    { id: 'red',             label: 'Red',            icon: <Users           size={16} />, mobileLabel: 'Red'      },
+  ];
+
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#1B1714] text-white overflow-x-hidden">
-      <div aria-hidden className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-40" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)', viewTransitionName: 'universe-desarrolloprofesional' } as React.CSSProperties} />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, ${ACCENT_SOFT}22 0%, transparent 70%)`, filter: 'blur(100px)' }} />
-
-      <UniverseMobileHeader title="Carrera Pro" subtitle="Crecimiento Profesional" color="#1B1714" />
-
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-[rgba(232,221,204,0.08)] bg-[#1B1714]/80 backdrop-blur-xl">
-        <div className="flex items-center gap-4 p-6 mb-4">
-          <motion.button
-            whileTap={tapPhysics}
-            whileHover={hoverPhysics}
-            onClick={() => navigate('/')}
-            className="p-2 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-colors"
-            aria-label="Volver"
-          >
-            <ArrowLeft size={18} />
-          </motion.button>
-          <div>
-            <h1 className="font-serif text-2xl font-medium tracking-tight text-white">Profesional</h1>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Carrera & Propósito</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 px-4 pb-6">
-          <UniverseNavItem icon={LayoutDashboard} label="Resumen"         isActive={activeTab === 'dashboard'}       onClick={() => handleTabChange('dashboard')} />
-          <UniverseNavItem icon={FolderKanban}    label="Proyectos"        isActive={activeTab === 'proyectos'}       onClick={() => handleTabChange('proyectos')} />
-          <UniverseNavItem icon={GraduationCap}   label="Aprendizaje"      isActive={activeTab === 'aprendizaje'}     onClick={() => handleTabChange('aprendizaje')} />
-          <UniverseNavItem icon={Award}           label="Certificaciones"  isActive={activeTab === 'certificaciones'} onClick={() => handleTabChange('certificaciones')} />
-          <UniverseNavItem icon={Users}           label="Red Profesional"  isActive={activeTab === 'red'}             onClick={() => handleTabChange('red')} />
-        </div>
-      </nav>
-
-      <main className="relative z-10 flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-16 md:pt-10 pb-24 md:pb-10">
+    <AuraLayout
+      tabs={auraTabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => handleTabChange(tab as TabType)}
+      accentColor={ACCENT}
+      title="Desarrollo Profesional"
+      subtitle="Carrera & Propósito"
+    >
+      <div className="relative z-10">
         <motion.header
           variants={containerVariants}
           initial="hidden"
@@ -710,7 +692,6 @@ export default function DesarrolloProfesionalDashboard() {
             })}
           </motion.div>
         )}
-      </main>
 
       <AetherModal isOpen={projectModalOpen} onClose={closeProjectModal} title={editingProject ? 'Editar Proyecto' : 'Nuevo Proyecto'}>
         <form onSubmit={handleProjectSubmit} className="flex flex-col gap-5">
@@ -851,19 +832,7 @@ export default function DesarrolloProfesionalDashboard() {
         </form>
       </AetherModal>
 
-      <UniverseBottomNav
-        tabs={[
-          { id: 'dashboard',       label: 'Resumen',  icon: LayoutDashboard },
-          { id: 'proyectos',       label: 'Proyectos', icon: FolderKanban   },
-          { id: 'aprendizaje',     label: 'Aprendo',  icon: GraduationCap  },
-          { id: 'certificaciones', label: 'Certs',    icon: Award          },
-          { id: 'red',             label: 'Red',      icon: Users          },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab as TabType)}
-        activeColor={ACCENT_SOFT}
-        bgColor="#1B1714"
-      />
-    </div>
+      </div>
+    </AuraLayout>
   );
 }

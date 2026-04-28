@@ -18,10 +18,7 @@ import { useDesarrolloPersonalData } from '../hooks/useDesarrolloPersonalData';
 import { HabitsMiniApp } from '../components/ui/HabitsMiniApp';
 import { HabitsManager } from '../components/ui/HabitsManager';
 import BirthDataOnboarding from '../components/ui/BirthDataOnboarding';
-
-import UniverseNavItem from '../../../core/components/UniverseNavItem';
-import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
-import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
+import AuraLayout from '../../../components/layout/AuraLayout';
 import { useAuth } from '../../../core/contexts/AuthContext';
 
 type TabType = 'overview' | 'identity' | 'shadow' | 'habits';
@@ -149,79 +146,40 @@ export default function DesarrolloPersonalDashboard() {
     return 'Conscious expansion: explore identity, shadow and habits.';
   }, [birthData, chartLoading, numerology.lifePath, lifePathArchetype.title]);
 
+  const tabs = [
+    { id: 'overview', label: 'Overview',  icon: <LayoutDashboard /> },
+    { id: 'identity', label: 'Identity',  icon: <Fingerprint /> },
+    { id: 'shadow',   label: 'Shadow',    icon: <PenTool /> },
+    { id: 'habits',   label: 'Habits',    icon: <Activity /> },
+  ];
+
+  const headerActions = (
+    <div className="flex items-center gap-2">
+      {birthData && (
+        <motion.button
+          onClick={() => setOnboardingOpen(true)}
+          whileHover={hoverPhysics}
+          whileTap={tapPhysics}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <Edit3 size={13} strokeWidth={3} /> Edit blueprint
+        </motion.button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row font-sans bg-[#1B1714] text-white overflow-x-hidden selection:bg-blue-500/30">
-      <div aria-hidden className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-50" style={{ background: `radial-gradient(circle, ${ACCENT}33 0%, transparent 70%)`, filter: 'blur(120px)', viewTransitionName: 'universe-desarrollopersonal' } as React.CSSProperties} />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-30" style={{ background: `radial-gradient(circle, #34D39922 0%, transparent 70%)`, filter: 'blur(100px)' }} />
-
-      <UniverseMobileHeader title="Personal" subtitle="Conscious Expansion" color="#1B1714" />
-
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 border-r border-[rgba(232,221,204,0.08)] bg-[#1B1714]/80 backdrop-blur-xl">
-        <div className="flex items-center gap-4 p-6 mb-4">
-          <motion.button
-            whileTap={tapPhysics} whileHover={hoverPhysics}
-            onClick={() => navigate('/')}
-            className="p-2 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-colors"
-            aria-label="Back to home"
-          >
-            <ArrowLeft size={18} />
-          </motion.button>
-          <div>
-            <h1 className="font-serif text-2xl font-medium tracking-tight text-white">Personal</h1>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Conscious Expansion</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 px-4 pb-6">
-          <UniverseNavItem accent={ACCENT} icon={LayoutDashboard} label="Overview"        isActive={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-          <UniverseNavItem accent={ACCENT} icon={Fingerprint}     label="Identity Matrix" isActive={activeTab === 'identity'} onClick={() => setActiveTab('identity')} />
-          <UniverseNavItem accent={ACCENT} icon={PenTool}         label="Shadow Work"     isActive={activeTab === 'shadow'}   onClick={() => setActiveTab('shadow')} />
-          <UniverseNavItem accent={ACCENT} icon={Activity}        label="Habits"          isActive={activeTab === 'habits'}   onClick={() => setActiveTab('habits')} />
-        </div>
-
-        {/* Edit blueprint link */}
-        {birthData && (
-          <div className="mt-auto px-4 pb-6">
-            <button
-              onClick={() => setOnboardingOpen(true)}
-              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-semibold text-zinc-400 hover:text-white transition-colors"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
-            >
-              <Edit3 size={13} />
-              Edit blueprint
-            </button>
-          </div>
-        )}
-      </nav>
-
-      <main className="relative z-10 flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-16 md:pt-10 pb-24 md:pb-10">
-        <motion.header variants={containerVariants} initial="hidden" animate="visible" key={activeTab} className="mb-7 md:mb-10">
-          <motion.div variants={itemVariants} className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-            {birthData && (
-              <button
-                onClick={() => setOnboardingOpen(true)}
-                className="md:hidden flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-semibold text-zinc-400 active:scale-95 transition-transform"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-              >
-                <Edit3 size={11} />
-                Edit
-              </button>
-            )}
-          </motion.div>
-
-          <motion.h2
-            variants={itemVariants}
-            className="font-serif text-white mb-2 tracking-tight"
-            style={{ fontSize: 'clamp(2rem, 6vw, 3.2rem)', lineHeight: 1.05 }}
-          >
-            {tabTitle[activeTab]}
-          </motion.h2>
-          <motion.p variants={itemVariants} className="text-sm text-zinc-400 mb-6">
-            {tabSubtitle[activeTab]}
-          </motion.p>
+    <AuraLayout
+      title={tabTitle[activeTab]}
+      subtitle={tabSubtitle[activeTab]}
+      accentColor={ACCENT}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => setActiveTab(tab as TabType)}
+      headerActions={headerActions}
+    >
+      <div className="flex flex-col gap-8 pb-10">
 
           <motion.div
             variants={itemVariants}
@@ -247,7 +205,7 @@ export default function DesarrolloPersonalDashboard() {
               </div>
             </div>
           </motion.div>
-        </motion.header>
+
 
         {/* ── OVERVIEW ────────────────────────────────────────────────── */}
         {activeTab === 'overview' && (
@@ -457,20 +415,7 @@ export default function DesarrolloPersonalDashboard() {
             <HabitsManager userId={userId} accent={ACCENT} />
           </motion.div>
         )}
-      </main>
-
-      <UniverseBottomNav
-        tabs={[
-          { id: 'overview', label: 'Overview',  icon: LayoutDashboard },
-          { id: 'identity', label: 'Identity',  icon: Fingerprint },
-          { id: 'shadow',   label: 'Shadow',    icon: PenTool },
-          { id: 'habits',   label: 'Habits',    icon: Activity },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tab) => setActiveTab(tab as TabType)}
-        activeColor={ACCENT_SOFT}
-        bgColor="#1B1714"
-      />
+      </div>
 
       {/* Birth data onboarding */}
       <BirthDataOnboarding
@@ -479,7 +424,7 @@ export default function DesarrolloPersonalDashboard() {
         accent={ACCENT}
         existing={birthData}
       />
-    </div>
+    </AuraLayout>
   );
 }
 

@@ -1,0 +1,34 @@
+# Lebrary — Netlify build + routing config.
+#
+# Environment variables (set these in Netlify UI, not here):
+#   VITE_SUPABASE_URL          public  — frontend uses it
+#   VITE_SUPABASE_ANON_KEY     public  — frontend uses it
+#
+# Secrets (GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY) live in Supabase Edge
+# Functions, NOT on Netlify. The web-import feature calls the
+# `lebrary-web-import` edge function directly from the browser (with the
+# user's JWT), so Netlify only serves static assets.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback — react-router handles all non-asset paths.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Long-cache hashed assets; never cache the index.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

@@ -7,7 +7,8 @@
       "Bash(cmd /c \"cd c:\\\\Users\\\\g4t0sky\\\\aether-os && npx tsc --noEmit 2>&1\")",
       "Bash(ls /c/Users/g4t0sky/aether-os/public/*.png)",
       "Bash(where supabase *)",
-      "Bash(supabase --version)"
+      "Bash(supabase --version)",
+      "Bash(git fetch *)"
     ]
   }
 }

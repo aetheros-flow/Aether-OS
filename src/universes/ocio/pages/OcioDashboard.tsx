@@ -16,8 +16,7 @@ import type {
   BookStatus, BucketStatus, OcioBook,
 } from '../types';
 import AetherModal from '../../../core/components/AetherModal';
-import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
-import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
+import AuraLayout, { type TabItem } from '../../../components/layout/AuraLayout';
 import { SURFACE, UNIVERSE_ACCENT, alpha } from '../../../lib/universe-palette';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -59,12 +58,11 @@ const DEFAULT_BOOK: NewBookInput = { title: '', author: '', status: 'Por leer', 
 const DEFAULT_HOBBY: NewHobbyInput = { name: '', frequency: '', last_practiced: '', notes: '' };
 const DEFAULT_BUCKET: NewBucketInput = { description: '', category: '', status: 'Pendiente' };
 
-// ── Tab registry (mirrors Dinero's TABS structure) ───────────────────────────
-const TABS: { id: TabType; label: string; mobileLabel: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard',  label: 'Dashboard',   mobileLabel: 'Resumen', icon: <LayoutDashboard size={18} /> },
-  { id: 'biblioteca', label: 'Biblioteca',  mobileLabel: 'Libros',  icon: <BookOpen size={18} /> },
-  { id: 'hobbies',    label: 'Hobbies',     mobileLabel: 'Hobbies', icon: <Puzzle size={18} /> },
-  { id: 'bucket',     label: 'Bucket List', mobileLabel: 'Bucket',  icon: <Star size={18} /> },
+const auraTabs: TabItem[] = [
+  { id: 'dashboard',  label: 'Dashboard',   icon: <LayoutDashboard size={16} />, mobileLabel: 'Resumen' },
+  { id: 'biblioteca', label: 'Biblioteca',  icon: <BookOpen size={16} />,        mobileLabel: 'Libros'  },
+  { id: 'hobbies',    label: 'Hobbies',     icon: <Puzzle size={16} />,          mobileLabel: 'Hobbies' },
+  { id: 'bucket',     label: 'Bucket List', icon: <Star size={16} />,            mobileLabel: 'Bucket'  },
 ];
 
 // ── Star rating picker ────────────────────────────────────────────────────────
@@ -199,113 +197,42 @@ export default function OcioDashboard() {
     );
   }
 
-  return (
-    <div
-      className="relative min-h-screen flex flex-col font-sans overflow-x-hidden"
-      style={{ background: SURFACE.bg, color: SURFACE.text }}
-    >
-      {/* ── Ambient glows (mirrors Dinero) ────────────────────────────────── */}
-      <div
-        aria-hidden
-        className="fixed top-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-30"
-        style={{
-          background: `radial-gradient(circle, ${alpha(ACCENT, 0.2)} 0%, transparent 70%)`,
-          filter: 'blur(120px)',
-          viewTransitionName: 'universe-ocio',
-        } as React.CSSProperties}
-      />
-      <div
-        aria-hidden
-        className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none opacity-25"
-        style={{ background: `radial-gradient(circle, ${alpha(ACCENT_SOFT, 0.14)} 0%, transparent 70%)`, filter: 'blur(100px)' }}
-      />
-
-      <UniverseMobileHeader title="Ocio & Hobbies" subtitle="Entretenimiento & Pasatiempos" color="#1B1714" />
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          TOP NAV — mirrors Dinero's structure exactly
-          ══════════════════════════════════════════════════════════════════════ */}
-      <nav
-        className="relative z-30 w-full shrink-0 flex flex-col backdrop-blur-xl border-b"
-        style={{ background: 'rgba(27, 23, 20, 0.72)', borderColor: SURFACE.border }}
+  const headerActions = (
+    <>
+      <motion.a
+        href={authLebraryUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        whileTap={tapPhysics}
+        className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-colors"
+        style={{ background: 'rgba(245,239,230,0.05)', border: `1px solid ${SURFACE.border}`, color: SURFACE.text }}
       >
-        <div className="flex items-center justify-between px-4 md:px-6 py-3.5">
-          <div className="flex items-center gap-6 min-w-0">
-            <motion.button
-              whileTap={tapPhysics}
-              onClick={() => navigate('/')}
-              className="hover:opacity-80 transition-opacity flex items-center gap-2 shrink-0"
-            >
-              <span className="text-white font-serif text-lg tracking-tight flex items-center gap-2">
-                <Sparkles size={20} style={{ color: ACCENT, filter: `drop-shadow(0 0 8px ${ACCENT}88)` }} />
-                Ocio
-              </span>
-            </motion.button>
-            <div className="hidden md:flex items-center gap-1 overflow-x-auto whitespace-nowrap hide-scrollbar">
-              {TABS.map(t => {
-                const isActive = activeTab === t.id;
-                return (
-                  <motion.button
-                    key={t.id}
-                    whileTap={tapPhysics}
-                    onClick={() => setActiveTab(t.id)}
-                    className="px-4 py-2 text-xs font-black uppercase tracking-widest rounded-full transition-all"
-                    style={{
-                      color: isActive ? '#1B1714' : 'rgba(245,239,230,0.55)',
-                      backgroundColor: isActive ? ACCENT : 'transparent',
-                      boxShadow: isActive ? `0 0 20px ${ACCENT}55` : 'none',
-                    }}
-                  >
-                    {t.label}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-          {/* Primary CTA — context-aware per tab (Dinero pattern) */}
-          <div className="hidden md:flex items-center gap-3">
-            <motion.a
-              href={authLebraryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileTap={tapPhysics}
-              className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-colors"
-              style={{ background: 'rgba(245,239,230,0.05)', border: `1px solid ${SURFACE.border}`, color: SURFACE.text }}
-            >
-              <Library size={14} /> Lebrary <ExternalLink size={11} className="opacity-60" />
-            </motion.a>
-            <motion.button
-              whileTap={tapPhysics}
-              onClick={primaryAddForTab}
-              className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest"
-              style={{ backgroundColor: ACCENT, color: '#1B1714', boxShadow: `0 0 24px ${ACCENT}55` }}
-            >
-              <Plus size={14} strokeWidth={3} /> {primaryAddLabel}
-            </motion.button>
-          </div>
-        </div>
+        <Library size={14} /> Lebrary <ExternalLink size={11} className="opacity-60" />
+      </motion.a>
+      <motion.button
+        whileTap={tapPhysics}
+        onClick={primaryAddForTab}
+        className="flex items-center gap-2 px-4 py-2 rounded-full font-black text-xs uppercase tracking-widest"
+        style={{ backgroundColor: ACCENT, color: '#1B1714', boxShadow: `0 0 24px ${ACCENT}55` }}
+      >
+        <Plus size={14} strokeWidth={3} /> {primaryAddLabel}
+      </motion.button>
+    </>
+  );
 
-        {/* Sub-header — mirrors Dinero's breadcrumb + right stat */}
-        <div
-          className="hidden md:flex flex-row items-center justify-between px-6 py-2.5 border-t"
-          style={{ borderColor: SURFACE.border, background: 'rgba(22, 19, 16, 0.55)' }}
-        >
-          <h1 className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: SURFACE.textMuted }}>
-            {TABS.find(t => t.id === activeTab)?.label ?? 'Dashboard'}
-          </h1>
-          <div className="flex items-center gap-2">
-            <Sparkles size={12} style={{ color: ACCENT }} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: ACCENT_SOFT }}>
-              {insight.loading ? 'Calibrando…' : `Calidad · ${insight.suggestedScore.toFixed(1)}`}
-            </span>
-          </div>
-        </div>
-      </nav>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          MAIN AREA
-          ══════════════════════════════════════════════════════════════════════ */}
-      <main className="relative z-10 flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar pb-32 md:pb-10 w-full flex justify-center">
+  return (
+    <AuraLayout
+      tabs={auraTabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => {
+        if (tab === 'pantalla') navigate('/ocio/pantalla');
+        else setActiveTab(tab as TabType);
+      }}
+      accentColor={ACCENT}
+      title="Ocio & Hobbies"
+      subtitle="Entretenimiento & Pasatiempos"
+      headerActions={headerActions}
+    >
         {/* ── DASHBOARD (RESUMEN) ── */}
         {activeTab === 'dashboard' && (
           <motion.div
@@ -810,8 +737,6 @@ export default function OcioDashboard() {
             )}
           </motion.div>
         )}
-      </main>
-
       {/* ── MODAL: LIBRO ─────────────────────────────────────────────────── */}
       <AetherModal isOpen={bookModalOpen} onClose={closeBookModal} title={editingBook ? 'Editar Libro' : 'Nuevo Libro'}>
         <form onSubmit={handleBookSubmit} className="flex flex-col gap-5">
@@ -909,26 +834,6 @@ export default function OcioDashboard() {
         </form>
       </AetherModal>
 
-      {/* ── Mobile bottom nav ────────────────────────────────────────────── */}
-      <UniverseBottomNav
-        tabs={[
-          { id: 'dashboard',  label: 'Resumen', icon: LayoutDashboard },
-          { id: 'biblioteca', label: 'Libros',  icon: BookOpen },
-          { id: 'pantalla',   label: 'Pantalla', icon: Tv },
-          { id: 'hobbies',    label: 'Hobbies', icon: Puzzle },
-          { id: 'bucket',     label: 'Bucket',  icon: Star },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tab) => {
-          if (tab === 'pantalla') {
-            navigate('/ocio/pantalla');
-          } else {
-            setActiveTab(tab as TabType);
-          }
-        }}
-        activeColor={ACCENT}
-        bgColor="#1B1714"
-      />
-    </div>
+    </AuraLayout>
   );
 }

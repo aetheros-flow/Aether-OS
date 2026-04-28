@@ -29,10 +29,8 @@ import type {
   NewNoteInput,
 } from '../types';
 import { RELATIONSHIP_OPTIONS, FREQUENCY_OPTIONS } from '../types';
-import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
-import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
-import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
+import AuraLayout, { type TabItem } from '../../../components/layout/AuraLayout';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TabType = 'dashboard' | 'arbol' | 'fechas' | 'notas';
@@ -339,52 +337,24 @@ export default function FamiliaDashboard() {
     );
   }
 
+  const auraTabs: TabItem[] = [
+    { id: 'dashboard', label: 'Resumen',    icon: <LayoutDashboard size={16} />, mobileLabel: 'Inicio'  },
+    { id: 'arbol',     label: 'Árbol',      icon: <Users           size={16} />, mobileLabel: 'Árbol'   },
+    { id: 'fechas',    label: 'Fechas',     icon: <CalendarHeart   size={16} />, mobileLabel: 'Fechas'  },
+    { id: 'notas',     label: 'Notas',      icon: <NotebookText    size={16} />, mobileLabel: 'Notas'   },
+  ];
+
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans bg-black text-white relative overflow-hidden selection:bg-fuchsia-500/30">
-      {/* ── Background glows ────────────────────────────────────────────── */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full opacity-[0.20] blur-[120px]"
-          style={{ background: `radial-gradient(circle, ${ACCENT}, transparent 70%)`, viewTransitionName: 'universe-familia' } as React.CSSProperties}
-        />
-        <div
-          className="absolute bottom-0 right-0 w-[480px] h-[480px] rounded-full opacity-[0.14] blur-[140px]"
-          style={{ background: `radial-gradient(circle, ${ACCENT_SOFT}, transparent 70%)` }}
-        />
-      </div>
-
-      <UniverseMobileHeader title="Familia" subtitle="Raíces & Vínculos" color="#1B1714" />
-
-      {/* ── SIDEBAR ───────────────────────────────────────────────────────────── */}
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 bg-black/40 backdrop-blur-xl border-r border-white/5 relative">
-        <div className="flex items-center gap-4 p-6 mb-4">
-          <motion.button
-            onClick={() => navigate('/')}
-            whileHover={hoverPhysics}
-            whileTap={tapPhysics}
-            className="p-2.5 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-colors"
-            aria-label="Volver"
-          >
-            <ArrowLeft size={18} />
-          </motion.button>
-          <div>
-            <h1 className="font-serif text-2xl tracking-tight text-white">Familia</h1>
-            <p className="text-[10px] font-black tracking-[0.2em] uppercase text-zinc-500">Hogar & Raíces</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 px-4 pb-6">
-          <UniverseNavItem accent={ACCENT_SOFT} icon={LayoutDashboard} label="Resumen"          isActive={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
-          <UniverseNavItem accent={ACCENT_SOFT} icon={Users}           label="Árbol Familiar"   isActive={activeTab === 'arbol'}     onClick={() => handleTabChange('arbol')} />
-          <UniverseNavItem accent={ACCENT_SOFT} icon={CalendarHeart}   label="Fechas & Tradiciones" isActive={activeTab === 'fechas'} onClick={() => handleTabChange('fechas')} />
-          <UniverseNavItem accent={ACCENT_SOFT} icon={NotebookText}    label="Notas Familiares" isActive={activeTab === 'notas'}     onClick={() => handleTabChange('notas')} />
-        </div>
-      </nav>
-
-      {/* ── ÁREA PRINCIPAL ────────────────────────────────────────────────────── */}
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-14 md:pt-10 pb-20 md:pb-0 relative z-10">
+    <AuraLayout
+      tabs={auraTabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => handleTabChange(tab as TabType)}
+      accentColor={ACCENT}
+      title="Familia & Hogar"
+      subtitle="Raíces & Vínculos"
+    >
+      <div className="relative z-10">
 
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
 
@@ -920,7 +890,6 @@ export default function FamiliaDashboard() {
             </motion.div>
           )}
         </motion.div>
-      </main>
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* MODAL: AGREGAR / EDITAR MIEMBRO                                       */}
@@ -1112,19 +1081,8 @@ export default function FamiliaDashboard() {
         </div>
       </AetherModal>
 
-      <UniverseBottomNav
-        tabs={[
-          { id: 'dashboard', label: 'Resumen',  icon: LayoutDashboard },
-          { id: 'arbol',     label: 'Árbol',    icon: Users           },
-          { id: 'fechas',    label: 'Fechas',   icon: CalendarHeart   },
-          { id: 'notas',     label: 'Notas',    icon: NotebookText    },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab as TabType)}
-        activeColor={ACCENT_SOFT}
-        bgColor="#1B1714"
-      />
-    </div>
+      </div>
+    </AuraLayout>
   );
 }
 

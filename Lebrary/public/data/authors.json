@@ -1,0 +1,112 @@
+[
+  {
+    "id": "author-lumina",
+    "name": "The Lumina Team",
+    "image": "",
+    "bio": {
+      "en": "The people shaping Lumina Library — a quiet place for deep reading and active study.",
+      "es": "El equipo detrás de Lumina Library — un rincón tranquilo para la lectura profunda y el estudio activo."
+    },
+    "accomplishments": [],
+    "relatedBookIds": [
+      "book-welcome"
+    ]
+  },
+  {
+    "id": "author-albert-einstein",
+    "name": "Albert Einstein",
+    "image": "",
+    "bio": {
+      "en": "Albert Einstein was a German-born theoretical physicist who developed the theory of relativity, one of the two pillars of modern physics. His work is also known for its influence on the philosophy of science. He is best known in popular culture for his mass–energy equivalence formula E=mc².",
+      "es": "Albert Einstein fue un físico teórico nacido en Alemania que desarrolló la teoría de la relatividad, uno de los dos pilares de la física moderna. Su obra es también conocida por su influencia en la filosofía de la ciencia. Es más conocido en la cultura popular por su fórmula de equivalencia masa-energía E=mc²."
+    },
+    "accomplishments": [
+      {
+        "en": "Developed the theory of relativity (special and general).",
+        "es": "Desarrolló la teoría de la relatividad (especial y general)."
+      },
+      {
+        "en": "Received the Nobel Prize in Physics in 1921 for his explanation of the photoelectric effect.",
+        "es": "Recibió el Premio Nobel de Física en 1921 por su explicación del efecto fotoeléctrico."
+      },
+      {
+        "en": "Pioneered the concept of mass-energy equivalence (E=mc²).",
+        "es": "Pionero del concepto de equivalencia masa-energía (E=mc²)."
+      },
+      {
+        "en": "Authored numerous influential essays and papers on physics, philosophy, and social issues.",
+        "es": "Autor de numerosos ensayos y artículos influyentes sobre física, filosofía y temas sociales."
+      }
+    ],
+    "birthYear": 1879,
+    "deathYear": 1955,
+    "nationality": "German-American",
+    "relatedBookIds": [
+      "book-my-beliefs"
+    ]
+  },
+  {
+    "id": "author-martin-caparros",
+    "name": "Martín Caparrós",
+    "image": "",
+    "bio": {
+      "en": "Martín Caparrós is an acclaimed Argentine journalist and writer known for his extensive work in various media. With a degree in history, he has published numerous novels, chronicles, and essays, often exploring social and political themes with a keen eye for cultural phenomena.",
+      "es": "Martín Caparrós es un aclamado periodista y escritor argentino conocido por su extenso trabajo en diversos medios. Licenciado en Historia, ha publicado numerosas novelas, crónicas y ensayos, a menudo explorando temas sociales y políticos con una aguda mirada sobre los fenómenos culturales."
+    },
+    "accomplishments": [
+      {
+        "en": "Winner of the Planeta Prize (2004) for 'Valfierno'",
+        "es": "Ganador del Premio Planeta (2004) por 'Valfierno'"
+      },
+      {
+        "en": "Co-author of 'La voluntad', a seminal work on revolutionary militancy in Argentina",
+        "es": "Coautor de 'La voluntad', una obra fundamental sobre la militancia revolucionaria en Argentina"
+      },
+      {
+        "en": "Extensive career in journalism across print, radio, and television",
+        "es": "Amplia trayectoria en periodismo en prensa, radio y televisión"
+      }
+    ],
+    "birthYear": 1957,
+    "nationality": "Argentine",
+    "relatedBookIds": [
+      "book-boquita"
+    ]
+  },
+  {
+    "id": "author-haruki-murakami",
+    "name": "Haruki Murakami",
+    "image": "",
+    "bio": {
+      "en": "Haruki Murakami is a renowned Japanese author, celebrated for his unique blend of the surreal and the mundane, often exploring themes of loneliness, loss, and the search for meaning in contemporary society. His works, frequently incorporating elements of pop culture and music, have garnered critical acclaim and a massive global following. He is also an accomplished translator of American literature.",
+      "es": "Haruki Murakami es un reconocido autor japonés, célebre por su singular mezcla de lo surrealista y lo mundano, explorando a menudo temas de soledad, pérdida y la búsqueda de significado en la sociedad contemporánea. Sus obras, que con frecuencia incorporan elementos de la cultura pop y la música, han obtenido el reconocimiento de la crítica y un enorme seguimiento a nivel mundial. También es un consumado traductor de literatura estadounidense."
+    },
+    "accomplishments": [
+      {
+        "en": "Awarded the Gunzo Prize for New Writers for his debut novel, Hear the Wind Sing.",
+        "es": "Galardonado con el Premio Gunzo para Nuevos Escritores por su novela debut, Escucha la canción del viento."
+      },
+      {
+        "en": "Recipient of the World Fantasy Award for Kafka on the Shore.",
+        "es": "Receptor del Premio Mundial de Fantasía por Kafka en la orilla."
+      },
+      {
+        "en": "Winner of the Jerusalem Prize for the Freedom of the Individual in Society.",
+        "es": "Ganador del Premio Jerusalén a la Libertad del Individuo en la Sociedad."
+      },
+      {
+        "en": "Translated numerous American authors, including Raymond Carver and F. Scott Fitzgerald.",
+        "es": "Ha traducido a numerosos autores estadounidenses, incluyendo a Raymond Carver y F. Scott Fitzgerald."
+      },
+      {
+        "en": "His novel 'A Wild Sheep Chase' won the 1982 Noma Literary Newcomer's Prize.",
+        "es": "Su novela 'La caza del carnero salvaje' ganó el Premio Noma para Nuevos Escritores en 1982."
+      }
+    ],
+    "birthYear": 1949,
+    "nationality": "Japanese",
+    "relatedBookIds": [
+      "book-a-wild-sheep-chase"
+    ]
+  }
+]

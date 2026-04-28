@@ -1,0 +1,39 @@
+{
+  "name": "lumina-library",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "ingest": "tsx scripts/ingest-book.ts",
+    "ingest:all": "tsx scripts/ingest-all.ts",
+    "ingest:watch": "tsx scripts/watch-books.ts",
+    "migrate:catalog": "tsx scripts/migrate-json-to-db.ts",
+    "migrate:storage": "tsx scripts/migrate-originals-to-storage.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^1.50.1",
+    "@supabase/supabase-js": "^2.104.0",
+    "chokidar": "^5.0.0",
+    "lucide-react": "^0.453.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^17.4.2",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

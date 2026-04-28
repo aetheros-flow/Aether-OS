@@ -9,10 +9,8 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 
 import { useSaludData } from '../hooks/useSaludData';
 import type { NewMetricInput, NewWorkoutInput } from '../types';
-import UniverseNavItem from '../../../core/components/UniverseNavItem';
 import AetherModal from '../../../core/components/AetherModal';
-import UniverseBottomNav from '../../../core/components/UniverseBottomNav';
-import UniverseMobileHeader from '../../../core/components/UniverseMobileHeader';
+import AuraLayout from '../../../components/layout/AuraLayout';
 
 type TabType = 'dashboard' | 'entrenamientos' | 'nutricion' | 'medico';
 
@@ -117,78 +115,42 @@ export default function SaludDashboard() {
     );
   }
 
+  const tabs = [
+    { id: 'dashboard',      label: 'Resumen',   icon: <LayoutDashboard /> },
+    { id: 'entrenamientos', label: 'Entrenos',  icon: <Dumbbell />        },
+    { id: 'nutricion',      label: 'Nutrición', icon: <Apple />           },
+    { id: 'medico',         label: 'Médicos',   icon: <Stethoscope />     },
+  ];
+
+  const headerActions = (
+    <div className="flex items-center gap-2">
+      {(activeTab === 'dashboard' || activeTab === 'entrenamientos') && (
+        <motion.button
+          onClick={() => activeTab === 'dashboard' ? setIsMetricModalOpen(true) : setIsWorkoutModalOpen(true)}
+          whileHover={hoverPhysics}
+          whileTap={tapPhysics}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white"
+          style={{ background: ACCENT, boxShadow: `0 8px 24px ${ACCENT}40` }}
+        >
+          <Plus size={13} strokeWidth={3} />
+          {activeTab === 'entrenamientos' ? 'Registrar' : 'Actualizar'}
+        </motion.button>
+      )}
+    </div>
+  );
+
+  const title = activeTab === 'dashboard' ? 'Tu cuerpo hoy' : activeTab === 'entrenamientos' ? 'Entrenamientos' : activeTab === 'nutricion' ? 'Nutrición' : 'Seguimiento médico';
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row font-sans text-white relative overflow-hidden bg-[#1B1714] selection:bg-white/20">
-
-      {/* Glows de fondo */}
-      <div aria-hidden className="pointer-events-none fixed -top-40 -left-40 w-[520px] h-[520px] rounded-full blur-[140px] opacity-[0.18]" style={{ background: ACCENT, viewTransitionName: 'universe-salud' } as React.CSSProperties} />
-      <div aria-hidden className="pointer-events-none fixed -bottom-60 right-0 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.10]" style={{ background: ACCENT }} />
-      <div aria-hidden className="pointer-events-none fixed inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-
-      <UniverseMobileHeader title="Salud Física" subtitle="Cuerpo & Energía" color="#1B1714" />
-
-      {/* ── SIDEBAR ─────────────────────────────────── */}
-      <nav className="hidden md:flex md:w-64 flex-col z-30 shrink-0 relative bg-black/40 backdrop-blur-xl border-r border-white/5">
-        <div className="flex items-center gap-3 p-6 mb-2">
-          <motion.button
-            onClick={() => navigate('/')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.92 }}
-            className="p-2 rounded-full bg-white/5 border border-white/10 text-white"
-            aria-label="Volver"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          </motion.button>
-          <div className="min-w-0">
-            <h1 className="font-serif text-[26px] text-white font-medium tracking-tight leading-tight truncate">Salud Física</h1>
-            <p className="text-[10px] uppercase font-black tracking-[0.22em]" style={{ color: ACCENT }}>Cuerpo & Energía</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 px-3 pb-6">
-          <UniverseNavItem icon={LayoutDashboard} label="Resumen"        accent={ACCENT} isActive={activeTab === 'dashboard'}      onClick={() => handleTabChange('dashboard')} />
-          <UniverseNavItem icon={Dumbbell}        label="Entrenamientos" accent={ACCENT} isActive={activeTab === 'entrenamientos'} onClick={() => handleTabChange('entrenamientos')} />
-          <UniverseNavItem icon={Apple}           label="Nutrición"      accent={ACCENT} isActive={activeTab === 'nutricion'}      onClick={() => handleTabChange('nutricion')} />
-          <UniverseNavItem icon={Stethoscope}     label="Médicos"        accent={ACCENT} isActive={activeTab === 'medico'}         onClick={() => handleTabChange('medico')} />
-        </div>
-      </nav>
-
-      {/* ── ÁREA PRINCIPAL ──────────────────────────── */}
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="flex-1 p-4 md:p-10 overflow-y-auto custom-scrollbar pt-20 md:pt-10 pb-24 md:pb-10 relative z-10"
-      >
-        {/* Header */}
-        <motion.header variants={itemVariants} className="mb-8 md:mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">
-              {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-            {(activeTab === 'dashboard' || activeTab === 'entrenamientos') && (
-              <motion.button
-                onClick={() => activeTab === 'dashboard' ? setIsMetricModalOpen(true) : setIsWorkoutModalOpen(true)}
-                whileHover={hoverPhysics}
-                whileTap={tapPhysics}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-[11px] uppercase tracking-wider text-white"
-                style={{
-                  background: ACCENT,
-                  boxShadow: `0 8px 24px ${ACCENT}40, inset 0 1px 0 rgba(255,255,255,0.15)`,
-                }}
-              >
-                <Plus size={13} strokeWidth={3} />
-                {activeTab === 'entrenamientos' ? 'Registrar' : 'Actualizar'}
-              </motion.button>
-            )}
-          </div>
-          <h2 className="font-sans text-white font-bold tracking-tight" style={{ fontSize: 'clamp(2rem, 7vw, 3.5rem)', letterSpacing: '-0.02em', lineHeight: 1.05 }}>
-            {activeTab === 'dashboard'      ? 'Tu cuerpo hoy' :
-             activeTab === 'entrenamientos' ? 'Entrenamientos' :
-             activeTab === 'nutricion'      ? 'Nutrición' :
-             'Seguimiento médico'}
-          </h2>
-        </motion.header>
+    <AuraLayout
+      title={title}
+      accentColor={ACCENT}
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(tab) => handleTabChange(tab as TabType)}
+      headerActions={headerActions}
+    >
+      <div className="flex flex-col gap-8 pb-10">
 
         {/* AI Insights Panel */}
         {activeTab === 'dashboard' && (
@@ -330,98 +292,7 @@ export default function SaludDashboard() {
             <p className="relative text-[10px] font-black uppercase tracking-[0.22em] text-zinc-500">Desplegando la matriz de datos pronto.</p>
           </motion.div>
         )}
-      </motion.main>
-
-      {/* ── MODAL: MÉTRICAS ─────────────────────────── */}
-      <AetherModal isOpen={isMetricModalOpen} onClose={() => { setIsMetricModalOpen(false); setFormError(null); }} title="Control Físico">
-        {formError && <p className="text-xs font-bold text-rose-300 mb-4 bg-rose-500/10 border border-rose-500/30 px-4 py-2.5 rounded-xl">{formError}</p>}
-        <form onSubmit={handleCreateMetric} className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Peso (KG)</label>
-              <input type="number" step="0.1" required value={newMetric.weight} onChange={e => setNewMetric({ ...newMetric, weight: e.target.value })} className="neo-input font-mono" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Grasa (%)</label>
-              <input type="number" step="0.1" value={newMetric.body_fat} onChange={e => setNewMetric({ ...newMetric, body_fat: e.target.value })} className="neo-input font-mono" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Sueño (Horas)</label>
-              <input type="number" step="0.1" required value={newMetric.sleep_hours} onChange={e => setNewMetric({ ...newMetric, sleep_hours: e.target.value })} className="neo-input font-mono" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Agua (Litros)</label>
-              <input type="number" step="0.1" required value={newMetric.water_liters} onChange={e => setNewMetric({ ...newMetric, water_liters: e.target.value })} className="neo-input font-mono" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="neo-eyebrow">Fecha</label>
-            <input type="date" required value={newMetric.date} onChange={e => setNewMetric({ ...newMetric, date: e.target.value })} className="neo-input" />
-          </div>
-          <motion.button type="submit" disabled={isSubmitting} whileTap={tapPhysics} className="neo-btn-accent mt-3 disabled:opacity-60" style={{ background: ACCENT, boxShadow: `0 8px 32px ${ACCENT}40` }}>
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sincronizar Cuerpo'}
-          </motion.button>
-        </form>
-      </AetherModal>
-
-      {/* ── MODAL: ENTRENAMIENTO ─────────────────────── */}
-      <AetherModal isOpen={isWorkoutModalOpen} onClose={() => { setIsWorkoutModalOpen(false); setFormError(null); }} title="Actividad Física">
-        {formError && <p className="text-xs font-bold text-rose-300 mb-4 bg-rose-500/10 border border-rose-500/30 px-4 py-2.5 rounded-xl">{formError}</p>}
-        <form onSubmit={handleCreateWorkout} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <label className="neo-eyebrow">Disciplina</label>
-            <select value={newWorkout.type} onChange={e => setNewWorkout({ ...newWorkout, type: e.target.value })} className="neo-input appearance-none">
-              {WORKOUT_TYPES.map(w => <option key={w} value={w} className="bg-zinc-900">{w}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Duración (Min)</label>
-              <input type="number" required value={newWorkout.duration_mins} onChange={e => setNewWorkout({ ...newWorkout, duration_mins: e.target.value })} className="neo-input font-mono" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Quema (Kcal)</label>
-              <input type="number" value={newWorkout.calories_burned} onChange={e => setNewWorkout({ ...newWorkout, calories_burned: e.target.value })} className="neo-input font-mono" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="neo-eyebrow">Intensidad</label>
-            <select value={newWorkout.intensity} onChange={e => setNewWorkout({ ...newWorkout, intensity: e.target.value })} className="neo-input appearance-none">
-              <option value="Baja"  className="bg-zinc-900">Baja (Recuperación)</option>
-              <option value="Media" className="bg-zinc-900">Media (Mantenimiento)</option>
-              <option value="Alta"  className="bg-zinc-900">Alta (Fuerza/Partido)</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Fecha</label>
-              <input type="date" required value={newWorkout.date} onChange={e => setNewWorkout({ ...newWorkout, date: e.target.value })} className="neo-input" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="neo-eyebrow">Hora</label>
-              <input type="time" required value={newWorkout.time} onChange={e => setNewWorkout({ ...newWorkout, time: e.target.value })} className="neo-input" />
-            </div>
-          </div>
-          <motion.button type="submit" disabled={isSubmitting} whileTap={tapPhysics} className="neo-btn-accent mt-3 disabled:opacity-60" style={{ background: ACCENT, boxShadow: `0 8px 32px ${ACCENT}40` }}>
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Registrar Esfuerzo'}
-          </motion.button>
-        </form>
-      </AetherModal>
-
-      <UniverseBottomNav
-        tabs={[
-          { id: 'dashboard',      label: 'Resumen',   icon: LayoutDashboard },
-          { id: 'entrenamientos', label: 'Entrenos',  icon: Dumbbell        },
-          { id: 'nutricion',      label: 'Nutrición', icon: Apple           },
-          { id: 'medico',         label: 'Médicos',   icon: Stethoscope     },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab as TabType)}
-        activeColor={ACCENT}
-        bgColor="#1B1714"
-      />
-    </div>
+      </div>
+    </AuraLayout>
   );
 }

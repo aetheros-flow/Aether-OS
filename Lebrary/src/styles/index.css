@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-paper-100 text-ink-800 transition-colors duration-500 ease-smooth;
+  }
+
+  html.dark body {
+    @apply bg-ink-900 text-ink-50;
+  }
+
+  ::selection {
+    @apply bg-lumen-400/30 text-ink-900;
+  }
+
+  html.dark ::selection {
+    @apply bg-lumen-400/40 text-ink-50;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+@layer components {
+  .reading-body {
+    @apply font-serif text-lg leading-relaxed tracking-[0.005em];
+  }
+
+  .reading-body p + p {
+    @apply mt-6;
+  }
+
+  .reading-body > p:first-of-type::first-letter {
+    @apply font-serif font-semibold text-lumen-600 dark:text-lumen-400;
+    float: left;
+    font-size: 3.6em;
+    line-height: 0.9;
+    padding-right: 0.08em;
+    padding-top: 0.08em;
+    padding-bottom: 0.02em;
+  }
+
+  .glass-surface {
+    @apply bg-paper-50/70 backdrop-blur-md border border-paper-300/60;
+  }
+
+  .dark .glass-surface {
+    @apply bg-ink-800/60 backdrop-blur-md border-ink-700/60;
+  }
+
+  .epigraph {
+    @apply relative font-serif italic text-xl leading-relaxed text-ink-700 dark:text-ink-100;
+  }
+
+  .epigraph::before {
+    content: '"';
+    @apply absolute -left-6 -top-4 font-serif text-6xl text-lumen-400/60 dark:text-lumen-400/40;
+  }
+
+  @keyframes lumen-flash {
+    0% {
+      box-shadow: 0 0 0 3px theme('colors.lumen.400 / 80%');
+      background-color: theme('colors.lumen.400 / 60%');
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  .flash-highlight {
+    animation: lumen-flash 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0.25rem;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}

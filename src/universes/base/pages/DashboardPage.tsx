@@ -1,79 +1,136 @@
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { Loader2, BrainCircuit, Sliders } from 'lucide-react';
+import { Loader2, Brain, Dumbbell, Leaf, Heart, Wallet, Briefcase, Users, Home as HomeIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import ThemeToggle from '../../../core/components/ThemeToggle';
-import LifeWheel, { type WheelSegment } from '../components/LifeWheel';
+import UniverseCard, { type UniverseData } from '../../../components/dashboard/UniverseCard';
 import FrequencyTuningSheet from '../components/FrequencyTuningSheet';
+import AuraLayout from '../../../components/layout/AuraLayout';
 
-// ── Warm palette ─────────────────────────────────────────────────────────────
-// Background + text tokens tuned to feel warm and inviting (not clinical).
-const BG        = '#1B1714';
-const BG_CARD   = '#221D19';
-const TEXT_MAIN = '#F5EFE6';
-const TEXT_MUTED = '#A8A096';
-const BORDER    = 'rgba(232,221,204,0.08)';
-
-// Universe colors — kept identifiable but ~20% less saturated than before so
-// they feel premium rather than neon. The dashboard is where these live; each
-// universe page keeps its own full-saturation identity internally.
-const SEGMENT_COLORS: Record<string, string> = {
-  amor:                 '#E05A7A', // dusty rose
-  dinero:               '#7EC28A', // sage green
-  desarrollopersonal:   '#6B8FC4', // dusty blue
-  salud:                '#D97A3A', // warm terracotta
-  desarrolloprofesional:'#D9B25E', // amber gold
-  social:               '#9F87C9', // muted lavender
-  familia:              '#C090BC', // dusty plum
-  ocio:                 '#D97265', // coral clay
+// ── Universe metadata — icon as Lucide ReactNode, color as hex ────────────────
+const UNIVERSE_META: Record<string, Omit<UniverseData, 'id' | 'value' | 'path'>> = {
+  desarrollopersonal: {
+    name: 'Mind & Spirit',
+    description: 'Cultivate inner peace, expand consciousness, and nurture your mental sanctuary through guided reflection.',
+    icon: <Brain size={20} />,
+    color: '#6B8FC4',
+    textColorClass: 'text-blue-400',
+    bgIconClass: 'bg-blue-500/20',
+    glowClass: '',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBpInoK5yGWUnTGE0MOQsbn75eLcicxmDpwQ_EgRTYKMKy2PUsl7jIhk2ogTW0qvUxLvyeXEdcFXZWwqMFSRVSMVD5RfruXxNoZjorL--19gLy7pkLhm9_ROSPwhPx7XpIZq399JWdsu17_l2jxc5SQHfav2jx0ByXhTFdhZRXu1dxNew7gfnqSBGEshREd6cW89xMlaCsUqbfPeZHDJOAKL4RWqvW3Ui3QD0NFCT4EJhRifxTHDn_dmMNxLlo9HH_oHpIqGck4_GKn',
+  },
+  salud: {
+    name: 'Physical Vitality',
+    description: 'Energize your vessel, optimize physical movement, and embrace the rhythm of your body\'s natural state.',
+    icon: <Dumbbell size={20} />,
+    color: '#D97A3A',
+    textColorClass: 'text-orange-400',
+    bgIconClass: 'bg-orange-500/20',
+    glowClass: '',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAlgYTKT1PnFD_rssdqmVHsuhvzbmK0pAqi1QkFnu3sGU7VC1BIzjHDxFbv8VppvkEpi7WuNwC3DmJsblnDKxNYFDxX-T43QKJbgHwzIxHKETRMidhO2p8OzX4c5y7gB25p4rOGrbMK7rIyV20UNX53HFzlme1vKhwwbLL9XKdx_TOvNl3dvMDkDkiUh8Q_WmsS-W1x8NgEjfqCgng34A3p5gl9ei2FI5ERmcoDncPpmOxbEN9pOv9EgKnkhrLDzYvqh_kzu-KFdH33',
+  },
+  ocio: {
+    name: 'Leisure & Joy',
+    description: 'Fuel your existence with intention, balancing play and rest through the sacred alchemy of enjoyment.',
+    icon: <Leaf size={20} />,
+    color: '#D97265',
+    textColorClass: 'text-rose-400',
+    bgIconClass: 'bg-rose-500/20',
+    glowClass: '',
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6rrdqImuLLEjqypxBMJSeXoDAZjs1plkHgfpjp8gSUrhgRcVr9iYiwFm_q8PyDy-vFw-RN53EChzG3dliiF3_iQrufA9DQJkulOL931AdtbVOhDa2dL8SIByVuQ1HjI4-IgiNMUWH0Uz1F6rarn5afVcZEMVFBvm02yPXrQCu9Dr6Gr9gsbiH_rkxWu8H32M4HAsyJJm5coOzcRGn5cvoRGSESfLamq5PPimGptWUNk1cWu6nVD4iT0psI2Z1q0Lp3kMwvCYFMT82',
+  },
+  amor: {
+    name: 'Love & Connection',
+    description: 'Foster deep resonance with others and cultivate the magnetic frequency of pure affection.',
+    icon: <Heart size={20} />,
+    color: '#E05A7A',
+    textColorClass: 'text-pink-400',
+    bgIconClass: 'bg-pink-500/20',
+    glowClass: '',
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop',
+  },
+  dinero: {
+    name: 'Economic Flow',
+    description: 'Master the currents of abundance, generating sustainable wealth and freedom of choice.',
+    icon: <Wallet size={20} />,
+    color: '#7EC28A',
+    textColorClass: 'text-green-400',
+    bgIconClass: 'bg-green-500/20',
+    glowClass: '',
+    imageUrl: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
+  },
+  desarrolloprofesional: {
+    name: 'Professional Path',
+    description: 'Align your career trajectory with your ultimate purpose, climbing through continuous mastery.',
+    icon: <Briefcase size={20} />,
+    color: '#D9B25E',
+    textColorClass: 'text-amber-400',
+    bgIconClass: 'bg-amber-500/20',
+    glowClass: '',
+    imageUrl: 'https://images.unsplash.com/photo-1550684376-efcbd6e3f031?q=80&w=1000&auto=format&fit=crop',
+  },
+  social: {
+    name: 'Social Resonance',
+    description: 'Expand your network of impact and immerse yourself in communities that elevate your frequency.',
+    icon: <Users size={20} />,
+    color: '#9F87C9',
+    textColorClass: 'text-violet-400',
+    bgIconClass: 'bg-violet-500/20',
+    glowClass: '',
+    imageUrl: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=1000&auto=format&fit=crop',
+  },
+  familia: {
+    name: 'Family & Roots',
+    description: 'Strengthen the foundational bonds that ground you and provide unconditional support.',
+    icon: <HomeIcon size={20} />,
+    color: '#C090BC',
+    textColorClass: 'text-fuchsia-400',
+    bgIconClass: 'bg-fuchsia-500/20',
+    glowClass: '',
+    imageUrl: 'https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=1000&auto=format&fit=crop',
+  },
 };
 
-interface DashSegment extends WheelSegment {
-  path: string;
-}
-
-const INITIAL: DashSegment[] = [
-  { id: 'amor',                  name: 'Love Life',            value: 0, color: SEGMENT_COLORS.amor,                  path: '/amor' },
-  { id: 'dinero',                name: 'Economic Situation',   value: 0, color: SEGMENT_COLORS.dinero,                path: '/dinero' },
-  { id: 'desarrollopersonal',    name: 'Personal Growth',      value: 0, color: SEGMENT_COLORS.desarrollopersonal,    path: '/desarrollopersonal' },
-  { id: 'salud',                 name: 'Physical Health',      value: 0, color: SEGMENT_COLORS.salud,                 path: '/salud' },
-  { id: 'desarrolloprofesional', name: 'Professional Growth',  value: 0, color: SEGMENT_COLORS.desarrolloprofesional, path: '/desarrolloprofesional' },
-  { id: 'social',                name: 'Social Life',          value: 0, color: SEGMENT_COLORS.social,                path: '/social' },
-  { id: 'familia',               name: 'Family & Home',        value: 0, color: SEGMENT_COLORS.familia,               path: '/familia' },
-  { id: 'ocio',                  name: 'Leisure & Time',       value: 0, color: SEGMENT_COLORS.ocio,                  path: '/ocio' },
+const UNIVERSE_ORDER = [
+  'desarrollopersonal', 'salud', 'ocio', 'amor',
+  'dinero', 'desarrolloprofesional', 'social', 'familia',
 ];
 
-// ── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [segments, setSegments] = useState<DashSegment[]>(INITIAL);
-  const [userName, setUserName] = useState<string>('');
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [tuneOpen, setTuneOpen] = useState(false);
+  const [universes, setUniverses] = useState<UniverseData[]>([]);
 
-  // ── Load from Supabase ────────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       try {
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-        if (authError || !authData?.user) { navigate('/login'); return; }
+        const { data: auth, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !auth?.user) { navigate('/login'); return; }
 
-        const fullName: string = authData.user.user_metadata?.full_name ?? '';
-        setUserName(fullName.split(' ')[0]);
+        const { data: rows } = await supabase
+          .from('UserWheel')
+          .select('*')
+          .eq('user_id', auth.user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-        const { data: wheelRows } = await supabase
-          .from('UserWheel').select('*').eq('user_id', authData.user.id)
-          .order('created_at', { ascending: false }).limit(1);
-
-        if (wheelRows && wheelRows.length > 0) {
-          const row = wheelRows[0];
-          setSegments(prev => prev.map(s => ({ ...s, value: Number(row[s.id] ?? 0) })));
-        } else {
-          await supabase.from('UserWheel').insert([{ user_id: authData.user.id }]);
+        let wheelData = rows && rows.length > 0 ? rows[0] : null;
+        if (!wheelData) {
+          const { data: newRow } = await supabase
+            .from('UserWheel')
+            .insert([{ user_id: auth.user.id }])
+            .select();
+          if (newRow && newRow.length > 0) wheelData = newRow[0];
         }
+
+        const mapped: UniverseData[] = UNIVERSE_ORDER.map(key => ({
+          id: key,
+          value: Number(wheelData?.[key] ?? 0),
+          path: `/${key}`,
+          ...UNIVERSE_META[key],
+        }));
+        setUniverses(mapped);
       } catch (err) {
         console.error('[Dashboard] load error', err);
       } finally {
@@ -83,152 +140,45 @@ export default function DashboardPage() {
     load();
   }, [navigate]);
 
-  // ── Local slider drag (instant feedback) ─────────────────────────────
-  const handleLocalChange = (id: string, value: number) => {
-    setSegments(prev => prev.map(s => s.id === id ? { ...s, value } : s));
-  };
+  const handleLocalChange = (id: string, value: number) =>
+    setUniverses(prev => prev.map(u => u.id === id ? { ...u, value } : u));
 
-  // ── Commit to DB on slider release ────────────────────────────────────
   const handleCommit = async (id: string, value: number) => {
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData?.user) return;
-
-      await supabase.from('UserWheel').update({ [id]: value }).eq('user_id', authData.user.id);
-      await supabase.from('User_Reality_Check').insert([{
-        user_id: authData.user.id,
-        universe_id: id,
-        perceived_score: value,
-        status: 'pending',
-      }]);
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) return;
+      await supabase.from('UserWheel').update({ [id]: value }).eq('user_id', auth.user.id);
     } catch (err) {
       console.error('[Dashboard] save error', err);
     }
   };
 
-  // ── Derived ───────────────────────────────────────────────────────────
-  const aetherScore = useMemo(() => {
-    if (segments.length === 0) return 0;
-    const sum = segments.reduce((s, x) => s + x.value, 0);
-    return Math.round((sum / segments.length) * 10) / 10;
-  }, [segments]);
-
-  const greeting = useMemo(() => {
-    const h = new Date().getHours();
-    if (h < 6)  return 'Good night';
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
-  }, []);
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <Loader2 className="w-10 h-10 animate-spin" style={{ color: TEXT_MUTED }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f0c16' }}>
+        <Loader2 className="w-8 h-8 animate-spin opacity-30 text-violet-400" />
       </div>
     );
   }
 
   return (
-    <div
-      className="min-h-screen font-sans relative overflow-x-hidden flex flex-col"
-      style={{ background: BG, color: TEXT_MAIN }}
+    <AuraLayout
+      isDashboard
+      onTuneClick={() => setTuneOpen(true)}
     >
-      <ThemeToggle variant="floating" />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {universes.map(universe => (
+          <UniverseCard key={universe.id} universe={universe} />
+        ))}
+      </div>
 
-      {/* Soft warm ambient — one subtle glow, no more */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full blur-[160px] opacity-30"
-        style={{ background: 'radial-gradient(circle, #3A2F26 0%, transparent 65%)' }}
-      />
-
-      {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <motion.header
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full relative z-30"
-      >
-        <div className="w-full max-w-5xl mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-2">
-          <div
-            className="flex justify-between items-center w-full py-3 px-5 md:px-6 rounded-full"
-            style={{ background: BG_CARD, border: `1px solid ${BORDER}` }}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <h1 className="font-serif text-xl md:text-2xl font-medium tracking-tight truncate" style={{ color: TEXT_MAIN }}>
-                Aether OS
-              </h1>
-              {userName && (
-                <span className="hidden sm:block text-[11px] font-semibold" style={{ color: TEXT_MUTED }}>
-                  · {greeting}, {userName}
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => setTuneOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold tracking-wide active:scale-95 transition-transform"
-                style={{ background: 'rgba(245,239,230,0.06)', border: `1px solid ${BORDER}`, color: TEXT_MAIN }}
-                aria-label="Tune frequencies"
-              >
-                <Sliders size={13} />
-                <span className="hidden sm:inline">Tune</span>
-              </button>
-              <button
-                onClick={() => navigate('/diagnostics')}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold tracking-wide active:scale-95 transition-transform"
-                style={{ background: 'rgba(245,239,230,0.06)', border: `1px solid ${BORDER}`, color: TEXT_MAIN }}
-              >
-                <BrainCircuit size={13} />
-                <span className="hidden sm:inline">AI Diagnostics</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* ── MAIN WHEEL ─────────────────────────────────────────────────── */}
-      <motion.main
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="flex-1 w-full max-w-3xl mx-auto flex flex-col items-center justify-center px-4 md:px-8 pt-2 pb-6 md:py-8 relative z-10"
-      >
-        {/* Subtle eyebrow */}
-        <p className="text-[10px] font-black tracking-[0.24em] uppercase mb-1 transition-colors duration-300" style={{ color: hoveredId ? segments.find(s => s.id === hoveredId)?.color : TEXT_MUTED }}>
-          {hoveredId ? segments.find(s => s.id === hoveredId)?.name ?? 'Wheel of Life' : 'Wheel of Life'}
-        </p>
-        <p className="text-[12px] mb-2" style={{ color: TEXT_MUTED }}>
-          Tap a universe to enter it
-        </p>
-
-        <div className="w-full max-w-[560px]">
-          <LifeWheel
-            segments={segments}
-            hoveredId={hoveredId}
-            onHover={setHoveredId}
-            onSelectSegment={(s) => {
-              const target = segments.find(x => x.id === s.id);
-              // viewTransition triggers document.startViewTransition under the
-              // hood, morphing the tapped segment into the universe hero glow.
-              if (target?.path) navigate(target.path, { viewTransition: true });
-            }}
-            centerValue={aetherScore}
-            centerLabel="BALANCE"
-          />
-        </div>
-      </motion.main>
-
-      {/* ── Tune sheet (opens only when the user asks) ──────────────────── */}
       <FrequencyTuningSheet
         open={tuneOpen}
         onClose={() => setTuneOpen(false)}
-        segments={segments}
+        segments={universes.map(u => ({ id: u.id, name: u.name, value: u.value, color: u.color }))}
         onChange={handleLocalChange}
         onCommit={handleCommit}
       />
-    </div>
+    </AuraLayout>
   );
 }

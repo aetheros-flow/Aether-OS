@@ -1,0 +1,10 @@
+# Supabase project-level config for this repo.
+# Used by `supabase functions deploy` (CLI). Per-function overrides go under
+# `[functions.<name>]`.
+
+[functions.lebrary-web-import]
+# We verify the JWT INSIDE the function (via supabase-js `auth.getUser()`),
+# which handles both HS256 (legacy) and ES256 (asymmetric keys) algorithms.
+# Letting the gateway verify with its legacy HS256 secret fails on projects
+# that have migrated to asymmetric keys.
+verify_jwt = false
