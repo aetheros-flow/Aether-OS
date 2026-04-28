@@ -134,7 +134,7 @@ export default function PantallaShell() {
 
         {/* ── MOBILE BOTTOM NAV ─────────────────────────────────────────── */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-6 pt-4"
+          className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pt-4"
           style={{
             paddingBottom: 'max(env(safe-area-inset-bottom, 0px) + 16px, 20px)',
             background: 'rgba(22,18,15,0.88)',
@@ -144,6 +144,12 @@ export default function PantallaShell() {
             boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
           }}
         >
+          <NavBtn
+            icon={ArrowLeft}
+            label="Ocio"
+            active={false}
+            onClick={() => navigate('/ocio')}
+          />
           {TABS.map(tab => (
             <NavBtn
               key={tab.id}

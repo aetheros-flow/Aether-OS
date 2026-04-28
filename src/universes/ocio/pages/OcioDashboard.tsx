@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   BookOpen, Tv, Puzzle, Star, Plus,
   Loader2, Trash2, CheckCircle2, Circle, Clock, Edit3, Sparkles,
-  ArrowRight, Play, TrendingUp, MoreVertical, Library,
+  ArrowRight, Play, TrendingUp, MoreVertical, Library, LayoutDashboard,
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
@@ -77,11 +77,12 @@ const DEFAULT_HOBBY: NewHobbyInput = { name: '', frequency: '', last_practiced: 
 const DEFAULT_BUCKET: NewBucketInput = { description: '', category: '', status: 'Pendiente' };
 
 const auraTabs: TabItem[] = [
-  { id: 'movies',     label: 'Movies',  icon: <Tv size={16} />,        mobileLabel: 'Movies'  },
-  { id: 'videos',     label: 'Videos',  icon: <Play size={16} />,      mobileLabel: 'Videos'  },
-  { id: 'biblioteca', label: 'Library', icon: <BookOpen size={16} />,  mobileLabel: 'Library' },
-  { id: 'hobbies',    label: 'Hobbies', icon: <Puzzle size={16} />,    mobileLabel: 'Hobbies' },
-  { id: 'bucket',     label: 'Bucket',  icon: <Star size={16} />,      mobileLabel: 'Bucket'  },
+  { id: 'dashboard',  label: 'Hub',     icon: <LayoutDashboard size={16} />, mobileLabel: 'Hub'     },
+  { id: 'movies',     label: 'Movies',  icon: <Tv size={16} />,              mobileLabel: 'Movies'  },
+  { id: 'videos',     label: 'Videos',  icon: <Play size={16} />,            mobileLabel: 'Videos'  },
+  { id: 'biblioteca', label: 'Library', icon: <BookOpen size={16} />,        mobileLabel: 'Library' },
+  { id: 'hobbies',    label: 'Hobbies', icon: <Puzzle size={16} />,          mobileLabel: 'Hobbies' },
+  { id: 'bucket',     label: 'Bucket',  icon: <Star size={16} />,            mobileLabel: 'Bucket'  },
 ];
 
 // ── Star rating picker ────────────────────────────────────────────────────────
@@ -267,7 +268,6 @@ export default function OcioDashboard() {
       accentColor={ACCENT}
       title="Leisure & Hobbies"
       subtitle="Entertainment & Pastimes"
-      hideHomeButton
     >
         {/* ── DASHBOARD (OVERVIEW) ── */}
         {activeTab === 'dashboard' && (
